@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
+    <title>PayPal JS SDK Advanced Integration - Checkout Flow</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      .product {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+        margin-bottom: 10px;
+      }
+
+      .product img {
+        width: 80px;
+        height: 80px;
+        margin-right: 20px;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .product-info {
+        flex-grow: 1;
+      }
+
+      .product-title {
+        font-weight: bold;
+      }
+
+      .product-price {
+        color: #666;
+      }
+
+      #paypal-button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      #result-message {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Checkout</h1>
+
+      <div class="product">
+        <img src="https://picsum.photos/200" alt="Product Image" />
+        <div class="product-info">
+          <div class="product-title">Sample Product</div>
+          <div class="product-price">$100.00</div>
+        </div>
+      </div>
+
+      <div id="paypal-button-container" class="paypal-button-container"></div>
+      <div id="card-form" class="card_container">
+        <div id="card-name-field-container"></div>
+        <div id="card-number-field-container"></div>
+        <div id="card-expiry-field-container"></div>
+        <div id="card-cvv-field-container"></div>
+        <button id="multi-card-field-button" type="button">
+          Pay now with Card
+        </button>
+      </div>
+      <p id="result-message"></p>
+    </div>
+    <script src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=Abbz7vGw_5c8_cdyGzrRM_ZmP8YISHGRbN0SeR1aWPF4XesBlhwds2M9bsMwHpeEaSyfqOrJKTvRuPkD"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
