@@ -9,6 +9,7 @@ Install my-project with npm
 ```bash
   cd my-project
   npm install
+  create an .env file with a client ID and client secret
 ```
 
 ## Screenshots
