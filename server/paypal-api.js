@@ -1,84 +1,19 @@
-import fetch from "node-fetch";
+const baseUrl = {
+  sandbox: "https://api.sandbox.paypal.com",
+};
 
-// set some important variables
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
-const base = "https://api-m.sandbox.paypal.com";
-
-/**
- * Create an order to start the transaction.
- * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
- */
-export async function createOrder() {
-  const purchaseAmount = "100.00";
-  const accessToken = await generateAccessToken();
-  const url = `${base}/v2/checkout/orders`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
-      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
-      // "PayPal-Mock-Response": '{"mock_application_codes": "MISSING_REQUIRED_PARAMETER"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "PERMISSION_DENIED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
-    },
-    body: JSON.stringify({
-      intent: "CAPTURE",
-      purchase_units: [
-        {
-          amount: {
-            currency_code: "USD",
-            value: purchaseAmount,
-          },
-        },
-      ],
-    }),
-  });
-
-  return handleResponse(response);
-}
-
-/**
- * Capture payment for the created order to complete the transaction.
- * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
- */
-export async function capturePayment(orderId) {
-  const accessToken = await generateAccessToken();
-  const url = `${base}/v2/checkout/orders/${orderId}/capture`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
-      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "TRANSACTION_REFUSED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
-    },
-  });
-
-  return handleResponse(response);
-}
-
-/**
- * Generate an OAuth 2.0 access token for authenticating with PayPal REST APIs.
- * @see https://developer.paypal.com/api/rest/authentication/
- */
+// Generate Access Token
 export async function generateAccessToken() {
   try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-      throw new Error("MISSING_API_CREDENTIALS");
-    }
     const auth = Buffer.from(
-      PAYPAL_CLIENT_ID + ":" + PAYPAL_CLIENT_SECRET
+      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
     ).toString("base64");
-    const response = await fetch(`${base}/v1/oauth2/token`, {
+    const response = await fetch(`${baseUrl.sandbox}/v1/oauth2/token`, {
       method: "POST",
       body: "grant_type=client_credentials",
       headers: {
         Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
@@ -89,27 +24,207 @@ export async function generateAccessToken() {
   }
 }
 
-// generate client token
-export async function generateClientToken() {
+// Create an order
+export async function createOrder(task) {
   const accessToken = await generateAccessToken();
-  const response = await fetch(`${base}/v1/identity/generate-token`, {
-    method: "post",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Accept-Language": "en_US",
-      "Content-Type": "application/json",
-    },
-  });
-  console.log("response", response.status);
-  const jsonData = await handleResponse(response);
-  return jsonData.client_token;
-}
+  const url = `${baseUrl.sandbox}/v2/checkout/orders`;
+  const orderData = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "GBP",
+          value: "240.00",
+          breakdown: {
+            tax_total: {
+              currency_code: "GBP",
+              value: "30.00",
+            },
+            insurance: {
+              currency_code: "GBP",
+              value: "7.00",
+            },
+            shipping: {
+              currency_code: "GBP",
+              value: "13.00",
+            },
+            item_total: {
+              currency_code: "GBP",
+              value: "190.00",
+            },
+          },
+        },
+        description: "Apparel Department",
+        items: [
+          {
+            name: "Batman T-Shirt",
+            quantity: "2",
+            unit_amount: {
+              currency_code: "GBP",
+              value: "50.00",
+            },
+            description: "The most amazing DC fashion line.",
+            sku: "SKU-920391",
+            tax: {
+              currency_code: "GBP",
+              value: "10.00",
+            },
+          },
+          {
+            name: "Superman T-Shirt",
+            quantity: "1",
+            unit_amount: {
+              currency_code: "GBP",
+              value: "90.00",
+            },
+            description: "The most amazing DC fashion line.",
+            sku: "SKU-920199",
+            tax: {
+              currency_code: "GBP",
+              value: "10.00",
+            },
+          },
+        ],
+        shipping: {
+          name: {
+            full_name: "Walter White",
+          },
+          address: {
+            address_line_1: "308 Negra Arroyo Lane",
+            admin_area_2: "Roma",
+            admin_area_1: "RM",
+            postal_code: "00100",
+            country_code: "GB",
+          },
+          type: "SHIPPING",
+        },
+        soft_descriptor: "Primark web",
+      },
+    ],
+  };
 
-async function handleResponse(response) {
-  if (response.status === 200 || response.status === 201) {
-    return response.json();
+  const paymentSource = {
+    paypal: {
+      experience_context: {
+        brand_name: "Primark Stores Limited",
+        landing_page: "NO_PREFERENCE",
+      },
+    },
+  };
+
+  const advancedCreditCardSource = {
+    card: {
+      attributes: {
+        verification: {
+          method: "SCA_ALWAYS",
+        },
+      },
+    },
+  };
+
+  if (task === "button") {
+    orderData.payment_source = paymentSource;
+  } else if (task === "advancedCC") {
+    orderData.payment_source = advancedCreditCardSource;
   }
 
-  const errorMessage = await response.text();
-  throw new Error(errorMessage);
+  const requestid = "new-order-" + new Date().toISOString();
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "PayPal-Request-Id": requestid,
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(orderData),
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+// Capture payment for an order
+export async function capturePayment(orderId) {
+  const accessToken = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}/capture`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      Prefer: "return=representation",
+    },
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+// Get 3DS payment source
+export async function paymentSource(orderId) {
+  const accessToken = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}?fields=payment_source`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  const data = await response.json();
+  return handle3DSResponse(data);
+}
+
+// Handle 3DS response parameters
+function handle3DSResponse(response) {
+  const authenticationResult =
+    response.payment_source.card.authentication_result;
+
+  const LS = authenticationResult.liability_shift || "X";
+  const ES = authenticationResult.three_d_secure.enrollment_status || "X";
+  const AS = authenticationResult.three_d_secure.authentication_status || "X";
+
+  const result = { ES, AS, LS };
+
+  const CWA = [
+    { ES: "Y", AS: "Y", LS: "POSSIBLE" },
+    { ES: "Y", AS: "Y", LS: "YES" },
+    { ES: "Y", AS: "A", LS: "POSSIBLE" },
+    { ES: "N", AS: "X", LS: "NO" },
+    { ES: "U", AS: "X", LS: "NO" },
+    { ES: "B", AS: "X", LS: "NO" },
+  ];
+
+  const DNCWA = [
+    { ES: "Y", AS: "N", LS: "NO" },
+    { ES: "Y", AS: "R", LS: "NO" },
+  ];
+
+  const DNCWARCHTR = [
+    { ES: "Y", AS: "U", LS: "UNKNOWN" },
+    { ES: "Y", AS: "U", LS: "NO" },
+    { ES: "Y", AS: "C", LS: "UNKNOWN" },
+    { ES: "Y", AS: "X", LS: "NO" },
+    { ES: "U", AS: "X", LS: "UNKNOWN" },
+    { ES: "X", AS: "X", LS: "UNKNOWN" },
+  ];
+
+  if (CWA.some((action) => JSON.stringify(action) === JSON.stringify(result))) {
+    return { result: "capture" };
+  } else if (
+    DNCWA.some((action) => JSON.stringify(action) === JSON.stringify(result))
+  ) {
+    return { result: "unknown" };
+  } else if (
+    DNCWARCHTR.some(
+      (action) => JSON.stringify(action) === JSON.stringify(result)
+    )
+  ) {
+    return { result: "retry" };
+  } else {
+    return { result: "genericIssue" };
+  }
 }

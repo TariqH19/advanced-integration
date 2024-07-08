@@ -1,169 +1,106 @@
-function handleTransactionCases(orderData) {
-  const errorDetail = orderData?.details?.[0];
-  if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-    resultMessage(`<h3>Payment failed please try again</h3>`);
-    // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-    // recoverable state, per https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
-    return actions.restart();
-  } else if (errorDetail) {
-    // (2) Other non-recoverable errors -> Show a failure message
-    resultMessage(`<h3>Payment failed please try again</h3>`);
-    throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
-  } else if (!orderData.purchase_units) {
-    throw new Error(JSON.stringify(orderData));
-  } else {
-    // (3) Successful transaction -> Show confirmation or thank you message
-    // Or go to another URL:  actions.redirect('thank_you.html');
-    const transaction = orderData.purchase_units[0].payments.captures[0];
-    resultMessage(`<h3>Transaction ${transaction.status}</h3>`);
-    console.log(
-      "Capture result",
-      orderData,
-      JSON.stringify(orderData, null, 2)
-    );
-  }
-}
-
-async function onCreateOrder() {
-  try {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // use the "body" param to optionally pass additional order information
-      // like product ids and quantities
-      body: JSON.stringify({
-        cart: [
-          {
-            id: "Abbz7vGw_5c8_cdyGzrRM_ZmP8YISHGRbN0SeR1aWPF4XesBlhwds2M9bsMwHpeEaSyfqOrJKTvRuPkD",
-            quantity: "2",
-          },
-        ],
-      }),
-    });
-
-    const orderData = await response.json();
-
-    if (orderData.id) {
-      return orderData.id;
-    } else {
-      const errorDetail = orderData?.details?.[0];
-      const errorMessage = errorDetail
-        ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-        : JSON.stringify(orderData);
-
-      throw new Error(errorMessage);
-    }
-  } catch (error) {
-    console.error(error);
-    resultMessage(`Could not initiate PayPal Checkout...<br><br>${error}`);
-  }
-}
-
-async function onCaptureOrder(orderID) {
-  try {
-    const response = await fetch(`/api/orders/${orderID}/capture`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    const orderData = await response.json();
-    handleTransactionCases(orderData);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-/*
-Example function to show a result to the user. Your site's UI library can be used instead,
-however alert() should not be used as it will interrupt the JS SDK window
-*/
-
-function resultMessage(message) {
-  const container = document.getElementById("paypal-button-container");
-  const p = document.createElement("p");
-  p.innerHTML = message;
-  container.parentNode.appendChild(p);
-}
-
+// PayPal Buttons integration
 paypal
   .Buttons({
-    style: {
-      shape: "rect",
-      // color:'blue' change the default color of the buttons
-      layout: "vertical", // default value. Can be changed to horizontal
+    createOrder: function (data, actions) {
+      return fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ task: "button" }), // Pass the correct task parameter
+      })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (order) {
+          return order.id; // Assuming order ID is returned correctly
+        });
     },
-    createOrder: onCreateOrder,
-    onApprove: async (data) => onCaptureOrder(data.orderID),
+    onApprove: function (data, actions) {
+      return fetch(`/api/orders/${data.orderID}/capture`, {
+        method: "POST",
+      })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (orderData) {
+          // Handle successful payment response
+          console.log("Payment was successful:", orderData);
+        });
+    },
+    onError: function (err) {
+      console.error("Error with PayPal button:", err);
+      // Handle error, e.g., show user a generic error message
+    },
   })
   .render("#paypal-button-container");
 
-// If this returns false or the card fields aren't visible, see Step #1.
-if (paypal.HostedFields.isEligible()) {
-  let orderId;
+// Initialize Card Fields
+const cardField = paypal.CardFields({
+  createOrder: async (data) => {
+    const result = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ task: "advancedCC" }), // Pass the correct task parameter
+    });
+    const { id } = await result.json();
+    return id;
+  },
+  onApprove: async (data) => {
+    const { orderID } = data;
+    const result = await fetch(`/api/orders/${orderID}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const res = await result.json();
+    // Retrieve vault details from the response and
+    // save vault.id and customer.id for the buyer's return experience
+    console.log("Capture was successful:", res);
+    return res;
+  },
+  onError: (error) => console.error("Something went wrong:", error),
+});
 
-  // Renders card fields
-  paypal.HostedFields.render({
-    // Call your server to set up the transaction
-    createOrder: async (data, actions) => {
-      orderId = await onCreateOrder(data, actions);
-      return orderId;
-    },
-    styles: {
-      ".valid": {
-        color: "green",
-      },
-      ".invalid": {
-        color: "red",
-      },
-    },
-    fields: {
-      number: {
-        selector: "#card-number",
-        placeholder: "4111 1111 1111 1111",
-      },
-      cvv: {
-        selector: "#cvv",
-        placeholder: "123",
-      },
-      expirationDate: {
-        selector: "#expiration-date",
-        placeholder: "MM/YY",
-      },
-    },
-  }).then((cardFields) => {
-    document
-      .querySelector("#card-form")
-      .addEventListener("submit", async (event) => {
-        event.preventDefault();
-        try {
-          const { value: cardHolderName } =
-            document.getElementById("card-holder-name");
-          const { value: postalCode } = document.getElementById(
-            "card-billing-address-zip"
-          );
-          const { value: countryCodeAlpha2 } = document.getElementById(
-            "card-billing-address-country"
-          );
+// Render Card Fields
+if (cardField.isEligible()) {
+  const nameField = cardField.NameField();
+  nameField.render("#card-name-field-container");
 
-          await cardFields.submit({
-            cardHolderName,
-            billingAddress: {
-              postalCode,
-              countryCodeAlpha2,
-            },
-          });
+  const numberField = cardField.NumberField();
+  numberField.render("#card-number-field-container");
 
-          await onCaptureOrder(orderId);
-        } catch (error) {
-          alert("Payment could not be captured! " + JSON.stringify(error));
-        }
-      });
-  });
-} else {
-  // Hides card fields if the merchant isn't eligible
-  document.querySelector("#card-form").style = "display: none";
+  const cvvField = cardField.CVVField();
+  cvvField.render("#card-cvv-field-container");
+
+  const expiryField = cardField.ExpiryField();
+  expiryField.render("#card-expiry-field-container");
+
+  // Add click listener to submit button
+  document
+    .getElementById("card-field-submit-button")
+    .addEventListener("click", function () {
+      cardField
+        .submit({
+          // Example billing address, replace with actual data if needed
+          billingAddress: {
+            address_line_1: "123 Billing St",
+            address_line_2: "Apartment 5",
+            admin_area_2: "San Jose",
+            admin_area_1: "CA",
+            postal_code: "SW1A 0AA",
+            country_code: "GB",
+          },
+        })
+        .then(function (details) {
+          console.log("Credit card form submitted successfully:", details);
+        })
+        .catch(function (err) {
+          console.error("Error with credit card form submission:", err);
+          // Handle error, e.g., show user a generic error message
+        });
+    });
 }
