@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import {
   generateAccessToken,
+  listPaymentTokens,
   createOrder,
   capturePayment,
   paymentSource,
@@ -34,10 +35,10 @@ app.get("/", async (req, res) => {
   });
 });
 
-// Create order
 app.post("/api/orders", async (req, res) => {
   try {
-    const order = await createOrder(req.body.task); // Ensure you're passing the correct parameter
+    const { task, saveCard } = req.body;
+    const order = await createOrder(task, saveCard);
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Failed to create order" });
@@ -63,6 +64,32 @@ app.get("/api/payment-source/:orderID", async (req, res) => {
     res.json(sourceData);
   } catch (error) {
     res.status(500).json({ error: "Failed to get payment source" });
+  }
+});
+
+app.post("/webhook", async (req, res) => {
+  const event = req.body;
+
+  if (event.event_type === "VAULT.STORE.CARD") {
+    const vaultID = event.resource.id;
+    try {
+      const tokens = await listPaymentTokens(vaultID);
+      console.log(tokens); // Handle the tokens as needed, e.g., save to DB, display to user, etc.
+    } catch (error) {
+      console.error("Error fetching payment tokens:", error);
+    }
+  }
+
+  res.sendStatus(200);
+});
+
+app.get("/saved-cards", async (req, res) => {
+  const customerId = req.query.customerId;
+  try {
+    const tokens = await listPaymentTokens(customerId);
+    res.render("saved-cards", { tokens });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to list payment tokens" });
   }
 });
 

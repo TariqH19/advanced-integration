@@ -24,8 +24,7 @@ export async function generateAccessToken() {
   }
 }
 
-// Create an order
-export async function createOrder(task) {
+export async function createOrder(task, saveCard = false) {
   const accessToken = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders`;
   const orderData = {
@@ -118,6 +117,9 @@ export async function createOrder(task) {
         verification: {
           method: "SCA_ALWAYS",
         },
+        vault: {
+          store_in_vault: "ON_SUCCESS",
+        },
       },
     },
   };
@@ -126,6 +128,10 @@ export async function createOrder(task) {
     orderData.payment_source = paymentSource;
   } else if (task === "advancedCC") {
     orderData.payment_source = advancedCreditCardSource;
+    if (saveCard) {
+      orderData.payment_source.card.attributes.vault.store_in_vault =
+        "ON_SUCCESS";
+    }
   }
 
   const requestid = "new-order-" + new Date().toISOString();
@@ -145,7 +151,6 @@ export async function createOrder(task) {
   return data;
 }
 
-// Capture payment for an order
 export async function capturePayment(orderId) {
   const accessToken = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}/capture`;
@@ -155,6 +160,22 @@ export async function capturePayment(orderId) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
       Prefer: "return=representation",
+    },
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+export async function listPaymentTokens(vaultID) {
+  const accessToken = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v3/vault/payment-tokens/${vaultID}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
     },
   });
 
