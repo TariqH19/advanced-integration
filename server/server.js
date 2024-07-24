@@ -3,11 +3,10 @@ import express from "express";
 import { fileURLToPath } from "url";
 import path from "path";
 import {
-  generateAccessToken,
+  getOrderDetails,
   listPaymentTokens,
   createOrder,
   capturePayment,
-  paymentSource,
 } from "./paypal-api.js"; // Import your PayPal helper functions
 
 // Convert file URL to file path
@@ -45,6 +44,22 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
+app.get("/api/orders/:orderID", async (req, res) => {
+  const { orderID } = req.params; // Ensure orderID is defined here
+  try {
+    const orderDetails = await getOrderDetails(orderID);
+    res.json(orderDetails);
+  } catch (error) {
+    console.error(
+      `Error fetching order details for ${orderID}:`,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: `Failed to get order details: ${error.message}` });
+  }
+});
+
 // Capture payment
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
@@ -53,17 +68,6 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
     res.json(captureData);
   } catch (error) {
     res.status(500).json({ error: "Failed to capture payment" });
-  }
-});
-
-// Check 3DS response
-app.get("/api/payment-source/:orderID", async (req, res) => {
-  try {
-    const { orderID } = req.params;
-    const sourceData = await paymentSource(orderID);
-    res.json(sourceData);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to get payment source" });
   }
 });
 

@@ -43,12 +43,13 @@ const cardField = paypal.CardFields({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        cart: [
-          {
-            id: "Abbz7vGw_5c8_cdyGzrRM_ZmP8YISHGRbN0SeR1aWPF4XesBlhwds2M9bsMwHpeEaSyfqOrJKTvRuPkD",
-            quantity: "2",
+        card: {
+          attributes: {
+            verification: {
+              method: "SCA_ALWAYS",
+            },
           },
-        ],
+        },
         task: "advancedCC",
         saveCard,
       }),
