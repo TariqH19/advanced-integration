@@ -24,10 +24,10 @@ export async function generateAccessToken() {
   }
 }
 
-export async function createOrder(task, saveCard = false) {
+export async function createOrder(task, saveCard) {
   const accessToken = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders`;
-  const orderData = {
+  const payload = {
     intent: "CAPTURE",
     purchase_units: [
       {
@@ -39,32 +39,37 @@ export async function createOrder(task, saveCard = false) {
     ],
   };
 
-  const paymentSource = {
+  const paypalSource = {
     paypal: {
       experience_context: {
-        brand_name: "Primark Stores Limited",
-        landing_page: "NO_PREFERENCE",
+        shipping_preference: "NO_SHIPPING",
+        return_url: "https://example.com/returnUrl",
+        cancel_url: "https://example.com/cancelUrl",
+      },
+      attributes: {
+        vault: {
+          store_in_vault: "ON_SUCCESS",
+          usage_type: "MERCHANT",
+          customer_type: "CONSUMER",
+        },
       },
     },
   };
 
   const advancedCreditCardSource = {
     card: {
-      attributes: {},
+      attributes: {
+        vault: {
+          store_in_vault: "ON_SUCCESS",
+        },
+      },
     },
   };
 
-  // Add vaulting only if saveCard is true
-  if (saveCard) {
-    advancedCreditCardSource.card.attributes.vault = {
-      store_in_vault: "ON_SUCCESS",
-    };
-  }
-
   if (task === "button") {
-    orderData.payment_source = paymentSource;
-  } else if (task === "advancedCC") {
-    orderData.payment_source = advancedCreditCardSource;
+    payload.payment_source = paypalSource;
+  } else if (task === "advancedCC" && saveCard) {
+    payload.payment_source = advancedCreditCardSource;
   }
 
   const requestid = "new-order-" + new Date().toISOString();
@@ -78,7 +83,7 @@ export async function createOrder(task, saveCard = false) {
         "PayPal-Request-Id": requestid,
         Prefer: "return=representation",
       },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
@@ -114,6 +119,7 @@ export async function getOrderDetails(orderId) {
   }
 }
 
+// capture payment for an order
 export async function capturePayment(orderId) {
   const accessToken = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}/capture`;
@@ -122,26 +128,8 @@ export async function capturePayment(orderId) {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      Prefer: "return=representation",
     },
   });
-
-  const data = await response.json();
-  return data;
-}
-
-export async function listPaymentTokens(vaultID) {
-  const accessToken = await generateAccessToken();
-  const url = `${baseUrl.sandbox}/v3/vault/payment-tokens/${vaultID}`;
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-  });
-
   const data = await response.json();
   return data;
 }

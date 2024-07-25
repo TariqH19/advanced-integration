@@ -11,33 +11,32 @@ paypal
         .then(function (res) {
           return res.json();
         })
-        .then(function (order) {
-          return order.id;
+        .then(function (orderData) {
+          return orderData.id;
         });
     },
     onApprove: function (data, actions) {
       return fetch(`/api/orders/${data.orderID}/capture`, {
         method: "POST",
       })
-        .then(function (res) {
-          return res.json();
-        })
-        .then(function (orderData) {
-          // Handle successful payment response
+        .then((res) => res.json())
+        .then((orderData) => {
           console.log("Payment was successful:", orderData);
+        })
+        .catch((err) => {
+          console.error("Error capturing payment:", err);
         });
     },
     onError: function (err) {
       console.error("Error with PayPal button:", err);
-      // Handle error, e.g., show user a generic error message
     },
   })
   .render("#paypal-button-container");
 
 const cardField = paypal.CardFields({
   createOrder: async (data) => {
-    const saveCard = document.getElementById("save").checked;
-    const result = await fetch("/api/orders", {
+    const saveCard = document.getElementById("save")?.checked || false;
+    const response = await fetch("/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,49 +48,65 @@ const cardField = paypal.CardFields({
               method: "SCA_ALWAYS",
             },
           },
+          experience_context: {
+            shipping_preference: "NO_SHIPPING",
+            return_url: "https://example.com/returnUrl",
+            cancel_url: "https://example.com/cancelUrl",
+          },
         },
         task: "advancedCC",
-        saveCard,
+        saveCard: saveCard,
       }),
     });
-    const { id } = await result.json();
-    return id;
+    const orderData = await response.json();
+    return orderData.id;
   },
-  onApprove: async (data) => {
+  onApprove: async function (orderData) {
+    console.log("Card payment approved for order:", orderData.orderID);
+
     try {
-      const { orderID } = data;
-      const result = await fetch(`/api/orders/${orderID}/capture`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const result = await fetch(`/api/orders/${orderData.orderID}`, {
+        method: "GET",
       });
-      const res = await result.json();
-      console.log("Capture Response:", res);
+      const challenge = await result.json();
+      console.log("Challenge data:", JSON.stringify(challenge, null, 2));
 
-      if (res.status === "COMPLETED") {
-        // console.log("res", res);
-        const paymentSource = res.payment_source;
-        // console.log("paymentSource", paymentSource);
+      const vault = orderData?.paymentSource?.card?.attributes?.vault;
+      console.log("Capture successful, vault info:", vault);
 
-        if (paymentSource && paymentSource.card) {
-          if (paymentSource.card.attributes.vault) {
-            console.log(
-              "Card status:",
-              paymentSource.card.attributes.vault.status
-            );
-          } else {
-            console.log("Card not saved.");
+      const authenticationStatus =
+        challenge.payment_source.card.authentication_result.three_d_secure
+          .authentication_status;
+      const enrollmentStatus =
+        challenge.payment_source.card.authentication_result.three_d_secure
+          .enrollment_status;
+
+      if (
+        orderData.liabilityShift === "POSSIBLE" &&
+        enrollmentStatus === "Y" &&
+        authenticationStatus === "Y"
+      ) {
+        const captureResult = await fetch(
+          `/api/orders/${orderData.orderID}/capture`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
-        } else {
-          console.log("Card information is missing.");
-        }
+        );
+        const captureData = await captureResult.json();
+        console.log("Captured payment", captureData);
+        const captureStatus =
+          captureData.purchase_units[0].payments.captures[0].status;
+        const transactionID = captureData.id;
+        console.log("Capture Status:", captureStatus);
+        console.log("Transaction ID:", transactionID);
       } else {
-        console.error("Capture was not successful:", res);
+        console.log("Capture conditions not met, payment not captured.");
       }
-      return res;
     } catch (error) {
-      console.error("Error with credit card form submission:", error);
+      console.error("Error during order fetch or capture:", error);
     }
   },
   onError: (error) => console.error("Something went wrong:", error),

@@ -14,7 +14,9 @@
     <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
     <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
     <!-- https://developer.paypal.com/sdk/js/configuration/ -->
-    <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
+    <script
+      src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"
+      data-user-id-token="<%= tokenId %>"></script>
   </head>
   <body>
     <style>
