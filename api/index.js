@@ -1,5 +1,7 @@
-import "dotenv/config";
-import express from "express";
+require("dotenv").config();
+const express = require("express");
+const app = require("./app.js");
+
 // import { fileURLToPath } from "url";
 import path from "path";
 import {
