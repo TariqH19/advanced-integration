@@ -8,7 +8,9 @@ import {
   capturePayment,
   generateAccessToken,
 } from "../server/paypal-api.js"; // Import your PayPal helper functions
-
+const baseUrl = {
+  sandbox: "https://api.sandbox.paypal.com",
+};
 // Convert file URL to file path
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
