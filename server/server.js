@@ -7,6 +7,7 @@ import {
   createOrder,
   capturePayment,
   generateAccessToken,
+  listPaymentTokens,
 } from "./paypal-api.js"; // Import your PayPal helper functions
 
 // Convert file URL to file path
@@ -71,6 +72,35 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
     res.json(captureData);
   } catch (error) {
     res.status(500).json({ error: "Failed to capture payment" });
+  }
+});
+
+app.post("/webhook", async (req, res) => {
+  console.log("Webhook received", JSON.stringify(req.body, null, 2));
+  const eventType = req.body.event_type || req.body.eventType;
+  const resource = req.body.resource;
+
+  if (eventType === "VAULT.PAYMENT-TOKEN.CREATED") {
+    if (resource && resource.id) {
+      const vaultID = resource.id;
+      console.log("vault ID received", vaultID);
+    } else {
+      console.log("Vault data not found in the response");
+    }
+  } else {
+    console.log("Received webhook event is not related to vault creation");
+  }
+
+  res.sendStatus(200).send("Webhook processed");
+});
+
+app.get("/saved-cards", async (req, res) => {
+  const customerId = req.query.customerId;
+  try {
+    const tokens = await listPaymentTokens(customerId);
+    res.render("saved-cards", { tokens });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to list payment tokens" });
   }
 });
 

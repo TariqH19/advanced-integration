@@ -133,3 +133,19 @@ export async function capturePayment(orderId) {
   const data = await response.json();
   return data;
 }
+
+export async function listPaymentTokens(vaultID) {
+  const accessToken = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v3/vault/payment-tokens/${vaultID}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await response.json();
+  return data;
+}
