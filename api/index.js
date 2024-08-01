@@ -7,7 +7,7 @@ import {
   createOrder,
   capturePayment,
   generateAccessToken,
-} from "../server/paypal-api"; // Import your PayPal helper functions
+} from "../server/paypal-api.js"; // Import your PayPal helper functions
 
 // Convert file URL to file path
 const app = express();
