@@ -1,9 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const app = require("./app.js");
-
+const path = require("path");
 // import { fileURLToPath } from "url";
-import path from "path";
 import {
   getOrderDetails,
   createOrder,
