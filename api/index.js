@@ -18,7 +18,8 @@ const __dirname = path.dirname(__filename);
 const clientPath = path.join(__dirname, "../client");
 app.use(express.static(clientPath));
 app.set("view engine", "ejs");
-app.set("views", "../server/views");
+const viewsPath = path.join(__dirname, "../server/views");
+app.set("views", viewsPath);
 
 // Middleware to parse JSON requests
 app.use(express.json());
