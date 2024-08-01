@@ -149,3 +149,30 @@ if (cardField.isEligible()) {
         });
     });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Assuming you have the customer ID available, e.g., from a session or a hidden field
+  const customerId = cst_00033;
+
+  if (customerId) {
+    fetch(`/api/payment-tokens/${customerId}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch payment tokens");
+        return response.json();
+      })
+      .then((tokens) => {
+        const listElement = document.getElementById("payment-tokens-list");
+        tokens.forEach((token) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = `Token ID: ${token.id}, Type: ${token.type}`;
+          listElement.appendChild(listItem);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching payment tokens:", error);
+        alert("Failed to load saved payment methods.");
+      });
+  } else {
+    console.warn("No customer ID available to fetch payment tokens.");
+  }
+});

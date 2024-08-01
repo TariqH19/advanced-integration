@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved Cards</title>
+  </head>
+  <body>
+    <h1>Saved Payment Methods</h1>
+    <% if (tokens && tokens.length > 0) { %>
+    <ul>
+      <% tokens.forEach(token => { %>
+      <li>
+        <p>Card Type: <%= token.card_type %></p>
+        <p>Last 4 Digits: <%= token.last4 %></p>
+        <p>Expiry Date: <%= token.expiry_date %></p>
+      </li>
+      <% }) %>
+    </ul>
+    <% } else { %>
+    <p>No saved payment methods found.</p>
+    <% } %>
+  </body>
+</html>

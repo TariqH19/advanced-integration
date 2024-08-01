@@ -94,13 +94,20 @@ app.post("/webhook", async (req, res) => {
   res.sendStatus(200).send("Webhook processed");
 });
 
-app.get("/saved-cards", async (req, res) => {
-  const customerId = req.query.customerId;
+app.get("/api/payment-tokens/:customerId", async (req, res) => {
+  const { customerId } = req.params;
+
   try {
     const tokens = await listPaymentTokens(customerId);
-    res.render("saved-cards", { tokens });
+    res.json(tokens);
   } catch (error) {
-    res.status(500).json({ error: "Failed to list payment tokens" });
+    console.error(
+      `Error listing payment tokens for ${customerId}:`,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: `Failed to list payment tokens: ${error.message}` });
   }
 });
 
