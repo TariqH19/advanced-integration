@@ -14,14 +14,11 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.set("view engine", "ejs");
-app.set("views", "./views");
-
 // Host static files
 const clientPath = path.join(__dirname, "../client");
 app.use(express.static(clientPath));
 app.set("view engine", "ejs");
-app.set("views", "./views");
+app.set("views", "../server/views");
 
 // Middleware to parse JSON requests
 app.use(express.json());
