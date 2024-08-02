@@ -257,11 +257,6 @@ function initializePayPalComponents() {
 document.addEventListener("DOMContentLoaded", async () => {
   const customerIds = getCustomerIds(); // Retrieve all customer IDs from local storage
 
-  if (!customerIds.length) {
-    alert("No saved payment methods found.");
-    return;
-  }
-
   const table = document.getElementById("payment-methods-table");
 
   // Loop through each customer ID to fetch payment tokens
