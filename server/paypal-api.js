@@ -2,15 +2,19 @@ const baseUrl = {
   sandbox: "https://api.sandbox.paypal.com",
 };
 
-// Generate Access Token
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
 export async function generateAccessToken() {
   try {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error("Missing api creds");
+    }
+
     const auth = Buffer.from(
       `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
     ).toString("base64");
     const response = await fetch(`${baseUrl.sandbox}/v1/oauth2/token`, {
       method: "POST",
-      body: "grant_type=client_credentials",
+      body: `grant_type=client_credentials&response_type=idtoken&target_customer_id=iqOtguscgz`,
       headers: {
         Authorization: `Basic ${auth}`,
         "Content-Type": "application/x-www-form-urlencoded",
@@ -18,14 +22,20 @@ export async function generateAccessToken() {
     });
 
     const data = await response.json();
-    return data.access_token;
+    console.log("Full api Response", data);
+
+    return {
+      accessToken: data.access_token,
+      idToken: data.id_token,
+    };
   } catch (error) {
-    console.error("Failed to generate Access Token:", error);
+    console.error("Failed", error);
+    // throw error;
   }
 }
 
-export async function createOrder(task, saveCard) {
-  const accessToken = await generateAccessToken();
+export async function createOrder(task, saveCard, paymentToken = null) {
+  const { accessToken } = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders`;
   const payload = {
     intent: "CAPTURE",
@@ -70,6 +80,13 @@ export async function createOrder(task, saveCard) {
     payload.payment_source = paypalSource;
   } else if (task === "advancedCC" && saveCard) {
     payload.payment_source = advancedCreditCardSource;
+  } else if (paymentToken) {
+    payload.payment_source = {
+      token: {
+        type: "PAYMENT_METHOD_TOKEN",
+        id: paymentToken,
+      },
+    };
   }
 
   const requestid = "new-order-" + new Date().toISOString();
@@ -94,7 +111,7 @@ export async function createOrder(task, saveCard) {
 }
 
 export async function getOrderDetails(orderId) {
-  const accessToken = await generateAccessToken();
+  const { accessToken } = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}`;
 
   try {
@@ -119,17 +136,35 @@ export async function getOrderDetails(orderId) {
   }
 }
 
-// capture payment for an order
 export async function capturePayment(orderId) {
-  const accessToken = await generateAccessToken();
+  const { accessToken } = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders/${orderId}/capture`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  const data = await response.json();
-  return data;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to capture payment:", errorData);
+      const detailedMessage = `Failed to capture payment. HTTP Status: ${
+        response.status
+      }. Error: ${JSON.stringify(errorData, null, 2)}.`;
+      throw new Error(detailedMessage);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error during payment capture:", error.message);
+    console.error("Stack trace:", error.stack);
+    throw new Error(
+      `An error occurred while capturing payment: ${error.message}`
+    );
+  }
 }
