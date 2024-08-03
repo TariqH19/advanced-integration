@@ -91,6 +91,10 @@ function initializePayPalComponents() {
           .then((res) => res.json())
           .then((orderData) => {
             console.log("Payment was successful:", orderData);
+            showSuccess(
+              "Payment processed successfully! Thank you for your order."
+            );
+
             const vaultId =
               orderData?.payment_source?.paypal?.attributes?.vault?.id;
             const customerId =
@@ -193,6 +197,10 @@ function initializePayPalComponents() {
           }
 
           const captureData = await captureResult.json();
+          showSuccess(
+            "Payment processed successfully! Thank you for your order."
+          );
+
           console.log("Captured payment:", captureData);
 
           const vaultId =
