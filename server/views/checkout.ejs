@@ -22,6 +22,37 @@
         font-family: Arial, Helvetica, sans-serif;
         font-size: 0.9rem;
       }
+      .payments {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .payments th,
+      .payments td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+
+      .payments th {
+        background-color: #f4f4f4;
+      }
+
+      .delete-button {
+        color: #d9534f;
+        background-color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      .delete-button:hover {
+        text-decoration: underline;
+      }
+
+      #message-container {
+        margin-top: 10px;
+        font-size: 1rem;
+      }
 
       .paypal-button-container {
         padding: 0 !important;
@@ -85,6 +116,7 @@
       }
     </style>
     <div id="mycart">
+      <div id="status-message"></div>
       <!-- Pay Later Messages:
              https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
              Please replace the amount with your variable -->
@@ -98,8 +130,22 @@
       <h3>Or choose your saved credit card:</h3>
       <form id="payment-form" method="POST">
         <table class="payments" id="payment-methods-table">
-          <!-- Saved payment methods will be populated here -->
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Card Brand</th>
+              <th>Card Number</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Payment methods will be dynamically inserted here -->
+          </tbody>
         </table>
+
+        <!-- Add a message container for better user feedback -->
+        <div id="message-container"></div>
+
         <div style="width: 100%; text-align: center; margin-top: 2rem">
           <button type="submit" id="submit" class="button">Pay Now</button>
         </div>

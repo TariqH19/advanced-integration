@@ -1,3 +1,4 @@
+let customerID = "";
 const baseUrl = {
   sandbox: "https://api.sandbox.paypal.com",
 };
@@ -22,7 +23,7 @@ export async function generateAccessToken() {
     });
 
     const data = await response.json();
-    console.log("Full api Response", data);
+    // console.log("Full api Response", data);
 
     return {
       accessToken: data.access_token,
@@ -34,9 +35,40 @@ export async function generateAccessToken() {
   }
 }
 
-export async function createOrder(task, saveCard, paymentToken = null) {
+export async function deletePaymentToken(tokenId) {
+  const { accessToken } = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v3/vault/payment-tokens/${tokenId}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status !== 204) {
+      const errorData = await response.json();
+      console.error("Failed to delete payment token:", errorData);
+      throw new Error(
+        `Failed to delete payment token. HTTP Status: ${response.status}.`
+      );
+    }
+
+    console.log("Payment token deleted successfully");
+  } catch (error) {
+    console.error("Error during payment token deletion:", error.message);
+    throw new Error(
+      `An error occurred while deleting payment token: ${error.message}`
+    );
+  }
+}
+
+export async function createOrder(task, saveCard, vaultID) {
   const { accessToken } = await generateAccessToken();
   const url = `${baseUrl.sandbox}/v2/checkout/orders`;
+
   const payload = {
     intent: "CAPTURE",
     purchase_units: [
@@ -52,6 +84,10 @@ export async function createOrder(task, saveCard, paymentToken = null) {
   const paypalSource = {
     paypal: {
       experience_context: {
+        payment_method_selected: "PAYPAL",
+        payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+        landing_page: "LOGIN",
+        user_action: "PAY_NOW",
         shipping_preference: "NO_SHIPPING",
         return_url: "https://example.com/returnUrl",
         cancel_url: "https://example.com/cancelUrl",
@@ -80,11 +116,10 @@ export async function createOrder(task, saveCard, paymentToken = null) {
     payload.payment_source = paypalSource;
   } else if (task === "advancedCC" && saveCard) {
     payload.payment_source = advancedCreditCardSource;
-  } else if (paymentToken) {
+  } else if (task === "useToken" && vaultID) {
     payload.payment_source = {
-      token: {
-        type: "PAYMENT_METHOD_TOKEN",
-        id: paymentToken,
+      card: {
+        vault_id: vaultID,
       },
     };
   }
@@ -104,6 +139,7 @@ export async function createOrder(task, saveCard, paymentToken = null) {
     });
 
     const data = await response.json();
+    console.log("Order created successfully:", data);
     return data;
   } catch (error) {
     console.error("Failed to create order:", error);

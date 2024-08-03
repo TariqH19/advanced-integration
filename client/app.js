@@ -48,8 +48,8 @@ async function fetchTokensAndLoadPayPalSDK() {
     }
 
     const tokens = await response.json();
-    console.log("Access Token: ", tokens.accessToken);
-    console.log("ID Token: ", tokens.tokenId);
+    // console.log("Access Token: ", tokens.accessToken);
+    // console.log("ID Token: ", tokens. tokenId);
 
     let existingScript = document.getElementById("paypal-sdk");
     if (existingScript) {
@@ -98,8 +98,8 @@ function initializePayPalComponents() {
                 ?.id;
 
             if (vaultId && customerId) {
-              addVaultId(vaultId); // Add vault ID to local storage
-              addCustomerId(customerId); // Add customer ID to local storage
+              localStorage.setItem("vaultId", vaultId); // Save vault ID to local storage
+              localStorage.setItem("customerId", customerId); // Save customer ID to local storage
             }
           });
       },
@@ -139,7 +139,8 @@ function initializePayPalComponents() {
 
         const orderData = await response.json();
         console.log("Order data from createOrder:", orderData);
-
+        GlorderID = orderData.id;
+        // Returning Order ID for the event onApprove
         return orderData.id;
       } catch (error) {
         console.error("Error in createOrder:", error);
@@ -255,81 +256,181 @@ function initializePayPalComponents() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const customerIds = getCustomerIds(); // Retrieve all customer IDs from local storage
+  const customerIds = getCustomerIds(); // Assume this function retrieves customer IDs
+  const tableBody = document.querySelector("#payment-methods-table tbody");
+  const messageContainer = document.getElementById("message-container");
 
-  const table = document.getElementById("payment-methods-table");
+  try {
+    // Clear previous content
+    tableBody.innerHTML = "";
+    messageContainer.textContent = "";
 
-  // Loop through each customer ID to fetch payment tokens
-  for (const customerId of customerIds) {
-    try {
-      const response = await fetch(
-        `/api/payment-tokens?customerId=${customerId}`
+    for (const customerId of customerIds) {
+      await loadPaymentMethods(customerId, tableBody, messageContainer);
+    }
+  } catch (error) {
+    console.error("Error during page initialization:", error);
+    messageContainer.textContent =
+      "An error occurred while loading payment methods.";
+  }
+});
+
+// Fetch and display payment methods for a specific customer
+async function loadPaymentMethods(customerId, tableBody, messageContainer) {
+  try {
+    const response = await fetch(
+      `/api/payment-tokens?customerId=${customerId}`
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching payment tokens for Customer ID ${customerId}: ${errorText}`
       );
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Error fetching payment tokens for Customer ID ${customerId}: ${errorText}`
-        );
+    }
+
+    const paymentMethods = await response.json();
+    if (paymentMethods.length === 0) {
+      const noMethodsMessage = document.createElement("p");
+      noMethodsMessage.textContent = `No payment methods found for Customer ID ${customerId}`;
+      return;
+    }
+
+    paymentMethods.forEach((payment) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="radio" name="method" value="${
+          payment.id
+        }" required></td>
+        <td><img src="https://fitx-image-bucket.s3.eu-west-1.amazonaws.com/${payment.payment_source.card.brand.toLowerCase()}.jpg" 
+                 alt="${
+                   payment.payment_source.card.brand
+                 }" style="width:120px;"></td>
+        <td>**** **** **** ${payment.payment_source.card.last_digits}</td>
+        <td><button class="delete-button" data-id="${
+          payment.id
+        }">Delete</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  } catch (error) {
+    // console.error("Error retrieving payment tokens:", error);
+  }
+}
+
+// Handle delete button clicks
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("delete-button")) {
+    const tokenId = event.target.dataset.id;
+
+    if (confirm("Are you sure you want to delete this payment token?")) {
+      try {
+        const response = await fetch(`/api/payment-tokens/${tokenId}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          alert("Payment token deleted successfully");
+          // Remove the token from the UI
+          event.target.closest("tr").remove();
+        } else {
+          const errorText = await response.text();
+          alert(`Failed to delete payment token: ${errorText}`);
+        }
+      } catch (error) {
+        console.error("Error deleting payment token:", error);
+        alert("An error occurred while deleting the payment token.");
       }
-
-      const paymentMethods = await response.json();
-
-      if (paymentMethods.length === 0) {
-        const noMethodsMessage = document.createElement("p");
-        noMethodsMessage.textContent = `No payment methods found for Customer ID ${customerId}`;
-        table.parentNode.insertBefore(noMethodsMessage, table);
-      }
-
-      paymentMethods.forEach((payment) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><input type="radio" name="method" value="${
-            payment.id
-          }" required></td>
-          <td><img src="https://fitx-image-bucket.s3.eu-west-1.amazonaws.com/${payment.payment_source.card.brand.toLowerCase()}.jpg" alt="${
-          payment.payment_source.card.brand
-        }" style="width:120px;"></td>
-          <td>**** **** **** ${payment.payment_source.card.last_digits}</td>
-        `;
-        table.appendChild(row);
-      });
-    } catch (error) {
-      console.error("Error retrieving payment tokens:", error);
     }
   }
 });
 
+// Add event listener to the "Pay Now" button
+document.getElementById("submit").addEventListener("click", async (event) => {
+  event.preventDefault(); // Prevent form submission if inside a form
+  await handlePayment();
+});
+
 async function handlePayment() {
   const selectedMethod = document.querySelector('input[name="method"]:checked');
+
   if (!selectedMethod) {
-    alert("Please select a payment method.");
+    showError("Please select a payment method.");
     return;
   }
 
-  const paymentToken = selectedMethod.value;
+  const vaultID = localStorage.getItem("vaultId");
 
   try {
-    const response = await fetch("/api/orders", {
+    // Create Order
+    const orderResponse = await fetch("/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         task: "useToken",
-        paymentToken: paymentToken,
+        vaultID, // Ensure the key matches the backend
       }),
     });
 
-    const orderData = await response.json();
-    console.log("Order created successfully:", orderData);
+    if (!orderResponse.ok) {
+      throw new Error(`Failed to create order: ${orderResponse.statusText}`);
+    }
+
+    const orderData = await orderResponse.json();
+    const orderId = orderData.id;
+
+    // Fetch Order Details
+    const orderDetailsResponse = await fetch(`/api/orders/${orderId}`, {
+      method: "GET",
+    });
+
+    if (!orderDetailsResponse.ok) {
+      throw new Error(
+        `Failed to fetch order details: ${orderDetailsResponse.statusText}`
+      );
+    }
+
+    const orderDetails = await orderDetailsResponse.json();
+
+    // Capture Payment
+    const captureResponse = await fetch(`/api/orders/${orderId}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!captureResponse.ok) {
+      throw new Error(
+        `Failed to capture payment: ${captureResponse.statusText}`
+      );
+    }
+
+    const captureData = await captureResponse.json();
+    console.log("Captured payment:", captureData);
+
+    // Provide success feedback to the user
+    showSuccess("Payment processed successfully! Thank you for your order.");
   } catch (error) {
-    console.error("Error creating order with payment token:", error);
+    console.error("Error during payment process:", error);
+    showError(
+      "An error occurred while processing your payment. Please try again."
+    );
   }
 }
 
-// Function to retrieve all customer IDs from local storage
-function getCustomerIds() {
-  return JSON.parse(localStorage.getItem("customerIds")) || [];
+function showError(message) {
+  const statusMessage = document.getElementById("status-message");
+  statusMessage.textContent = message;
+  statusMessage.className = "status-message error";
+}
+
+function showSuccess(message) {
+  const statusMessage = document.getElementById("status-message");
+  statusMessage.textContent = message;
+  statusMessage.className = "status-message success";
 }
 
 // Initialize everything when the page is loaded
