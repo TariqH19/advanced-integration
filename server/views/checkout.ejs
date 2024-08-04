@@ -22,6 +22,10 @@
         font-family: Arial, Helvetica, sans-serif;
         font-size: 0.9rem;
       }
+      #payment-container {
+  display: none;
+}
+
       .payments {
         width: 100%;
         border-collapse: collapse;
@@ -126,22 +130,24 @@
              https://developer.paypal.com/docs/checkout/advanced/integrate/ -->
       <div id="paypal-button-container" class="paypal-button-container"></div>
 
-      <div id="saved-payment-methods"></div>
-      <h3>Or choose your saved credit card:</h3>
-      <form id="payment-form" method="POST">
-        <table class="payments" id="payment-methods-table">
-          <thead>
-            <tr>
-              <th>Select</th>
-              <th>Card Brand</th>
-              <th>Card Number</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Payment methods will be dynamically inserted here -->
-          </tbody>
-        </table>
+      <div id="payment-container">
+  <h3>Or choose your saved credit card:</h3>
+  <form id="payment-form" method="POST">
+    <table class="payments" id="payment-methods-table">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Card Brand</th>
+          <th>Card Number</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Payment methods will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </form>
+</div>
 
         <!-- Add a message container for better user feedback -->
         <div id="message-container"></div>

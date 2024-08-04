@@ -264,9 +264,12 @@ function initializePayPalComponents() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const customerIds = getCustomerIds(); // Assume this function retrieves customer IDs
+  const customerIds = getCustomerIds();
   const tableBody = document.querySelector("#payment-methods-table tbody");
   const messageContainer = document.getElementById("message-container");
+  const paymentContainer = document.getElementById("payment-container");
+
+  let hasPaymentMethods = false;
 
   try {
     // Clear previous content
@@ -274,17 +277,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     messageContainer.textContent = "";
 
     for (const customerId of customerIds) {
-      await loadPaymentMethods(customerId, tableBody, messageContainer);
+      const hasMethods = await loadPaymentMethods(customerId, tableBody);
+      if (hasMethods) {
+        hasPaymentMethods = true;
+      }
+    }
+
+    if (hasPaymentMethods) {
+      paymentContainer.style.display = "block";
+    } else {
+      paymentContainer.style.display = "none";
     }
   } catch (error) {
-    console.error("Error during page initialization:", error);
+    console.error("Error loading payment methods:", error);
     messageContainer.textContent =
       "An error occurred while loading payment methods.";
+    paymentContainer.style.display = "none";
   }
 });
 
 // Fetch and display payment methods for a specific customer
-async function loadPaymentMethods(customerId, tableBody, messageContainer) {
+async function loadPaymentMethods(customerId, tableBody) {
   try {
     const response = await fetch(
       `/api/payment-tokens?customerId=${customerId}`
@@ -301,7 +314,8 @@ async function loadPaymentMethods(customerId, tableBody, messageContainer) {
     if (paymentMethods.length === 0) {
       const noMethodsMessage = document.createElement("p");
       noMethodsMessage.textContent = `No payment methods found for Customer ID ${customerId}`;
-      return;
+      tableBody.appendChild(noMethodsMessage);
+      return false;
     }
 
     paymentMethods.forEach((payment) => {
@@ -321,8 +335,11 @@ async function loadPaymentMethods(customerId, tableBody, messageContainer) {
       `;
       tableBody.appendChild(row);
     });
+
+    return true;
   } catch (error) {
-    // console.error("Error retrieving payment tokens:", error);
+    console.error("Error retrieving payment tokens:", error);
+    return false;
   }
 }
 
