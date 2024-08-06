@@ -74,12 +74,13 @@ function initializePayPalComponents() {
   paypal
     .Buttons({
       createOrder: function (data, actions) {
+        const saveCard = document.getElementById("save")?.checked || false;
         return fetch("/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ task: "button" }),
+          body: JSON.stringify({ task: "button", saveCard: saveCard }),
         })
           .then((res) => res.json())
           .then((orderData) => orderData.id);

@@ -71,6 +71,15 @@ export async function createOrder(task, saveCard, vaultID) {
 
   const payload = {
     intent: "CAPTURE",
+    experience_context: {
+      payment_method_selected: "PAYPAL",
+      payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+      landing_page: "LOGIN",
+      user_action: "PAY_NOW",
+      shipping_preference: "NO_SHIPPING",
+      return_url: "https://example.com/returnUrl",
+      cancel_url: "https://example.com/cancelUrl",
+    },
     purchase_units: [
       {
         amount: {
@@ -81,7 +90,7 @@ export async function createOrder(task, saveCard, vaultID) {
     ],
   };
 
-  const paypalSource = {
+  const paypalSourceVault = {
     paypal: {
       experience_context: {
         payment_method_selected: "PAYPAL",
@@ -112,16 +121,18 @@ export async function createOrder(task, saveCard, vaultID) {
     },
   };
 
-  if (task === "button") {
-    payload.payment_source = paypalSource;
+  const savedCC = {
+    card: {
+      vault_id: vaultID,
+    },
+  };
+
+  if (task === "button" && saveCard) {
+    payload.payment_source = paypalSourceVault;
   } else if (task === "advancedCC" && saveCard) {
     payload.payment_source = advancedCreditCardSource;
   } else if (task === "useToken" && vaultID) {
-    payload.payment_source = {
-      card: {
-        vault_id: vaultID,
-      },
-    };
+    payload.payment_source = savedCC;
   }
 
   const requestid = "new-order-" + new Date().toISOString();
