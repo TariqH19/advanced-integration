@@ -1,4 +1,3 @@
-let customerID = "";
 const baseUrl = {
   sandbox: "https://api.sandbox.paypal.com",
 };
@@ -222,4 +221,38 @@ export async function capturePayment(orderId) {
       `An error occurred while capturing payment: ${error.message}`
     );
   }
+}
+
+export async function fetchAllPaymentTokens(customerId) {
+  const { accessToken } = await generateAccessToken();
+  let allTokens = [];
+  let page = 1;
+  let pageSize = 5;
+  let totalPages;
+
+  do {
+    const response = await fetch(
+      `${baseUrl.sandbox}/v3/vault/payment-tokens?customer_id=${customerId}&page=${page}&page_size=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error fetching payment tokens: ${errorText}`);
+    }
+
+    const data = await response.json();
+    allTokens = allTokens.concat(data.payment_tokens);
+    // console.log("allTokens:", allTokens);
+    totalPages = data.total_pages;
+    page++;
+  } while (page <= totalPages);
+
+  return allTokens;
 }

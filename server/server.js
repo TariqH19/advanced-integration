@@ -8,15 +8,15 @@ import {
   capturePayment,
   generateAccessToken,
   deletePaymentToken,
+  fetchAllPaymentTokens,
 } from "./paypal-api.js"; // Import your PayPal helper functions
 import * as applepay from "./apple-api.js";
 import * as googlepay from "./googlepay-api.js";
+import * as subs from "./subs-api.js";
 
 const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
 
-const baseUrl = {
-  sandbox: "https://api.sandbox.paypal.com",
-};
+const base = "https://api-m.sandbox.paypal.com";
 // Convert file URL to file path
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -80,40 +80,6 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
   }
 });
 
-async function fetchAllPaymentTokens(customerId) {
-  const { accessToken } = await generateAccessToken();
-  let allTokens = [];
-  let page = 1;
-  let pageSize = 5;
-  let totalPages;
-
-  do {
-    const response = await fetch(
-      `${baseUrl.sandbox}/v3/vault/payment-tokens?customer_id=${customerId}&page=${page}&page_size=${pageSize}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error fetching payment tokens: ${errorText}`);
-    }
-
-    const data = await response.json();
-    allTokens = allTokens.concat(data.payment_tokens);
-    // console.log("allTokens:", allTokens);
-    totalPages = data.total_pages;
-    page++;
-  } while (page <= totalPages);
-
-  return allTokens;
-}
-
 // Endpoint to get payment tokens
 app.get("/api/payment-tokens", async (req, res) => {
   const customerId = req.query.customerId;
@@ -156,70 +122,6 @@ app.delete("/api/payment-tokens/:tokenId", async (req, res) => {
     res.status(204).send(); // Successfully deleted
   } catch (error) {
     console.error("Error handling delete request:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post("/api/pay-with-saved-method", async (req, res) => {
-  const paymentToken = req.body.paymentToken;
-  const paymentAmount = req.body.amount || "50.00";
-
-  if (!paymentToken) {
-    return res.status(400).json({ error: "Payment token is required" });
-  }
-
-  try {
-    const data = {
-      intent: "CAPTURE",
-      payment_source: {
-        token: {
-          type: "PAYMENT_METHOD_TOKEN",
-          id: paymentToken,
-        },
-      },
-      purchase_units: [
-        {
-          amount: {
-            currency_code: "GBP",
-            value: paymentAmount,
-          },
-          shipping: {
-            name: {
-              full_name: "Walter White",
-            },
-            address: {
-              address_line_1: "308 Negra Arroyo Lane",
-              admin_area_2: "Roma",
-              admin_area_1: "RM",
-              postal_code: "00100",
-              country_code: "IT",
-            },
-            shipping_type: "SHIPPING",
-          },
-        },
-      ],
-    };
-
-    const requestId = `order-${Date.now()}`;
-
-    const response = await fetch(
-      "https://api.sandbox.paypal.com/v2/checkout/orders/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await generateAccessToken()}`,
-          "PayPal-Request-Id": requestId,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    const orderData = await response.json();
-    res.json(orderData);
-  } catch (error) {
-    console.error("Error processing payment:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -302,6 +204,95 @@ app.post("/googlepay/api/orders/:orderID/capture", async (req, res) => {
   } catch (err) {
     res.status(500).send(err.message);
   }
+});
+
+app.post("/subs/api/create-product-plan", async (req, res) => {
+  try {
+    const accessToken = await subs.generateAccessToken();
+    const productResponse = await fetch(`${base}/v1/catalogs/products`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Gym Membership",
+        description: "A monthly membership for the gym",
+        type: "SERVICE",
+        category: "EXERCISE_AND_FITNESS",
+        image_url: "https://example.com/image.jpg",
+        home_url: "https://example.com",
+      }),
+    });
+
+    if (!productResponse.ok) {
+      const error = await productResponse.text();
+      console.error("Product creation error:", error);
+      return res.status(productResponse.status).send("Error creating product");
+    }
+
+    const productData = await productResponse.json();
+    const productId = productData.id;
+
+    const planResponse = await fetch(`${base}/v1/billing/plans`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        name: "Basic Gym Plan",
+        description: "Monthly subscription to the gym.",
+        billing_cycles: [
+          {
+            frequency: {
+              interval_unit: "MONTH",
+              interval_count: 1,
+            },
+            tenure_type: "REGULAR",
+            sequence: 1,
+            total_cycles: 12,
+            pricing_scheme: {
+              fixed_price: {
+                value: "35",
+                currency_code: "GBP",
+              },
+            },
+          },
+        ],
+        payment_preferences: {
+          auto_bill_outstanding: true,
+          setup_fee: {
+            value: "0",
+            currency_code: "GBP",
+          },
+          setup_fee_failure_action: "CONTINUE",
+          payment_failure_threshold: 3,
+        },
+        taxes: {
+          percentage: "0",
+          inclusive: false,
+        },
+      }),
+    });
+
+    if (!planResponse.ok) {
+      const error = await planResponse.text();
+      console.error("Plan creation error:", error);
+      return res.status(planResponse.status).send("Error creating plan");
+    }
+
+    const planData = await planResponse.json();
+    res.json({ productId, planId: planData.id });
+  } catch (error) {
+    console.error("Error creating product or plan:", error);
+    res.status(500).send("Error creating product or plan");
+  }
+});
+
+app.get("/subs", async (req, res) => {
+  res.render("subs");
 });
 
 app.listen(8888, () => {
