@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayPal JS SDK Standard Integration - Checkout</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .navbar {
+        background-color: #333;
+        overflow: hidden;
+        padding: 40px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .navbar h1 {
+        color: white;
+        margin: 0;
+        font-size: 24px;
+        font-weight: normal;
+      }
+
+      .navbar a {
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+        border-radius: 5px;
+      }
+
+      .navbar a:not(:last-child) {
+        margin-right: 10px;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+      .container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      pre {
+        background-color: #f4f4f4;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: "Courier New", Courier, monospace;
+        color: #c7254e;
+        background-color: #f9f2f4;
+      }
+      .code-section {
+        margin-bottom: 40px;
+      }
+      .button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .button-container button {
+        margin: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      #paypal-button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+      #result-message {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <h1>
+        <a href="/">Code Example Website</a>
+      </h1>
+      <div>
+        <a href="/standardview">Standard</a>
+        <a href="/advancedview">Advanced</a>
+        <a href="https://fastlane-sand.vercel.app/" target="_blank">Fastlane</a>
+        <a href="/cards">Cards</a>
+      </div>
+    </div>
+    <div class="container">
+      <div class="button-container">
+        <button onclick="showCode('server')">Show Server Setup</button>
+        <button onclick="showCode('paypalApi')">Show PayPal API Helpers</button>
+        <button onclick="showCode('client')">Show Client Integration</button>
+        <!-- <button onclick="showCode('html')">Show HTML</button> -->
+      </div>
+
+      <div id="code-display" class="code-section">
+        <!-- Code will be displayed here -->
+      </div>
+    </div>
+
+    <script>
+      const codeSamples = {
+        server: `// server.js
+import "dotenv/config";
+import express from "express";
+import { fileURLToPath } from "url";
+import path from "path";
+import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
+
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { cart } = req.body;
+    const order = await createOrder(cart);
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+app.post("/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const captureData = await captureOrder(orderID);
+    res.json(captureData);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to capture payment" });
+  }
+});
+
+app.listen(8888, () => {
+  console.log("Listening on http://localhost:8888/");
+});
+`,
+        paypalApi: `// paypal-api.js
+import fetch from "node-fetch";
+
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
+const base = "https://api-m.sandbox.paypal.com";
+
+export const generateAccessToken = async () => {
+  try {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error("MISSING_API_CREDENTIALS");
+    }
+    const auth = Buffer.from(\`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`).toString("base64");
+    const response = await fetch(\`\${base}/v1/oauth2/token\`, {
+      method: "POST",
+      body: "grant_type=client_credentials",
+      headers: {
+        Authorization: \`Basic \${auth}\`,
+      },
+    });
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error("Failed to generate Access Token:", error);
+  }
+};
+
+export const createOrder = async (cart) => {
+  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
+
+  const accessToken = await generateAccessToken();
+  const url = \`\${base}/v2/checkout/orders\`;
+  const payload = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "GBP",
+          value: "10.00",
+        },
+      },
+    ],
+  };
+
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: \`Bearer \${accessToken}\`,
+    },
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
+};
+
+export const captureOrder = async (orderID) => {
+  const accessToken = await generateAccessToken();
+  const url = \`\${base}/v2/checkout/orders/\${orderID}/capture\`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: \`Bearer \${accessToken}\`,
+    },
+  });
+
+  return handleResponse(response);
+};
+
+const handleResponse = async (response) => {
+  try {
+    const jsonResponse = await response.json();
+    return {
+      jsonResponse,
+      httpStatusCode: response.status,
+    };
+  } catch (err) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage);
+  }
+};
+`,
+        client: `// client.js
+window.paypal.Buttons({
+  style: {
+    shape: "pill",
+    layout: "vertical",
+    color: "black",
+    label: "pay",
+  },
+  async createOrder() {
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cart: [
+            { id: "1", quantity: "1" },
+          ],
+        }),
+      });
+
+      const orderData = await response.json();
+      if (orderData.id) {
+        return orderData.id;
+      }
+
+      const errorDetail = orderData?.details?.[0];
+      const errorMessage = errorDetail
+          ? \`\${errorDetail.issue} \${errorDetail.description} (\${orderData.debug_id})\`
+          : JSON.stringify(orderData);
+
+      throw new Error(errorMessage);
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  async onApprove(data, actions) {
+    try {
+      const response = await fetch(\`/api/orders/\${data.orderID}/capture\`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const orderData = await response.json();
+      const errorDetail = orderData?.details?.[0];
+
+      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+        return actions.restart();
+      } else if (errorDetail) {
+        throw new Error(\`\${errorDetail.description} (\${orderData.debug_id})\`);
+      } else if (!orderData.purchase_units) {
+        throw new Error(JSON.stringify(orderData));
+      } else {
+        const transaction =
+            orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
+            orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
+
+        resultMessage(\`Transaction \${transaction.status}: \${transaction.id}<br><br>See console for all available details\`);
+        console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
+      }
+    } catch (error) {
+      console.error(error);
+      resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+    }
+  },
+}).render("#paypal-button-container");
+
+function resultMessage(message) {
+  document.getElementById("result-message").innerHTML = message;
+}
+`,
+      };
+
+      function showCode(section) {
+        const codeDisplay = document.getElementById("code-display");
+        codeDisplay.innerHTML = `<pre><code>${codeSamples[section]}</code></pre>`;
+      }
+    </script>
+  </body>
+</html>

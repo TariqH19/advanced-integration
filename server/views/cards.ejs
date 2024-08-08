@@ -98,6 +98,9 @@
       .description p {
         line-height: 1.6;
       }
+      .spacing {
+        padding: 20px;
+      }
     </style>
   </head>
   <body>
@@ -112,89 +115,91 @@
         <a href="/cards">Cards</a>
       </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Card Number</th>
-          <th>Expiry Date</th>
-          <th>CVV</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>4000 0000 0000 1000</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>Frictionless 3ds card</td>
-        </tr>
-        <tr>
-          <td>4000 0000 0000 1091</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>Step up 3ds authentication</td>
-        </tr>
-        <tr>
-          <td>4000 0025 0000 3155</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            This card requires authentication for off-session payments unless
-            you set it up for future payments. After you set it up, off-session
-            payments no longer require authentication.
-          </td>
-        </tr>
-        <tr>
-          <td>4000 0027 6000 3184</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            This card requires authentication on all transactions, regardless of
-            how the card is set up.
-          </td>
-        </tr>
-        <tr>
-          <td>4000 0038 0000 0446</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            This card is already set up for off-session use. It requires
-            authentication for one-time and other on-session payments. However,
-            all off-session payments succeed as if the card has been previously
-            set up.
-          </td>
-        </tr>
-        <tr>
-          <td>4000 0082 6000 3178</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            This card requires authentication for one-time payments. All
-            payments are declined with an insufficient_funds failure code even
-            after being successfully authenticated or previously set up.
-          </td>
-        </tr>
-        <tr>
-          <td>4000 0000 0000 3220</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            3D Secure authentication must be completed for the payment to be
-            successful. By default, your Radar rules request 3D Secure
-            authentication for this card.
-          </td>
-        </tr>
-        <tr>
-          <td>4000 0000 0000 3055</td>
-          <td>01/28</td>
-          <td>123</td>
-          <td>
-            3D Secure authentication might still be performed, but isn’t
-            required. By default, your Radar rules don’t request 3D Secure
-            authentication for this card.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="spacing">
+      <table>
+        <thead>
+          <tr>
+            <th>Card Number</th>
+            <th>Expiry Date</th>
+            <th>CVV</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>4000 0000 0000 1000</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>Frictionless 3ds card</td>
+          </tr>
+          <tr>
+            <td>4000 0000 0000 1091</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>Step up 3ds authentication</td>
+          </tr>
+          <tr>
+            <td>4000 0025 0000 3155</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              This card requires authentication for off-session payments unless
+              you set it up for future payments. After you set it up,
+              off-session payments no longer require authentication.
+            </td>
+          </tr>
+          <tr>
+            <td>4000 0027 6000 3184</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              This card requires authentication on all transactions, regardless
+              of how the card is set up.
+            </td>
+          </tr>
+          <tr>
+            <td>4000 0038 0000 0446</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              This card is already set up for off-session use. It requires
+              authentication for one-time and other on-session payments.
+              However, all off-session payments succeed as if the card has been
+              previously set up.
+            </td>
+          </tr>
+          <tr>
+            <td>4000 0082 6000 3178</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              This card requires authentication for one-time payments. All
+              payments are declined with an insufficient_funds failure code even
+              after being successfully authenticated or previously set up.
+            </td>
+          </tr>
+          <tr>
+            <td>4000 0000 0000 3220</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              3D Secure authentication must be completed for the payment to be
+              successful. By default, your Radar rules request 3D Secure
+              authentication for this card.
+            </td>
+          </tr>
+          <tr>
+            <td>4000 0000 0000 3055</td>
+            <td>01/28</td>
+            <td>123</td>
+            <td>
+              3D Secure authentication might still be performed, but isn’t
+              required. By default, your Radar rules don’t request 3D Secure
+              authentication for this card.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </body>
 </html>

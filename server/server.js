@@ -398,6 +398,26 @@ app.get("/viewstandard", async (req, res) => {
   res.render("viewstandard");
 });
 
+app.get("/viewadvanced", async (req, res) => {
+  res.render("viewadvanced");
+});
+
+app.get("/viewapplepay", async (req, res) => {
+  res.render("viewapplepay");
+});
+
+app.get("/viewgooglepay", async (req, res) => {
+  res.render("viewgooglepay");
+});
+
+app.get("/viewsubs", async (req, res) => {
+  res.render("viewsubs");
+});
+
+app.get("/viewauthcap", async (req, res) => {
+  res.render("viewauthcap");
+});
+
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
 });
