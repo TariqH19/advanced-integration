@@ -394,6 +394,10 @@ app.get("/cards", async (req, res) => {
   res.render("cards");
 });
 
+app.get("/viewstandard", async (req, res) => {
+  res.render("viewstandard");
+});
+
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
 });
