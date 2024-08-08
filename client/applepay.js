@@ -22,7 +22,7 @@ async function setupApplepay() {
 
     const paymentRequest = {
       countryCode,
-      currencyCode: "USD",
+      currencyCode: "GBP",
       merchantCapabilities,
       supportedNetworks,
       requiredBillingContactFields: ["name", "phone", "email", "postalAddress"],
