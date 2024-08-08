@@ -10,7 +10,7 @@ import {
   deletePaymentToken,
 } from "../server/paypal-api.js"; // Import your PayPal helper functions
 
-import * as applepay from "../apple-api.js";
+import * as applepay from "../server/apple-api.js";
 
 const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
 
