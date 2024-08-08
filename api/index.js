@@ -10,6 +10,10 @@ import {
   deletePaymentToken,
 } from "../server/paypal-api.js"; // Import your PayPal helper functions
 
+import * as applepay from "../apple-api.js";
+
+const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
+
 const baseUrl = {
   sandbox: "https://api.sandbox.paypal.com",
 };
@@ -30,7 +34,7 @@ app.use(express.json());
 
 // Render checkout page with client ID
 app.get("/", async (req, res) => {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientId = PAYPAL_CLIENT_ID;
 
   res.render("checkout", {
     clientId,
@@ -215,6 +219,39 @@ app.post("/api/pay-with-saved-method", async (req, res) => {
   } catch (error) {
     console.error("Error processing payment:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/applepay", async (req, res) => {
+  const clientId = PAYPAL_CLIENT_ID,
+    merchantId = PAYPAL_MERCHANT_ID;
+  try {
+    const clientToken = await applepay.generateClientToken();
+    res.render("applepay", { clientId, clientToken, merchantId });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// create order
+app.post("/applepay/api/orders", async (req, res) => {
+  try {
+    const order = await applepay.createOrder();
+    console.log("order", order);
+    res.json(order);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// capture payment
+app.post("/applepay/api/orders/:orderID/capture", async (req, res) => {
+  const { orderID } = req.params;
+  try {
+    const captureData = await applepay.capturePayment(orderID);
+    res.json(captureData);
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 

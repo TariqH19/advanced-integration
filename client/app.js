@@ -59,8 +59,9 @@ async function fetchTokensAndLoadPayPalSDK() {
     const paypalScript = document.createElement("script");
     paypalScript.id = "paypal-sdk";
     paypalScript.src =
-      "https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH";
+      "https://www.paypal.com/sdk/js?components=applepay,messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&merchant-id=J36FP579FJ6NW";
     paypalScript.setAttribute("data-user-id-token", tokens.tokenId);
+    paypalScript.setAttribute("data-partner-attribution-id", "APPLEPAY");
     paypalScript.onload = () => {
       initializePayPalComponents();
     };
