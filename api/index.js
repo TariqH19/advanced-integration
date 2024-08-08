@@ -7,6 +7,7 @@ import {
   createOrder,
   capturePayment,
   generateAccessToken,
+  deletePaymentToken,
 } from "../server/paypal-api.js"; // Import your PayPal helper functions
 
 const baseUrl = {
