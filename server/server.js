@@ -37,7 +37,7 @@ app.set("views", "./views");
 app.use(express.json());
 
 // Render checkout page with client ID
-app.get("/", async (req, res) => {
+app.get("/acdc", async (req, res) => {
   const clientId = process.env.PAYPAL_CLIENT_ID;
 
   res.render("checkout", {
@@ -376,6 +376,22 @@ app.post("/standard/api/orders/:orderID/capture", async (req, res) => {
 
 app.get("/standard", async (req, res) => {
   res.render("standard");
+});
+
+app.get("/", async (req, res) => {
+  res.render("index");
+});
+
+app.get("/standardview", async (req, res) => {
+  res.render("standardview");
+});
+
+app.get("/advancedview", async (req, res) => {
+  res.render("advancedview");
+});
+
+app.get("/cards", async (req, res) => {
+  res.render("cards");
 });
 
 app.listen(8888, () => {

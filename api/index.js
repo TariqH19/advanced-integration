@@ -375,6 +375,22 @@ app.get("/standard", async (req, res) => {
   res.render("standard");
 });
 
+app.get("/", async (req, res) => {
+  res.render("index");
+});
+
+app.get("/standardview", async (req, res) => {
+  res.render("standardview");
+});
+
+app.get("/advancedview", async (req, res) => {
+  res.render("advancedview");
+});
+
+app.get("/cards", async (req, res) => {
+  res.render("cards");
+});
+
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
 });
