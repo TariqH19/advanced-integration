@@ -38,8 +38,8 @@ app.get("/", async (req, res) => {
 
 app.post("/api/orders", async (req, res) => {
   try {
-    const { task, saveCard } = req.body;
-    const order = await createOrder(task, saveCard);
+    const { task, saveCard, vaultID } = req.body;
+    const order = await createOrder(task, saveCard, vaultID);
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Failed to create order" });
@@ -99,7 +99,7 @@ async function fetchAllPaymentTokens(customerId) {
 
     const data = await response.json();
     allTokens = allTokens.concat(data.payment_tokens);
-    console.log("allTokens:", allTokens);
+    // console.log("allTokens:", allTokens);
     totalPages = data.total_pages;
     page++;
   } while (page <= totalPages);
@@ -126,7 +126,7 @@ app.get("/api/payment-tokens", async (req, res) => {
 app.get("/api/getTokens", async (req, res) => {
   try {
     const { accessToken, idToken } = await generateAccessToken();
-    console.log("Tokens:", { accessToken, idToken });
+    // console.log("Tokens:", { accessToken, idToken });
     res.json({
       accessToken: accessToken,
       tokenId: idToken,
@@ -134,6 +134,22 @@ app.get("/api/getTokens", async (req, res) => {
   } catch (error) {
     console.error("Error fetching payment tokens:", error);
     res.status(500).json({ error: "Failed to fetch payment tokens" });
+  }
+});
+
+app.delete("/api/payment-tokens/:tokenId", async (req, res) => {
+  const { tokenId } = req.params;
+
+  if (!tokenId) {
+    return res.status(400).json({ error: "Payment token ID is required" });
+  }
+
+  try {
+    await deletePaymentToken(tokenId);
+    res.status(204).send(); // Successfully deleted
+  } catch (error) {
+    console.error("Error handling delete request:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 

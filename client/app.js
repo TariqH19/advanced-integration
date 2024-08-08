@@ -428,12 +428,6 @@ async function handlePayment() {
       },
     });
 
-    if (!captureResponse.ok) {
-      throw new Error(
-        `Failed to capture payment: ${captureResponse.statusText}`
-      );
-    }
-
     const captureData = await captureResponse.json();
     console.log("Captured payment:", captureData);
 
