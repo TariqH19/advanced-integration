@@ -13,6 +13,7 @@ import {
 import * as applepay from "./apple-api.js";
 import * as googlepay from "./googlepay-api.js";
 import * as subs from "./subs-api.js";
+import * as authcap from "./authcap-api.js";
 
 const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
 
@@ -293,6 +294,58 @@ app.post("/subs/api/create-product-plan", async (req, res) => {
 
 app.get("/subs", async (req, res) => {
   res.render("subs");
+});
+
+app.post("/authcap/api/orders", async (req, res) => {
+  try {
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await authcap.createOrder(cart);
+
+    if (httpStatusCode === 201) {
+      // HTTP 201 Created
+      // Send the order ID back to the client
+      const orderID = jsonResponse.id;
+      res.status(httpStatusCode).json({ orderID });
+    } else {
+      res.status(httpStatusCode).json(jsonResponse);
+    }
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/authcap/api/orders/:orderID/authorize", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await authcap.authorizeOrder(
+      orderID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to authorize order:", error);
+    res.status(500).json({ error: "Failed to authorize order." });
+  }
+});
+
+app.post("/authcap/api/orders/:authorizationID/capture", async (req, res) => {
+  try {
+    const { authorizationID } = req.params;
+    console.log(
+      `Attempting to capture with authorizationID: ${authorizationID}`
+    );
+    const { jsonResponse, httpStatusCode } = await authcap.captureOrder(
+      authorizationID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to capture order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.get("/authcap", async (req, res) => {
+  res.render("authcap");
 });
 
 app.listen(8888, () => {
