@@ -14,6 +14,7 @@ import * as googlepay from "../server/googlepay-api.js";
 import * as applepay from "../server/apple-api.js";
 import * as subs from "../server/subs-api.js";
 import * as authcap from "../server/authcap-api.js";
+import * as standard from "../server/standard-api.js";
 const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
 
 const base = "https://api-m.sandbox.paypal.com";
@@ -343,6 +344,35 @@ app.post("/authcap/api/orders/:authorizationID/capture", async (req, res) => {
 
 app.get("/authcap", async (req, res) => {
   res.render("authcap");
+});
+
+app.post("/standard/api/orders", async (req, res) => {
+  try {
+    // use the cart information passed from the front-end to calculate the order amount detals
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await standard.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/standard/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await standard.captureOrder(
+      orderID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.get("/standard", async (req, res) => {
+  res.render("standard");
 });
 
 app.listen(8888, () => {
