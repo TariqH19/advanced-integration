@@ -34,7 +34,7 @@ app.set("views", viewsPath);
 app.use(express.json());
 
 // Render checkout page with client ID
-app.get("/", async (req, res) => {
+app.get("/acdc", async (req, res) => {
   const clientId = PAYPAL_CLIENT_ID;
 
   res.render("checkout", {
