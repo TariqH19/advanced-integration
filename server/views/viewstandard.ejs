@@ -20,8 +20,7 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
       h1,
-      h2,
-      h3 {
+      h2 {
         text-align: center;
         color: #333;
       }
@@ -39,6 +38,16 @@
       .code-section {
         margin-bottom: 40px;
       }
+      .button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .button-container button {
+        margin: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
       #paypal-button-container {
         text-align: center;
         margin-top: 20px;
@@ -55,139 +64,6 @@
     <div class="container">
       <h1>PayPal JS SDK Standard Integration - Checkout</h1>
 
-      <div class="code-section">
-        <h2>Server Setup (server.js)</h2>
-        <pre><code>
-// server.js
-import "dotenv/config";
-import express from "express";
-import { fileURLToPath } from "url";
-import path from "path";
-import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
-
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.post("/api/orders", async (req, res) => {
-  try {
-    const { cart } = req.body;
-    const order = await createOrder(cart);
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create order" });
-  }
-});
-
-app.post("/api/orders/:orderID/capture", async (req, res) => {
-  try {
-    const { orderID } = req.params;
-    const captureData = await captureOrder(orderID);
-    res.json(captureData);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to capture payment" });
-  }
-});
-
-app.listen(8888, () => {
-  console.log("Listening on http://localhost:8888/");
-});
-        </code></pre>
-      </div>
-
-      <div class="code-section">
-        <h2>PayPal API Helper Functions (paypal-api.js)</h2>
-        <pre><code>
-// paypal-api.js
-import fetch from "node-fetch";
-
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
-const base = "https://api-m.sandbox.paypal.com";
-
-export const generateAccessToken = async () => {
-  try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-      throw new Error("MISSING_API_CREDENTIALS");
-    }
-    const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
-    const response = await fetch(`${base}/v1/oauth2/token`, {
-      method: "POST",
-      body: "grant_type=client_credentials",
-      headers: {
-        Authorization: `Basic ${auth}`,
-      },
-    });
-
-    const data = await response.json();
-    return data.access_token;
-  } catch (error) {
-    console.error("Failed to generate Access Token:", error);
-  }
-};
-
-export const createOrder = async (cart) => {
-  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
-
-  const accessToken = await generateAccessToken();
-  const url = `${base}/v2/checkout/orders`;
-  const payload = {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        amount: {
-          currency_code: "GBP",
-          value: "10.00",
-        },
-      },
-    ],
-  };
-
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  return handleResponse(response);
-};
-
-export const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken();
-  const url = `${base}/v2/checkout/orders/${orderID}/capture`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  return handleResponse(response);
-};
-
-const handleResponse = async (response) => {
-  try {
-    const jsonResponse = await response.json();
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
-  }
-};
-        </code></pre>
-      </div>
-
-      <h2>Checkout Example</h2>
       <div class="product">
         <img src="https://picsum.photos/200" alt="Product Image" />
         <div class="product-info">
@@ -198,11 +74,20 @@ const handleResponse = async (response) => {
 
       <div id="paypal-button-container"></div>
       <p id="result-message"></p>
+
+      <div class="button-container">
+        <button onclick="showCode('server')">Show Server Setup</button>
+        <button onclick="showCode('paypalApi')">Show PayPal API Helpers</button>
+        <button onclick="showCode('client')">Show Client Integration</button>
+      </div>
+
+      <div id="code-display" class="code-section">
+        <!-- Code will be displayed here -->
+      </div>
     </div>
 
     <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP"></script>
     <script>
-      // Your PayPal integration code here
       window.paypal
         .Buttons({
           style: {
@@ -287,6 +172,210 @@ const handleResponse = async (response) => {
 
       function resultMessage(message) {
         document.getElementById("result-message").innerHTML = message;
+      }
+
+      const codeSamples = {
+        server: `// server.js
+import "dotenv/config";
+import express from "express";
+import { fileURLToPath } from "url";
+import path from "path";
+import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
+
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { cart } = req.body;
+    const order = await createOrder(cart);
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+app.post("/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const captureData = await captureOrder(orderID);
+    res.json(captureData);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to capture payment" });
+  }
+});
+
+app.listen(8888, () => {
+  console.log("Listening on http://localhost:8888/");
+});
+`,
+        paypalApi: `// paypal-api.js
+import fetch from "node-fetch";
+
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
+const base = "https://api-m.sandbox.paypal.com";
+
+export const generateAccessToken = async () => {
+  try {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error("MISSING_API_CREDENTIALS");
+    }
+    const auth = Buffer.from(\`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`).toString("base64");
+    const response = await fetch(\`\${base}/v1/oauth2/token\`, {
+      method: "POST",
+      body: "grant_type=client_credentials",
+      headers: {
+        Authorization: \`Basic \${auth}\`,
+      },
+    });
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error("Failed to generate Access Token:", error);
+  }
+};
+
+export const createOrder = async (cart) => {
+  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
+
+  const accessToken = await generateAccessToken();
+  const url = \`\${base}/v2/checkout/orders\`;
+  const payload = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "GBP",
+          value: "10.00",
+        },
+      },
+    ],
+  };
+
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: \`Bearer \${accessToken}\`,
+    },
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
+};
+
+export const captureOrder = async (orderID) => {
+  const accessToken = await generateAccessToken();
+  const url = \`\${base}/v2/checkout/orders/\${orderID}/capture\`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: \`Bearer \${accessToken}\`,
+    },
+  });
+
+  return handleResponse(response);
+};
+
+const handleResponse = async (response) => {
+  try {
+    const jsonResponse = await response.json();
+    return {
+      jsonResponse,
+      httpStatusCode: response.status,
+    };
+  } catch (err) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage);
+  }
+};
+`,
+        client: `// client.js
+window.paypal.Buttons({
+  style: {
+    shape: "pill",
+    layout: "vertical",
+    color: "black",
+    label: "pay",
+  },
+  async createOrder() {
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cart: [
+            { id: "1", quantity: "1" },
+          ],
+        }),
+      });
+
+      const orderData = await response.json();
+      if (orderData.id) {
+        return orderData.id;
+      }
+
+      const errorDetail = orderData?.details?.[0];
+      const errorMessage = errorDetail
+          ? \`\${errorDetail.issue} \${errorDetail.description} (\${orderData.debug_id})\`
+          : JSON.stringify(orderData);
+
+      throw new Error(errorMessage);
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  async onApprove(data, actions) {
+    try {
+      const response = await fetch(\`/api/orders/\${data.orderID}/capture\`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const orderData = await response.json();
+      const errorDetail = orderData?.details?.[0];
+
+      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+        return actions.restart();
+      } else if (errorDetail) {
+        throw new Error(\`\${errorDetail.description} (\${orderData.debug_id})\`);
+      } else if (!orderData.purchase_units) {
+        throw new Error(JSON.stringify(orderData));
+      } else {
+        const transaction =
+            orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
+            orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
+
+        resultMessage(\`Transaction \${transaction.status}: \${transaction.id}<br><br>See console for all available details\`);
+        console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
+      }
+    } catch (error) {
+      console.error(error);
+      resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+    }
+  },
+}).render("#paypal-button-container");
+
+function resultMessage(message) {
+  document.getElementById("result-message").innerHTML = message;
+}
+`,
+      };
+
+      function showCode(section) {
+        const codeDisplay = document.getElementById("code-display");
+        codeDisplay.innerHTML = `<pre><code>${codeSamples[section]}</code></pre>`;
       }
     </script>
   </body>
