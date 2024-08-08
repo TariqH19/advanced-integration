@@ -10,6 +10,7 @@ import {
   deletePaymentToken,
 } from "./paypal-api.js"; // Import your PayPal helper functions
 import * as applepay from "./apple-api.js";
+import * as googlepay from "./googlepay-api.js";
 
 const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
 
@@ -250,6 +251,53 @@ app.post("/applepay/api/orders/:orderID/capture", async (req, res) => {
   const { orderID } = req.params;
   try {
     const captureData = await applepay.capturePayment(orderID);
+    res.json(captureData);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.get("/googlepay", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID,
+    merchantId = process.env.PAYPAL_MERCHANT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  try {
+    if (!clientId || !merchantId || !clientSecret) {
+      throw new Error("Client Id or App Secret or Merchant Id is missing.");
+    }
+    const clientToken = await googlepay.generateClientToken();
+    res.render("googlepay", { clientId, clientToken, merchantId });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// create order
+app.post("/googlepay/api/orders", async (req, res) => {
+  try {
+    const order = await googlepay.createOrder();
+    res.json(order);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Get order
+app.post("/googlepay/api/orders/:orderID", async (req, res) => {
+  const { orderID } = req.params;
+  try {
+    const order = await googlepay.getOrder(orderID);
+    res.json(order);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// capture payment
+app.post("/googlepay/api/orders/:orderID/capture", async (req, res) => {
+  const { orderID } = req.params;
+  try {
+    const captureData = await googlepay.capturePayment(orderID);
     res.json(captureData);
   } catch (err) {
     res.status(500).send(err.message);
