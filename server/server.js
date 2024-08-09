@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import { fileURLToPath } from "url";
 import path from "path";
-
 import {
   getOrderDetails,
   createOrder,
@@ -57,10 +56,6 @@ app.get("/acdc", async (req, res) => {
   res.render("checkout", {
     clientId,
   });
-});
-
-app.get("/react", (req, res) => {
-  res.render("react");
 });
 
 app.post("/api/orders", async (req, res) => {
