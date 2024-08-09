@@ -15,9 +15,46 @@
     <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
     <!-- https://developer.paypal.com/sdk/js/configuration/ -->
     <!-- <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script> -->
-  </head>
-  <body>
     <style>
+                  * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .navbar {
+        background-color: #333;
+        overflow: hidden;
+        padding: 40px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .navbar h1 {
+        color: white;
+        margin: 0;
+        font-size: 24px;
+        font-weight: normal;
+      }
+
+      .navbar a {
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+        border-radius: 5px;
+      }
+
+      .navbar a:not(:last-child) {
+        margin-right: 10px;
+      }
       body {
         font-family: Arial, Helvetica, sans-serif;
         font-size: 0.9rem;
@@ -119,6 +156,20 @@
         display: none;
       }
     </style>
+  </head>
+  <body>
+            <div class="navbar">
+      <h1>
+        <a href="/">Code Example Website</a>
+      </h1>
+      <div>
+        <a href="/standardview">Standard</a>
+        <a href="/advancedview">Advanced</a>
+        <a href="https://fastlane-sand.vercel.app/" target="_blank">Fastlane</a>
+        <a href="/hostedfields">Braintree Hosted Fields</a>
+        <a href="/cards">Cards</a>
+      </div>
+    </div>
     <div id="mycart">
       <div id="status-message"></div>
       <!-- Pay Later Messages:
