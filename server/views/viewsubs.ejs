@@ -98,6 +98,13 @@
         color: #333;
       }
     </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </head>
   <body>
     <div class="navbar">
@@ -108,14 +115,15 @@
         <a href="/standardview">Standard</a>
         <a href="/advancedview">Advanced</a>
         <a href="https://fastlane-sand.vercel.app/" target="_blank">Fastlane</a>
+        <a href="/hostedfields">Braintree Hosted Fields</a>
         <a href="/cards">Cards</a>
       </div>
     </div>
     <div class="container">
       <div class="button-container">
-        <button onclick="showCode('server')">Show Server Setup</button>
-        <button onclick="showCode('paypalApi')">Show PayPal API Helpers</button>
-        <button onclick="showCode('client')">Show Client Integration</button>
+        <button onclick="showCode('server')">server.js</button>
+        <button onclick="showCode('app')">app.js</button>
+        <button onclick="showCode('html')">checkout.html</button>
         <!-- <button onclick="showCode('html')">Show HTML</button> -->
       </div>
 
@@ -127,206 +135,299 @@
     <script>
       const codeSamples = {
         server: `// server.js
-import "dotenv/config";
 import express from "express";
-import { fileURLToPath } from "url";
+import fetch from "node-fetch";
+import "dotenv/config";
 import path from "path";
-import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
+import { fileURLToPath } from "url";
 
-const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.post("/api/orders", async (req, res) => {
-  try {
-    const { cart } = req.body;
-    const order = await createOrder(cart);
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create order" });
-  }
-});
-
-app.post("/api/orders/:orderID/capture", async (req, res) => {
-  try {
-    const { orderID } = req.params;
-    const captureData = await captureOrder(orderID);
-    res.json(captureData);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to capture payment" });
-  }
-});
-
-app.listen(8888, () => {
-  console.log("Listening on http://localhost:8888/");
-});
-`,
-        paypalApi: `// paypal-api.js
-import fetch from "node-fetch";
-
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
 const base = "https://api-m.sandbox.paypal.com";
+const app = express();
 
-export const generateAccessToken = async () => {
+app.use(express.static(path.join(__dirname, "../client")));
+app.use(express.json());
+
+const generateAccessToken = async () => {
   try {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
       throw new Error("MISSING_API_CREDENTIALS");
     }
-    const auth = Buffer.from(\`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`).toString("base64");
+    const auth = Buffer.from(
+      \`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`
+    ).toString("base64");
     const response = await fetch(\`\${base}/v1/oauth2/token\`, {
       method: "POST",
       body: "grant_type=client_credentials",
       headers: {
         Authorization: \`Basic \${auth}\`,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-
     const data = await response.json();
     return data.access_token;
   } catch (error) {
     console.error("Failed to generate Access Token:", error);
+    throw error;
   }
 };
 
-export const createOrder = async (cart) => {
-  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
-
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders\`;
-  const payload = {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        amount: {
-          currency_code: "GBP",
-          value: "10.00",
-        },
-      },
-    ],
-  };
-
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  return handleResponse(response);
-};
-
-export const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders/\${orderID}/capture\`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
-    },
-  });
-
-  return handleResponse(response);
-};
-
-const handleResponse = async (response) => {
+app.post("/api/create-product-plan", async (req, res) => {
   try {
-    const jsonResponse = await response.json();
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
+    const accessToken = await generateAccessToken();
+    const productResponse = await fetch(\`\${base}/v1/catalogs/products\`, {
+      method: "POST",
+      headers: {
+        Authorization: \`Bearer \${accessToken}\`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Gym Membership",
+        description: "A monthly membership for the gym",
+        type: "SERVICE",
+        category: "EXERCISE_AND_FITNESS",
+        image_url: "https://example.com/image.jpg",
+        home_url: "https://example.com",
+      }),
+    });
+
+    if (!productResponse.ok) {
+      const error = await productResponse.text();
+      console.error("Product creation error:", error);
+      return res.status(productResponse.status).send("Error creating product");
+    }
+
+    const productData = await productResponse.json();
+    const productId = productData.id;
+
+    const planResponse = await fetch(\`\${base}/v1/billing/plans\`, {
+      method: "POST",
+      headers: {
+        Authorization: \`Bearer \${accessToken}\`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        name: "Basic Gym Plan",
+        description: "Monthly subscription to the gym.",
+        billing_cycles: [
+          {
+            frequency: {
+              interval_unit: "MONTH",
+              interval_count: 1,
+            },
+            tenure_type: "REGULAR",
+            sequence: 1,
+            total_cycles: 12,
+            pricing_scheme: {
+              fixed_price: {
+                value: "35",
+                currency_code: "GBP",
+              },
+            },
+          },
+        ],
+        payment_preferences: {
+          auto_bill_outstanding: true,
+          setup_fee: {
+            value: "0",
+            currency_code: "GBP",
+          },
+          setup_fee_failure_action: "CONTINUE",
+          payment_failure_threshold: 3,
+        },
+        taxes: {
+          percentage: "0",
+          inclusive: false,
+        },
+      }),
+    });
+
+    if (!planResponse.ok) {
+      const error = await planResponse.text();
+      console.error("Plan creation error:", error);
+      return res.status(planResponse.status).send("Error creating plan");
+    }
+
+    const planData = await planResponse.json();
+    res.json({ productId, planId: planData.id });
+  } catch (error) {
+    console.error("Error creating product or plan:", error);
+    res.status(500).send("Error creating product or plan");
+  }
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/checkout.html"));
+});
+
+app.listen(PORT, () => {
+  console.log(\`Node server listening at http://localhost:\${PORT}/\`);
+});
+`,
+        app: `// app.js
+let planId = "";
+
+const createProductAndPlan = async () => {
+  try {
+    const response = await fetch("/api/create-product-plan", {
+      method: "POST",
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(\`Server error: \${errorText}\`);
+    }
+    const data = await response.json();
+
+    if (data.productId && data.planId) {
+      planId = data.planId;
+      renderPayPalButton(planId);
+      document.getElementById(
+        "result-message"
+      ).innerText = \`Product and Plan Created. Plan ID: \${data.planId}\`;
+    } else {
+      document.getElementById("result-message").innerText =
+        "Failed to create product or plan.";
+    }
+  } catch (error) {
+    document.getElementById(
+      "result-message"
+    ).innerText = \`Error: \${error.message}\`;
   }
 };
-`,
-        client: `// client.js
-window.paypal.Buttons({
-  style: {
-    shape: "pill",
-    layout: "vertical",
-    color: "black",
-    label: "pay",
-  },
-  async createOrder() {
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+
+const renderPayPalButton = (planId) => {
+  if (planId) {
+    paypal
+      .Buttons({
+        createSubscription: function (data, actions) {
+          return actions.subscription.create({
+            plan_id: planId,
+          });
         },
-        body: JSON.stringify({
-          cart: [
-            { id: "1", quantity: "1" },
-          ],
-        }),
-      });
-
-      const orderData = await response.json();
-      if (orderData.id) {
-        return orderData.id;
-      }
-
-      const errorDetail = orderData?.details?.[0];
-      const errorMessage = errorDetail
-          ? \`\${errorDetail.issue} \${errorDetail.description} (\${orderData.debug_id})\`
-          : JSON.stringify(orderData);
-
-      throw new Error(errorMessage);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-  async onApprove(data, actions) {
-    try {
-      const response = await fetch(\`/api/orders/\${data.orderID}/capture\`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        onApprove: function (data, actions) {
+          alert("You have successfully subscribed to " + data.subscriptionID);
+          document.getElementById("result-message").innerText =
+            "Subscription ID: " + data.subscriptionID;
         },
-      });
+      })
+      .render("#subscription-button-container");
+  }
+};
 
-      const orderData = await response.json();
-      const errorDetail = orderData?.details?.[0];
-
-      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-        return actions.restart();
-      } else if (errorDetail) {
-        throw new Error(\`\${errorDetail.description} (\${orderData.debug_id})\`);
-      } else if (!orderData.purchase_units) {
-        throw new Error(JSON.stringify(orderData));
-      } else {
-        const transaction =
-            orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
-            orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
-
-        resultMessage(\`Transaction \${transaction.status}: \${transaction.id}<br><br>See console for all available details\`);
-        console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
-      }
-    } catch (error) {
-      console.error(error);
-      resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
-    }
-  },
-}).render("#paypal-button-container");
+document
+  .getElementById("create-product-plan")
+  .addEventListener("click", createProductAndPlan);
 
 function resultMessage(message) {
   document.getElementById("result-message").innerHTML = message;
 }
 `,
+        html: `&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;PayPal JS SDK Standard Integration - Checkout&lt;/title&gt;
+    &lt;style&gt;
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #d8c2c2;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      .product {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+        margin-bottom: 10px;
+      }
+
+      .product img {
+        width: 80px;
+        height: 80px;
+        margin-right: 20px;
+      }
+
+      .product-info {
+        flex-grow: 1;
+      }
+
+      .product-title {
+        font-weight: bold;
+      }
+
+      .product-price {
+        color: #666;
+      }
+
+      #paypal-button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      #result-message {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;PayPal JS SDK Standard Integration - Checkout&lt;/h1&gt;
+    &lt;div class=&quot;container&quot;&gt;
+      &lt;h1&gt;Checkout&lt;/h1&gt;
+
+      &lt;div class=&quot;product&quot;&gt;
+        &lt;img src=&quot;https://picsum.photos/200&quot; alt=&quot;Product Image&quot; /&gt;
+        &lt;div class=&quot;product-info&quot;&gt;
+          &lt;div class=&quot;product-title&quot;&gt;Gym Membership&lt;/div&gt;
+          &lt;div class=&quot;product-price&quot;&gt;35.00&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;h2&gt;Monthly recurring payment&lt;/h2&gt;
+      &lt;div id=&quot;subscription-button-container&quot;&gt;&lt;/div&gt;
+      &lt;button id=&quot;create-product-plan&quot;&gt;Create Product and Plan&lt;/button&gt;
+      &lt;p id=&quot;result-message&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;script src=&quot;https://www.paypal.com/sdk/js?client-id=CLIENT_ID&amp;intent=subscription&amp;currency=GBP&amp;vault=true&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;app.js&quot;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+`,
       };
+
+      function escapeHtml(html) {
+        return html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
 
       function showCode(section) {
         const codeDisplay = document.getElementById("code-display");
-        codeDisplay.innerHTML = `<pre><code>${codeSamples[section]}</code></pre>`;
+        const code = escapeHtml(codeSamples[section]);
+        codeDisplay.innerHTML = `<pre><code class="language-javascript">${code}</code></pre>`;
+        hljs.highlightAll();
       }
     </script>
   </body>

@@ -16,7 +16,7 @@
     <!-- https://developer.paypal.com/sdk/js/configuration/ -->
     <!-- <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script> -->
     <style>
-                  * {
+      * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
@@ -60,8 +60,8 @@
         font-size: 0.9rem;
       }
       #payment-container {
-  display: none;
-}
+        display: none;
+      }
 
       .payments {
         width: 100%;
@@ -158,7 +158,7 @@
     </style>
   </head>
   <body>
-            <div class="navbar">
+    <div class="navbar">
       <h1>
         <a href="/">Code Example Website</a>
       </h1>
@@ -182,31 +182,30 @@
       <div id="paypal-button-container" class="paypal-button-container"></div>
 
       <div id="payment-container">
-  <h3>Or choose your saved credit card:</h3>
-  <form id="payment-form" method="POST">
-    <table class="payments" id="payment-methods-table">
-      <thead>
-        <tr>
-          <th>Select</th>
-          <th>Card Brand</th>
-          <th>Card Number</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Payment methods will be dynamically inserted here -->
-      </tbody>
-    </table>
-  </form>
-</div>
+        <h3>Or choose your saved credit card:</h3>
+        <form id="payment-form" method="POST">
+          <table class="payments" id="payment-methods-table">
+            <thead>
+              <tr>
+                <th>Select</th>
+                <th>Card Brand</th>
+                <th>Card Number</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Payment methods will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </form>
+      </div>
 
-        <!-- Add a message container for better user feedback -->
-        <div id="message-container"></div>
+      <!-- Add a message container for better user feedback -->
+      <div id="message-container"></div>
 
-        <div style="width: 100%; text-align: center; margin-top: 2rem">
-          <button type="submit" id="submit" class="button">Pay Now</button>
-        </div>
-      </form>
+      <div style="width: 100%; text-align: center; margin-top: 2rem">
+        <button type="submit" id="submit" class="button">Pay Now</button>
+      </div>
 
       <br />
       <h2>Credit Card</h2>

@@ -98,6 +98,13 @@
         color: #333;
       }
     </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </head>
   <body>
     <div class="navbar">
@@ -108,14 +115,16 @@
         <a href="/standardview">Standard</a>
         <a href="/advancedview">Advanced</a>
         <a href="https://fastlane-sand.vercel.app/" target="_blank">Fastlane</a>
+        <a href="/hostedfields">Braintree Hosted Fields</a>
         <a href="/cards">Cards</a>
       </div>
     </div>
     <div class="container">
       <div class="button-container">
-        <button onclick="showCode('server')">Show Server Setup</button>
-        <button onclick="showCode('paypalApi')">Show PayPal API Helpers</button>
-        <button onclick="showCode('client')">Show Client Integration</button>
+        <button onclick="showCode('server')">server.js</button>
+        <button onclick="showCode('app')">app.js</button>
+        <button onclick="showCode('paypalApi')">paypal-api.js</button>
+        <button onclick="showCode('html')">checkout.html</button>
         <!-- <button onclick="showCode('html')">Show HTML</button> -->
       </div>
 
@@ -131,71 +140,669 @@ import "dotenv/config";
 import express from "express";
 import { fileURLToPath } from "url";
 import path from "path";
-import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
-
+import {
+  getOrderDetails,
+  createOrder,
+  capturePayment,
+  generateAccessToken,
+  deletePaymentToken,
+  fetchAllPaymentTokens,
+} from "./paypal-api.js"; 
+const base = "https://api-m.sandbox.paypal.com";
+// Convert file URL to file path
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+app.set("view engine", "ejs");
+app.set("views", "./views");
+
+// Host static files
+const clientPath = path.join(__dirname, "../client");
+app.use(express.static(clientPath));
+app.set("view engine", "ejs");
+app.set("views", "./views");
+
+// Middleware to parse JSON requests
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+
+// Render checkout page with client ID
+app.get("/acdc", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("checkout", {
+    clientId,
+  });
+});
 
 app.post("/api/orders", async (req, res) => {
   try {
-    const { cart } = req.body;
-    const order = await createOrder(cart);
+    const { task, saveCard, vaultID } = req.body;
+    const order = await createOrder(task, saveCard, vaultID);
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: "Failed to create order" });
   }
 });
 
+app.get("/api/orders/:orderID", async (req, res) => {
+  const { orderID } = req.params; // Ensure orderID is defined here
+  try {
+    const orderDetails = await getOrderDetails(orderID);
+    res.json(orderDetails);
+  } catch (error) {
+    console.error(
+      \`\Error fetching order details for \${orderID}:\`\,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: \`\Failed to get order details: \${error.message}\`\ });
+  }
+});
+
+// Capture payment
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
     const { orderID } = req.params;
-    const captureData = await captureOrder(orderID);
+    const captureData = await capturePayment(orderID);
     res.json(captureData);
   } catch (error) {
     res.status(500).json({ error: "Failed to capture payment" });
   }
 });
 
+// Endpoint to get payment tokens
+app.get("/api/payment-tokens", async (req, res) => {
+  const customerId = req.query.customerId;
+  if (!customerId) {
+    return res.status(400).json({ error: "Customer ID is required" });
+  }
+
+  try {
+    const paymentTokens = await fetchAllPaymentTokens(customerId);
+    res.json(paymentTokens);
+  } catch (error) {
+    console.error("Tokens Check:", error);
+    // res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/getTokens", async (req, res) => {
+  try {
+    const { accessToken, idToken } = await generateAccessToken();
+    // console.log("Tokens:", { accessToken, idToken });
+    res.json({
+      accessToken: accessToken,
+      tokenId: idToken,
+    });
+  } catch (error) {
+    console.error("Error fetching payment tokens:", error);
+    res.status(500).json({ error: "Failed to fetch payment tokens" });
+  }
+});
+
+app.delete("/api/payment-tokens/:tokenId", async (req, res) => {
+  const { tokenId } = req.params;
+
+  if (!tokenId) {
+    return res.status(400).json({ error: "Payment token ID is required" });
+  }
+
+  try {
+    await deletePaymentToken(tokenId);
+    res.status(204).send(); // Successfully deleted
+  } catch (error) {
+    console.error("Error handling delete request:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
 });
 `,
-        paypalApi: `// paypal-api.js
-import fetch from "node-fetch";
+        app: `// app.js
+function addCustomerId(customerId) {
+  try {
+    // Retrieve existing IDs from local storage or initialize as an empty array if not present
+    let customerIds = JSON.parse(localStorage.getItem(&quot;customerIds&quot;)) || [];
+
+    // Log the current state for debugging
+    console.log(&quot;Existing customer IDs:&quot;, customerIds);
+
+    // Check if the new ID is already in the list to prevent duplicates
+    if (!customerIds.includes(customerId)) {
+      customerIds.push(customerId); // Add the new ID to the list
+      localStorage.setItem(&quot;customerIds&quot;, JSON.stringify(customerIds)); // Save updated list back to local storage
+
+      // Log the updated state for debugging
+      console.log(&quot;Updated customer IDs:&quot;, customerIds);
+    } else {
+      console.log(&quot;Customer ID already exists in storage.&quot;);
+    }
+  } catch (error) {
+    console.error(&quot;Error adding customer ID:&quot;, error);
+  }
+}
+
+// Add a vault ID to local storage
+function addVaultId(vaultId) {
+  let vaultIds = JSON.parse(localStorage.getItem(&quot;vaultIds&quot;)) || [];
+  if (!vaultIds.includes(vaultId)) {
+    vaultIds.push(vaultId);
+    localStorage.setItem(&quot;vaultIds&quot;, JSON.stringify(vaultIds));
+  }
+}
+
+// Retrieve all customer IDs
+function getCustomerIds() {
+  return JSON.parse(localStorage.getItem(&quot;customerIds&quot;)) || [];
+}
+
+// Retrieve all vault IDs
+function getVaultIds() {
+  return JSON.parse(localStorage.getItem(&quot;vaultIds&quot;)) || [];
+}
+
+async function fetchTokensAndLoadPayPalSDK() {
+  try {
+    const response = await fetch(&#96;/api-getTokens&#96;);
+    if (!response.ok) {
+      throw new Error(&#96;HTTP error! status: \${response.status}&#96;);
+    }
+
+    const tokens = await response.json();
+    // console.log(&quot;Access Token: &quot;, tokens.accessToken);
+    // console.log(&quot;ID Token: &quot;, tokens.tokenId);
+
+    let existingScript = document.getElementById(&quot;paypal-sdk&quot;);
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const paypalScript = document.createElement(&quot;script&quot;);
+    paypalScript.id = &quot;paypal-sdk&quot;;
+    paypalScript.src =
+      &quot;https://www.paypal.com/sdk/js?components=applepay,messages,buttons,card-fields&amp;enable-funding=paylater&amp;buyer-country=GB&amp;currency=GBP&amp;client-id=CLIENT_ID&amp;merchant-id=MERCHANT_ID&quot;;
+    paypalScript.setAttribute(&quot;data-user-id-token&quot;, tokens.tokenId);
+    paypalScript.setAttribute(&quot;data-partner-attribution-id&quot;, &quot;APPLEPAY&quot;);
+    paypalScript.onload = () => {
+      initializePayPalComponents();
+    };
+    document.body.appendChild(paypalScript);
+  } catch (error) {
+    console.error(&quot;Error loading PayPal SDK:&quot;, error);
+  }
+}
+
+function initializePayPalComponents() {
+  paypal
+    .Buttons({
+      createOrder: function (data, actions) {
+        const saveCard = document.getElementById(&quot;save&quot;)?.checked || false;
+        return fetch(&quot;/api/orders&quot;, {
+          method: &quot;POST&quot;,
+          headers: {
+            &quot;Content-Type&quot;: &quot;application/json&quot;,
+          },
+          body: JSON.stringify({ task: &quot;button&quot;, saveCard: saveCard }),
+        })
+          .then((res) => res.json())
+          .then((orderData) => orderData.id);
+      },
+      onApprove: function (data, actions) {
+        return fetch(&#96;/api/orders/\${data.orderID}/capture&#96;, {
+          method: &quot;POST&quot;,
+        })
+          .then((res) => res.json())
+          .then((orderData) => {
+            console.log(&quot;Payment was successful:&quot;, orderData);
+            showSuccess(
+              &quot;Payment processed successfully! Thank you for your order.&quot;
+            );
+
+            const vaultId =
+              orderData?.payment_source?.paypal?.attributes?.vault?.id;
+            const customerId =
+              orderData?.payment_source?.paypal?.attributes?.vault?.customer
+                ?.id;
+
+            if (vaultId && customerId) {
+              localStorage.setItem(&quot;vaultId&quot;, vaultId); // Save vault ID to local storage
+              localStorage.setItem(&quot;customerId&quot;, customerId); // Save customer ID to local storage
+            }
+          });
+      },
+    })
+    .render(&quot;#paypal-button-container&quot;);
+
+  const cardField = paypal.CardFields({
+    createOrder: async (data) => {
+      const saveCard = document.getElementById(&quot;save&quot;)?.checked || false;
+      try {
+        const response = await fetch(&quot;/api/orders&quot;, {
+          method: &quot;POST&quot;,
+          headers: {
+            &quot;Content-Type&quot;: &quot;application/json&quot;,
+          },
+          body: JSON.stringify({
+            card: {
+              attributes: {
+                verification: {
+                  method: &quot;SCA_ALWAYS&quot;,
+                },
+              },
+              experience_context: {
+                shipping_preference: &quot;NO_SHIPPING&quot;,
+                return_url: &quot;https://example.com/returnUrl&quot;,
+                cancel_url: &quot;https://example.com/cancelUrl&quot;,
+              },
+            },
+            task: &quot;advancedCC&quot;,
+            saveCard: saveCard,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(&#96;Failed to create order: \${
+            response.statusText
+          }&#96;);
+        }
+
+        const orderData = await response.json();
+        console.log(&quot;Order data from createOrder:&quot;, orderData);
+        GlorderID = orderData.id;
+        // Returning Order ID for the event onApprove
+        return orderData.id;
+      } catch (error) {
+        console.error(&quot;Error in createOrder:&quot;, error);
+      }
+    },
+
+    onApprove: async function (data, actions) {
+      console.log(&quot;Card payment approved for order:&quot;, data.orderID);
+
+      try {
+        const result = await fetch(&#96;/api/orders/\${data.orderID}&#96;, {
+          method: &quot;GET&quot;,
+        });
+
+        if (!result.ok) {
+          throw new Error(
+            &#96;Failed to fetch order details: \${result.statusText}&#96;
+          );
+        }
+
+        const challenge = await result.json();
+        console.log(&quot;Challenge data:&quot;, JSON.stringify(challenge, null, 2));
+
+        const authenticationStatus =
+          challenge?.payment_source?.card?.authentication_result?.three_d_secure
+            ?.authentication_status;
+        const enrollmentStatus =
+          challenge?.payment_source?.card?.authentication_result?.three_d_secure
+            ?.enrollment_status;
+
+        if (
+          data.liabilityShift === &quot;POSSIBLE&quot; &&
+          enrollmentStatus === &quot;Y&quot; &&
+          authenticationStatus === &quot;Y&quot;
+        ) {
+          const captureResult = await fetch(
+            &#96;/api/orders/\${data.orderID}/capture&#96;,
+            {
+              method: &quot;POST&quot;,
+              headers: {
+                &quot;Content-Type&quot;: &quot;application/json&quot;,
+              },
+            }
+          );
+
+          if (!captureResult.ok) {
+            throw new Error(
+              &#96;Failed to capture payment: \${captureResult.statusText}&#96;
+            );
+          }
+
+          const captureData = await captureResult.json();
+          showSuccess(
+            &quot;Payment processed successfully! Thank you for your order.&quot;
+          );
+
+          console.log(&quot;Captured payment:&quot;, captureData);
+
+          const vaultId =
+            captureData?.payment_source?.card?.attributes?.vault?.id;
+          const customerId =
+            captureData?.payment_source?.card?.attributes?.vault?.customer?.id;
+
+          if (vaultId && customerId) {
+            // Use the addCustomerId function to store the customer ID
+            addCustomerId(customerId);
+            localStorage.setItem(&quot;vaultId&quot;, vaultId);
+            console.log(&quot;Vault ID and Customer ID saved to local storage&quot;);
+          } else {
+            console.log(&quot;No vault or customer ID found in payment source.&quot;);
+          }
+
+          const captureStatus =
+            captureData.purchase_units[0].payments.captures[0].status;
+          const transactionID = captureData.id;
+          console.log(&quot;Capture Status:&quot;, captureStatus);
+          console.log(&quot;Transaction ID:&quot;, transactionID);
+        } else {
+          console.log(&quot;Capture conditions not met, payment not captured.&quot;);
+        }
+      } catch (error) {
+        console.error(&quot;Error during order fetch or capture:&quot;, error);
+      }
+    },
+
+    onError: (error) => console.error(&quot;Something went wrong:&quot;, error),
+  });
+
+  if (cardField.isEligible()) {
+    cardField.NameField().render(&quot;#card-name-field-container&quot;);
+    cardField.NumberField().render(&quot;#card-number-field-container&quot;);
+    cardField.CVVField().render(&quot;#card-cvv-field-container&quot;);
+    cardField.ExpiryField().render(&quot;#card-expiry-field-container&quot;);
+
+    document
+      .getElementById(&quot;card-field-submit-button&quot;)
+      .addEventListener(&quot;click&quot;, function () {
+        cardField
+          .submit({
+            billingAddress: {
+              address_line_1: &quot;123 Billing St&quot;,
+              address_line_2: &quot;Apartment 5&quot;,
+              admin_area_2: &quot;San Jose&quot;,
+              admin_area_1: &quot;CA&quot;,
+              postal_code: &quot;SW1A 0AA&quot;,
+              country_code: &quot;GB&quot;,
+            },
+          })
+          .then(function (details) {
+            console.log(&quot;Credit card form submitted successfully:&quot;);
+          })
+          .catch(function (err) {
+            console.error(&quot;Error with credit card form submission:&quot;, err);
+          });
+      });
+  }
+}
+
+document.addEventListener(&quot;DOMContentLoaded&quot;, async () => {
+  const customerIds = getCustomerIds();
+  const tableBody = document.querySelector(&quot;#payment-methods-table tbody&quot;);
+  const messageContainer = document.getElementById(&quot;message-container&quot;);
+  const paymentContainer = document.getElementById(&quot;payment-container&quot;);
+
+  let hasPaymentMethods = false;
+
+  try {
+    // Clear previous content
+    tableBody.innerHTML = &quot;&quot;;
+    messageContainer.textContent = &quot;&quot;;
+
+    for (const customerId of customerIds) {
+      const hasMethods = await loadPaymentMethods(customerId, tableBody);
+      if (hasMethods) {
+        hasPaymentMethods = true;
+      }
+    }
+
+    if (hasPaymentMethods) {
+      paymentContainer.style.display = &quot;block&quot;;
+    } else {
+      paymentContainer.style.display = &quot;none&quot;;
+    }
+  } catch (error) {
+    console.error(&quot;Error loading payment methods:&quot;, error);
+    messageContainer.textContent =
+      &quot;An error occurred while loading payment methods.&quot;
+    paymentContainer.style.display = &quot;none&quot;;
+  }
+});
+
+// Fetch and display payment methods for a specific customer
+async function loadPaymentMethods(customerId, tableBody) {
+  try {
+    const response = await fetch(
+      &#96;/api/payment-tokens?customerId=\${customerId}&#96;
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        &#96;Error fetching payment tokens for Customer ID \${customerId}: \${errorText}&#96;
+      );
+    }
+
+    const paymentMethods = await response.json();
+    if (paymentMethods.length === 0) {
+      const noMethodsMessage = document.createElement(&quot;p&quot;);
+      noMethodsMessage.textContent = &#96;No payment methods found for Customer ID \${customerId}&#96;;
+      tableBody.appendChild(noMethodsMessage);
+      return false;
+    }
+
+    paymentMethods.forEach((payment) => {
+      const row = document.createElement(&quot;tr&quot;);
+      row.innerHTML = &#96;\
+        &lt;td&gt;&lt;input type="radio" name="method" value="\${
+          payment.id
+        }" required&gt;&lt;/td&gt;\
+        &lt;td&gt;&lt;img src="https://fitx-image-bucket.s3.eu-west-1.amazonaws.com/\${payment.payment_source.card.brand.toLowerCase()}.jpg" \
+                 alt="\${
+                   payment.payment_source.card.brand
+                 }" style="width:120px;"&gt;&lt;/td&gt;\
+        &lt;td&gt;**** **** **** \${
+          payment.payment_source.card.last_digits
+        }&lt;/td&gt;\
+        &lt;td&gt;&lt;button class="delete-button" data-id="\${
+          payment.id
+        }"&gt;Delete&lt;/button&gt;&lt;/td&gt;\
+      &#96;;
+      tableBody.appendChild(row);
+    });
+
+    return true;
+  } catch (error) {
+    console.error(&quot;Error retrieving payment tokens:&quot;, error);
+    return false;
+  }
+}
+
+// Handle delete button clicks
+document.addEventListener(&quot;click&quot;, async (event) => {
+  if (event.target.classList.contains(&quot;delete-button&quot;)) {
+    const tokenId = event.target.dataset.id;
+
+    if (confirm(&quot;Are you sure you want to delete this payment token?&quot;)) {
+      try {
+        const response = await fetch(&#96;/api/payment-tokens/\${tokenId}&#96;, {
+          method: &quot;DELETE&quot;,
+        });
+
+        if (response.ok) {
+          alert(&quot;Payment token deleted successfully&quot;);
+          // Remove the token from the UI
+          event.target.closest(&quot;tr&quot;).remove();
+        } else {
+          const errorText = await response.text();
+          alert(&#96;Failed to delete payment token: \${errorText}&#96;);
+        }
+      } catch (error) {
+        console.error(&quot;Error deleting payment token:&quot;, error);
+        alert(&quot;An error occurred while deleting the payment token.&quot;);
+      }
+    }
+  }
+});
+
+// Add event listener to the &quot;Pay Now&quot; button
+document.getElementById(&quot;submit&quot;).addEventListener(&quot;click&quot;, async (event) => {
+  event.preventDefault(); // Prevent form submission if inside a form
+  await handlePayment();
+});
+
+async function handlePayment() {
+  const selectedMethod = document.querySelector('input[name="method"]:checked');
+
+  if (!selectedMethod) {
+    showError(&quot;Please select a payment method.&quot;);
+    return;
+  }
+
+  const vaultID = localStorage.getItem(&quot;vaultId&quot;);
+
+  try {
+    // Create Order
+    const orderResponse = await fetch(&quot;/api/orders&quot;, {
+      method: &quot;POST&quot;,
+      headers: {
+        &quot;Content-Type&quot;: &quot;application/json&quot;,
+      },
+      body: JSON.stringify({
+        task: &quot;useToken&quot;,
+        vaultID, // Ensure the key matches the backend
+      }),
+    });
+
+    if (!orderResponse.ok) {
+      throw new Error(&#96;Failed to create order: \${
+        orderResponse.statusText
+      }&#96;);
+    }
+
+    const orderData = await orderResponse.json();
+    const orderId = orderData.id;
+
+    // Fetch Order Details
+    const orderDetailsResponse = await fetch(&#96;/api/orders/\${orderId}&#96;, {
+      method: &quot;GET&quot;,
+    });
+
+    if (!orderDetailsResponse.ok) {
+      throw new Error(
+        &#96;Failed to fetch order details: \${
+          orderDetailsResponse.statusText
+        }&#96;
+      );
+    }
+
+    const orderDetails = await orderDetailsResponse.json();
+
+    // Capture Payment
+    const captureResponse = await fetch(&#96;/api/orders/\${orderId}/capture&#96;, {
+      method: &quot;POST&quot;,
+      headers: {
+        &quot;Content-Type&quot;: &quot;application/json&quot;,
+      },
+    });
+
+    const captureData = await captureResponse.json();
+    console.log(&quot;Captured payment:&quot;, captureData);
+
+    // Provide success feedback to the user
+    showSuccess(&quot;Payment processed successfully! Thank you for your order.&quot;);
+  } catch (error) {
+    console.error(&quot;Error during payment process:&quot;, error);
+    showError(
+      &quot;An error occurred while processing your payment. Please try again.&quot;
+    );
+  }
+}
+
+function showError(message) {
+  const statusMessage = document.getElementById(&quot;status-message&quot;);
+  statusMessage.textContent = message;
+  statusMessage.className = &quot;status-message error&quot;;
+}
+
+function showSuccess(message) {
+  const statusMessage = document.getElementById(&quot;status-message&quot;);
+  statusMessage.textContent = message;
+  statusMessage.className = &quot;status-message success&quot;;
+}
+
+// Initialize everything when the page is loaded
+document.addEventListener(&quot;DOMContentLoaded&quot;, () => {
+  fetchTokensAndLoadPayPalSDK();
+});
+`,
+        paypalApi: `
+const baseUrl = {
+  sandbox: "https://api.sandbox.paypal.com",
+};
 
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
-const base = "https://api-m.sandbox.paypal.com";
 
-export const generateAccessToken = async () => {
+export async function generateAccessToken() {
   try {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-      throw new Error("MISSING_API_CREDENTIALS");
+      throw new Error("Missing api creds");
     }
-    const auth = Buffer.from(\`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`).toString("base64");
-    const response = await fetch(\`\${base}/v1/oauth2/token\`, {
+
+    const auth = Buffer.from(
+      \`\${process.env.PAYPAL_CLIENT_ID}:\${process.env.PAYPAL_CLIENT_SECRET}\`
+    ).toString("base64");
+    const response = await fetch(\`\${baseUrl.sandbox}/v1/oauth2/token\`, {
       method: "POST",
-      body: "grant_type=client_credentials",
+      body: \`\grant_type=client_credentials&response_type=idtoken&target_customer_id=iqOtguscgz\`\,
       headers: {
-        Authorization: \`Basic \${auth}\`,
+        Authorization: \`\Basic \${auth}\`\,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
     const data = await response.json();
-    return data.access_token;
+    // console.log("Full api Response", data);
+
+    return {
+      accessToken: data.access_token,
+      idToken: data.id_token,
+    };
   } catch (error) {
-    console.error("Failed to generate Access Token:", error);
+    console.error("Failed", error);
+    // throw error;
   }
-};
+}
 
-export const createOrder = async (cart) => {
-  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
+export async function deletePaymentToken(tokenId) {
+  const { accessToken } = await generateAccessToken();
+  const url = \`\${baseUrl.sandbox}/v3/vault/payment-tokens/\${tokenId}\`;
 
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders\`;
+  try {
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`\Bearer \${accessToken}\`\,
+      },
+    });
+
+    if (response.status !== 204) {
+      const errorData = await response.json();
+      console.error("Failed to delete payment token:", errorData);
+      throw new Error(
+        \`\Failed to delete payment token. HTTP Status: \${response.status}.\`\
+      );
+    }
+
+    console.log("Payment token deleted successfully");
+  } catch (error) {
+    console.error("Error during payment token deletion:", error.message);
+    throw new Error(
+      \`\An error occurred while deleting payment token: \${error.message}\`\
+    );
+  }
+}
+
+export async function createOrder(task, saveCard, vaultID) {
+  const { accessToken } = await generateAccessToken();
+  const url = \`\${baseUrl.sandbox}/v2/checkout/orders\`;
+
   const payload = {
     intent: "CAPTURE",
     purchase_units: [
@@ -208,125 +815,357 @@ export const createOrder = async (cart) => {
     ],
   };
 
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
+  const paypalButton = {
+    paypal: {
+      experience_context: {
+        payment_method_selected: "PAYPAL",
+        payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+        landing_page: "LOGIN",
+        user_action: "PAY_NOW",
+        shipping_preference: "NO_SHIPPING",
+        return_url: "https://example.com/returnUrl",
+        cancel_url: "https://example.com/cancelUrl",
+      },
     },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  };
 
-  return handleResponse(response);
-};
-
-export const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders/\${orderID}/capture\`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
+  const paypalSourceVault = {
+    paypal: {
+      experience_context: {
+        payment_method_selected: "PAYPAL",
+        payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+        landing_page: "LOGIN",
+        user_action: "PAY_NOW",
+        shipping_preference: "NO_SHIPPING",
+        return_url: "https://example.com/returnUrl",
+        cancel_url: "https://example.com/cancelUrl",
+      },
+      attributes: {
+        vault: {
+          store_in_vault: "ON_SUCCESS",
+          usage_type: "MERCHANT",
+          customer_type: "CONSUMER",
+        },
+      },
     },
-  });
+  };
 
-  return handleResponse(response);
-};
+  const advancedCreditCardSource = {
+    card: {
+      attributes: {
+        vault: {
+          store_in_vault: "ON_SUCCESS",
+        },
+      },
+    },
+  };
 
-const handleResponse = async (response) => {
-  try {
-    const jsonResponse = await response.json();
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
+  const savedCC = {
+    card: {
+      vault_id: vaultID,
+    },
+  };
+
+  if (task === "button" && saveCard) {
+    payload.payment_source = paypalSourceVault;
+  } else if (task === "advancedCC" && saveCard) {
+    payload.payment_source = advancedCreditCardSource;
+  } else if (task === "useToken" && vaultID) {
+    payload.payment_source = savedCC;
+  } else if (task === "button") {
+    payload.payment_source = paypalButton;
   }
-};
-`,
-        client: `// client.js
-window.paypal.Buttons({
-  style: {
-    shape: "pill",
-    layout: "vertical",
-    color: "black",
-    label: "pay",
-  },
-  async createOrder() {
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cart: [
-            { id: "1", quantity: "1" },
-          ],
-        }),
-      });
 
-      const orderData = await response.json();
-      if (orderData.id) {
-        return orderData.id;
-      }
+  const requestid = "new-order-" + new Date().toISOString();
 
-      const errorDetail = orderData?.details?.[0];
-      const errorMessage = errorDetail
-          ? \`\${errorDetail.issue} \${errorDetail.description} (\${orderData.debug_id})\`
-          : JSON.stringify(orderData);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`\Bearer \${accessToken}\`\,
+        "PayPal-Request-Id": requestid,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(payload),
+    });
 
-      throw new Error(errorMessage);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-  async onApprove(data, actions) {
-    try {
-      const response = await fetch(\`/api/orders/\${data.orderID}/capture\`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const orderData = await response.json();
-      const errorDetail = orderData?.details?.[0];
-
-      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-        return actions.restart();
-      } else if (errorDetail) {
-        throw new Error(\`\${errorDetail.description} (\${orderData.debug_id})\`);
-      } else if (!orderData.purchase_units) {
-        throw new Error(JSON.stringify(orderData));
-      } else {
-        const transaction =
-            orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
-            orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
-
-        resultMessage(\`Transaction \${transaction.status}: \${transaction.id}<br><br>See console for all available details\`);
-        console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
-      }
-    } catch (error) {
-      console.error(error);
-      resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
-    }
-  },
-}).render("#paypal-button-container");
-
-function resultMessage(message) {
-  document.getElementById("result-message").innerHTML = message;
+    const data = await response.json();
+    console.log("Order created successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to create order:", error);
+  }
 }
+
+export async function getOrderDetails(orderId) {
+  const { accessToken } = await generateAccessToken();
+  const url = \`\${baseUrl.sandbox}/v2/checkout/orders/\${orderId}\`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`\Bearer \${accessToken}\`\,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(\`\Error fetching order details: \${errorText}\`\);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching order details:", error);
+    throw error;
+  }
+}
+
+export async function capturePayment(orderId) {
+  const { accessToken } = await generateAccessToken();
+  const url = \`\${baseUrl.sandbox}/v2/checkout/orders/\${orderId}/capture\`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`\Bearer \${accessToken}\`\,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to capture payment:", errorData);
+      const detailedMessage = \`\Failed to capture payment. HTTP Status: \${response.status}. Error: \${JSON.stringify(errorData, null, 2)}.\`\;
+      throw new Error(detailedMessage);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error during payment capture:", error.message);
+    console.error("Stack trace:", error.stack);
+    throw new Error(
+      \`\An error occurred while capturing payment: \${error.message}\`\
+    );
+  }
+}
+
+export async function fetchAllPaymentTokens(customerId) {
+  const { accessToken } = await generateAccessToken();
+  let allTokens = [];
+  let page = 1;
+  let pageSize = 5;
+  let totalPages;
+
+  do {
+    const response = await fetch(
+      \`\${baseUrl.sandbox}/v3/vault/payment-tokens?customer_id=\${customerId}&page=\${page}&page_size=\${pageSize}\`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: \`\Bearer \${accessToken}\`\,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(\`\Error fetching payment tokens: \${errorText}\`\);
+    }
+
+    const data = await response.json();
+    allTokens = allTokens.concat(data.payment_tokens);
+    // console.log("allTokens:", allTokens);
+    totalPages = data.total_pages;
+    page++;
+  } while (page <= totalPages);
+
+  return allTokens;
+}
+`,
+        html: `// html
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta http-equiv="X-UA-Compatible" content="IE=edge" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+    &lt;!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
+    using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ --&gt;
+    &lt;link
+      rel="stylesheet"
+      type="text/css"
+      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" /&gt;
+    &lt;title&gt;Advanced Checkout Integration with 3D Secure and SDK v2&lt;/title&gt;
+    &lt;!-- &buyer-country is available only in SandBox for testing, remove it before going Live --&gt;
+    &lt;!-- Check all the parameters and the JavaScript SDK script configuration at the following link: --&gt;
+    &lt;!-- https://developer.paypal.com/sdk/js/configuration/ --&gt;
+    &lt;!-- &lt;script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=&lt;%= clientId %&gt;"&gt;&lt;/script&gt; --&gt;
+    &lt;style&gt;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 0.9rem;
+      }
+      #payment-container {
+        display: none;
+      }
+      .payments {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .payments th,
+      .payments td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      .payments th {
+        background-color: #f4f4f4;
+      }
+      .delete-button {
+        color: #d9534f;
+        background-color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+      .delete-button:hover {
+        text-decoration: underline;
+      }
+      #message-container {
+        margin-top: 10px;
+        font-size: 1rem;
+      }
+      .paypal-button-container {
+        padding: 0 !important;
+      }
+      #mycart &gt; h2 {
+        color: #015c86;
+        margin-bottom: 0.4rem;
+        margin-left: 0.2rem;
+      }
+      .nbtn {
+        margin: 0;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 33.3rem;
+        background-color: #015c86;
+        color: #fff;
+        border-radius: 0.2em;
+        cursor: pointer;
+        font-family: sans-serif;
+        font-size: 1.2rem;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+      .nbtn:hover {
+        background-color: #026b9c;
+        border-color: #01345c;
+      }
+      .nbtn:active {
+        background-color: #014566;
+        border-color: #01345c;
+      }
+      .card-field-name {
+        background-color: #ff0000 !important;
+        color: red;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #mycart {
+        width: 34rem;
+        margin: 2rem auto;
+      }
+      #checkout-form {
+        text-align: center;
+      }
+      #api-response {
+        width: 50%;
+        margin-left: 10rem;
+        margin-top: 3rem;
+        display: none;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    
+    &lt;div id="mycart"&gt;
+      &lt;div id="status-message"&gt;&lt;/div&gt;
+      &lt;!-- Pay Later Messages:
+             https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
+             Please replace the amount with your variable --&gt;
+      &lt;div data-pp-message data-pp-amount="240.00" data-pp-layout="text"&gt;&lt;/div&gt;
+      &lt;!-- PayPal Buttons:
+             https://developer.paypal.com/docs/checkout/advanced/integrate/ --&gt;
+      &lt;div id="paypal-button-container" class="paypal-button-container"&gt;&lt;/div&gt;
+      &lt;div id="payment-container"&gt;
+        &lt;h3&gt;Or choose your saved credit card:&lt;/h3&gt;
+        &lt;form id="payment-form" method="POST"&gt;
+          &lt;table class="payments" id="payment-methods-table"&gt;
+            &lt;thead&gt;
+              &lt;tr&gt;
+                &lt;th&gt;Select&lt;/th&gt;
+                &lt;th&gt;Card Brand&lt;/th&gt;
+                &lt;th&gt;Card Number&lt;/th&gt;
+                &lt;th&gt;Actions&lt;/th&gt;
+              &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+              &lt;!-- Payment methods will be dynamically inserted here --&gt;
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+      &lt;!-- Add a message container for better user feedback --&gt;
+      &lt;div id="message-container"&gt;&lt;/div&gt;
+      &lt;div style="width: 100%; text-align: center; margin-top: 2rem"&gt;
+        &lt;button type="submit" id="submit" class="button"&gt;Pay Now&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;br /&gt;
+      &lt;h2&gt;Credit Card&lt;/h2&gt;
+      &lt;div id="checkout-form"&gt;
+        &lt;div id="card-name-field-container"&gt;&lt;/div&gt;
+        &lt;div id="card-number-field-container"&gt;&lt;/div&gt;
+        &lt;div id="card-expiry-field-container"&gt;&lt;/div&gt;
+        &lt;div id="card-cvv-field-container"&gt;&lt;/div&gt;
+        &lt;button
+          value="submit"
+          id="card-field-submit-button"
+          class="nbtn"
+          type="button"&gt;
+          Pay
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;br /&gt;&lt;br /&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="save" name="save" /&gt;
+        &lt;label for="save"&gt;Save your payment method&lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;!-- JavaScript file that includes our buttons and cardField events --&gt;
+    &lt;script src="app.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
 `,
       };
 
       function showCode(section) {
         const codeDisplay = document.getElementById("code-display");
         codeDisplay.innerHTML = `<pre><code>${codeSamples[section]}</code></pre>`;
+        hljs.highlightAll();
       }
     </script>
   </body>

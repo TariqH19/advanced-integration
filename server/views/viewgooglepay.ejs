@@ -98,6 +98,13 @@
         color: #333;
       }
     </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </head>
   <body>
     <div class="navbar">
@@ -108,14 +115,16 @@
         <a href="/standardview">Standard</a>
         <a href="/advancedview">Advanced</a>
         <a href="https://fastlane-sand.vercel.app/" target="_blank">Fastlane</a>
+        <a href="/hostedfields">Braintree Hosted Fields</a>
         <a href="/cards">Cards</a>
       </div>
     </div>
     <div class="container">
       <div class="button-container">
-        <button onclick="showCode('server')">Show Server Setup</button>
-        <button onclick="showCode('paypalApi')">Show PayPal API Helpers</button>
-        <button onclick="showCode('client')">Show Client Integration</button>
+        <button onclick="showCode('server')">server.js</button>
+        <button onclick="showCode('client')">app.js</button>
+        <button onclick="showCode('paypalApi')">paypal-api.js</button>
+        <button onclick="showCode('html')">checkout.html</button>
         <!-- <button onclick="showCode('html')">Show HTML</button> -->
       </div>
 
@@ -127,206 +136,557 @@
     <script>
       const codeSamples = {
         server: `// server.js
-import "dotenv/config";
-import express from "express";
-import { fileURLToPath } from "url";
-import path from "path";
-import { createOrder, captureOrder, generateAccessToken } from "./paypal-api.js";
+      import "dotenv/config";
+      import express from "express";
+      import { fileURLToPath } from "url";
+      import path from "path";
+      import * from "./paypal-api.js";
 
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+      const app = express();
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+      app.use(express.json());
+      app.use(express.static(path.join(__dirname, "public")));
 
-app.post("/api/orders", async (req, res) => {
-  try {
-    const { cart } = req.body;
-    const order = await createOrder(cart);
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create order" });
-  }
-});
+      app.get("/googlepay", async (req, res) => {
+        const clientId = process.env.PAYPAL_CLIENT_ID,
+          merchantId = process.env.PAYPAL_MERCHANT_ID;
+        const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+        try {
+          if (!clientId || !merchantId || !clientSecret) {
+            throw new Error("Client Id or App Secret or Merchant Id is missing.");
+          }
+          const clientToken = await googlepay.generateClientToken();
+          res.render("googlepay", { clientId, clientToken, merchantId });
+        } catch (err) {
+          res.status(500).send(err.message);
+        }
+      });
 
-app.post("/api/orders/:orderID/capture", async (req, res) => {
-  try {
-    const { orderID } = req.params;
-    const captureData = await captureOrder(orderID);
-    res.json(captureData);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to capture payment" });
-  }
-});
+      // create order
+      app.post("/googlepay/api/orders", async (req, res) => {
+        try {
+          const order = await googlepay.createOrder();
+          res.json(order);
+        } catch (err) {
+          res.status(500).send(err.message);
+        }
+      });
 
-app.listen(8888, () => {
-  console.log("Listening on http://localhost:8888/");
-});
-`,
+      // Get order
+      app.post("/googlepay/api/orders/:orderID", async (req, res) => {
+        const { orderID } = req.params;
+        try {
+          const order = await googlepay.getOrder(orderID);
+          res.json(order);
+        } catch (err) {
+          res.status(500).send(err.message);
+        }
+      });
+
+      // capture payment
+      app.post("/googlepay/api/orders/:orderID/capture", async (req, res) => {
+        const { orderID } = req.params;
+        try {
+          const captureData = await googlepay.capturePayment(orderID);
+          res.json(captureData);
+        } catch (err) {
+          res.status(500).send(err.message);
+        }
+      });
+
+      app.listen(8888, () => {
+        console.log("Listening on http://localhost:8888/");
+      });
+      `,
         paypalApi: `// paypal-api.js
-import fetch from "node-fetch";
+      import fetch from "node-fetch";
 
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
-const base = "https://api-m.sandbox.paypal.com";
+      // set some important variables
+      const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MERCHANT_ID } =
+        process.env;
+      const BASE_URL = "https://api-m.sandbox.paypal.com";
+      // const production = "https://api-m.paypal.com";
+      const base = \`\${BASE_URL}\`\;
 
-export const generateAccessToken = async () => {
-  try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-      throw new Error("MISSING_API_CREDENTIALS");
-    }
-    const auth = Buffer.from(\`\${PAYPAL_CLIENT_ID}:\${PAYPAL_CLIENT_SECRET}\`).toString("base64");
-    const response = await fetch(\`\${base}/v1/oauth2/token\`, {
-      method: "POST",
-      body: "grant_type=client_credentials",
-      headers: {
-        Authorization: \`Basic \${auth}\`,
-      },
-    });
+      // call the create order method
+      export async function createOrder() {
+        const purchaseAmount = "0.10"; // TODO: pull prices from a database
+        const accessToken = await generateAccessToken();
+        const url = \`\${base}/v2/checkout/orders\`\;
+        const response = await fetch(url, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: \`\Bearer \${accessToken}\`\,
+          },
+          body: JSON.stringify({
+            intent: "CAPTURE",
+            purchase_units: [
+              {
+                amount: {
+                  currency_code: "GBP",
+                  value: purchaseAmount,
+                },
+                payee: {
+                  merchant_id: PAYPAL_MERCHANT_ID,
+                },
+              },
+            ],
+            payment_source: {
+              google_pay: {
+                attributes: {
+                  verification: {
+                    method: "SCA_WHEN_REQUIRED",
+                  },
+                },
+              },
+            },
+          }),
+        });
 
-    const data = await response.json();
-    return data.access_token;
-  } catch (error) {
-    console.error("Failed to generate Access Token:", error);
-  }
-};
+        return handleResponse(response);
+      }
 
-export const createOrder = async (cart) => {
-  console.log("shopping cart information passed from the frontend createOrder() callback:", cart);
+      // capture payment for an order
+      export async function capturePayment(orderId) {
+        const accessToken = await generateAccessToken();
+        const url = \`\${base}/v2/checkout/orders/\${orderId}/capture\`\;
+        const response = await fetch(url, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: \`\Bearer \${accessToken}\`\,
+          },
+        });
 
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders\`;
-  const payload = {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        amount: {
-          currency_code: "GBP",
-          value: "10.00",
-        },
-      },
-    ],
-  };
+        return handleResponse(response);
+      }
 
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+      // generate access token
+      export async function generateAccessToken() {
+        const auth = Buffer.from(
+          PAYPAL_CLIENT_ID + ":" + PAYPAL_CLIENT_SECRET
+        ).toString("base64");
+        const response = await fetch(\`\${base}/v1/oauth2/token\`\, {
+          method: "post",
+          body: "grant_type=client_credentials",
+          headers: {
+            Authorization: \`\Basic \${auth}\`\,
+          },
+        });
+        const jsonData = await handleResponse(response);
+        return jsonData.access_token;
+      }
 
-  return handleResponse(response);
-};
+      // generate client token
+      export async function generateClientToken() {
+        const accessToken = await generateAccessToken();
+        const response = await fetch(\`\${base}/v1/identity/generate-token\`\, {
+          method: "post",
+          headers: {
+            Authorization: \`\Bearer \${accessToken}\`\,
+            "Accept-Language": "en_US",
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("response", response.status);
+        const jsonData = await handleResponse(response);
+        return jsonData.client_token;
+      }
 
-export const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken();
-  const url = \`\${base}/v2/checkout/orders/\${orderID}/capture\`;
+      async function handleResponse(response) {
+        if (response.status === 200 || response.status === 201) {
+          return response.json();
+        }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: \`Bearer \${accessToken}\`,
-    },
-  });
+        const errorMessage = await response.text();
+        throw new Error(errorMessage);
+      }
 
-  return handleResponse(response);
-};
+      export async function getOrder(orderId) {
+        const accessToken = await generateAccessToken();
+        const url = \`\${base}/v2/checkout/orders/\${orderId}\`\;
+        const response = await fetch(url, {
+          method: "get",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: \`\Bearer \${accessToken}\`\,
+          },
+        });
 
-const handleResponse = async (response) => {
-  try {
-    const jsonResponse = await response.json();
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
-  }
-};
-`,
+        return handleResponse(response);
+      }
+
+      `,
         client: `// client.js
-window.paypal.Buttons({
-  style: {
-    shape: "pill",
-    layout: "vertical",
-    color: "black",
-    label: "pay",
-  },
-  async createOrder() {
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cart: [
-            { id: "1", quantity: "1" },
+      /* eslint-disable no-undef */
+      /* eslint-disable no-unused-vars */
+
+      /**
+       * An initialized google.payments.api.PaymentsClient object or null if not yet set
+       * An initialized paypal.Googlepay().config() response object or null if not yet set
+       *
+       * @see {@link getGooglePaymentsClient}
+       */
+      let paymentsClient = null,
+        googlepayConfig = null;
+
+      /**
+       *
+       * @returns Fetch the Google Pay Config From PayPal
+       */
+      async function getGooglePayConfig() {
+        if (googlepayConfig === null) {
+          googlepayConfig = await paypal.Googlepay().config();
+          console.log(" ===== Google Pay Config Fetched ===== ");
+        }
+        return googlepayConfig;
+      }
+
+      /**
+       * Configure support for the Google Pay API
+       *
+       * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#PaymentDataRequest|PaymentDataRequest}
+       * @returns {object} PaymentDataRequest fields
+       */
+      async function getGooglePaymentDataRequest() {
+        const {
+          allowedPaymentMethods,
+          merchantInfo,
+          apiVersion,
+          apiVersionMinor,
+          countryCode,
+        } = await getGooglePayConfig();
+        const baseRequest = {
+          apiVersion,
+          apiVersionMinor,
+        };
+        const paymentDataRequest = Object.assign({}, baseRequest);
+
+        paymentDataRequest.allowedPaymentMethods = allowedPaymentMethods;
+        paymentDataRequest.transactionInfo = getGoogleTransactionInfo(countryCode);
+        paymentDataRequest.merchantInfo = merchantInfo;
+
+        paymentDataRequest.callbackIntents = ["PAYMENT_AUTHORIZATION"];
+
+        return paymentDataRequest;
+      }
+
+      /**
+       * Handles authorize payments callback intents.
+       *
+       * @param {object} paymentData response from Google Pay API after a payer approves payment through user gesture.
+       * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentData object reference}
+       *
+       * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentAuthorizationResult}
+       * @returns Promise<{object}> Promise of PaymentAuthorizationResult object to acknowledge the payment authorization status.
+       */
+      function onPaymentAuthorized(paymentData) {
+        return new Promise(function (resolve, reject) {
+          processPayment(paymentData)
+            .then(function () {
+              resolve({ transactionState: "SUCCESS" });
+            })
+            .catch(function () {
+              resolve({ transactionState: "ERROR" });
+            });
+        });
+      }
+
+      /**
+       * Return an active PaymentsClient or initialize
+       *
+       * @see {@link https://developers.google.com/pay/api/web/reference/client#PaymentsClient|PaymentsClient constructor}
+       * @returns {google.payments.api.PaymentsClient} Google Pay API client
+       */
+      function getGooglePaymentsClient() {
+        if (paymentsClient === null) {
+          paymentsClient = new google.payments.api.PaymentsClient({
+            environment: "TEST",
+            paymentDataCallbacks: {
+              onPaymentAuthorized: onPaymentAuthorized,
+            },
+          });
+        }
+        return paymentsClient;
+      }
+
+      /**
+       * Initialize Google PaymentsClient after Google-hosted JavaScript has loaded
+       *
+       * Display a Google Pay payment button after confirmation of the viewer's
+       * ability to pay.
+       */
+      async function onGooglePayLoaded() {
+        const paymentsClient = getGooglePaymentsClient();
+        const { allowedPaymentMethods, apiVersion, apiVersionMinor } =
+          await getGooglePayConfig();
+        paymentsClient
+          .isReadyToPay({ allowedPaymentMethods, apiVersion, apiVersionMinor })
+          .then(function (response) {
+            if (response.result) {
+              addGooglePayButton();
+            }
+          })
+          .catch(function (err) {
+            // show error in developer console for debugging
+            console.error(err);
+          });
+      }
+
+      /**
+       * Add a Google Pay purchase button alongside an existing checkout button
+       *
+       * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#ButtonOptions|Button options}
+       * @see {@link https://developers.google.com/pay/api/web/guides/brand-guidelines|Google Pay brand guidelines}
+       */
+      function addGooglePayButton() {
+        const paymentsClient = getGooglePaymentsClient();
+        const button = paymentsClient.createButton({
+          onClick: onGooglePaymentButtonClicked,
+        });
+        document.getElementById("container").appendChild(button);
+      }
+
+      /**
+       * Provide Google Pay API with a payment amount, currency, and amount status
+       *
+       * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#TransactionInfo|TransactionInfo}
+       * @returns {object} transaction info, suitable for use as transactionInfo property of PaymentDataRequest
+       */
+      function getGoogleTransactionInfo(countryCode) {
+        return {
+          displayItems: [
+            {
+              label: "Subtotal",
+              type: "SUBTOTAL",
+              price: "0.09",
+            },
+            {
+              label: "Tax",
+              type: "TAX",
+              price: "0.01",
+            },
           ],
-        }),
-      });
-
-      const orderData = await response.json();
-      if (orderData.id) {
-        return orderData.id;
+          countryCode: countryCode,
+          currencyCode: "USD",
+          totalPriceStatus: "FINAL",
+          totalPrice: "0.10",
+          totalPriceLabel: "Total",
+        };
       }
 
-      const errorDetail = orderData?.details?.[0];
-      const errorMessage = errorDetail
-          ? \`\${errorDetail.issue} \${errorDetail.description} (\${orderData.debug_id})\`
-          : JSON.stringify(orderData);
-
-      throw new Error(errorMessage);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-  async onApprove(data, actions) {
-    try {
-      const response = await fetch(\`/api/orders/\${data.orderID}/capture\`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const orderData = await response.json();
-      const errorDetail = orderData?.details?.[0];
-
-      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-        return actions.restart();
-      } else if (errorDetail) {
-        throw new Error(\`\${errorDetail.description} (\${orderData.debug_id})\`);
-      } else if (!orderData.purchase_units) {
-        throw new Error(JSON.stringify(orderData));
-      } else {
-        const transaction =
-            orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
-            orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
-
-        resultMessage(\`Transaction \${transaction.status}: \${transaction.id}<br><br>See console for all available details\`);
-        console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
+      /**
+       * Show Google Pay payment sheet when Google Pay payment button is clicked
+       */
+      async function onGooglePaymentButtonClicked() {
+        const paymentDataRequest = await getGooglePaymentDataRequest();
+        const paymentsClient = getGooglePaymentsClient();
+        paymentsClient.loadPaymentData(paymentDataRequest);
       }
-    } catch (error) {
-      console.error(error);
-      resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
-    }
-  },
-}).render("#paypal-button-container");
 
-function resultMessage(message) {
-  document.getElementById("result-message").innerHTML = message;
-}
-`,
+      /**
+       * Process payment data returned by the Google Pay API
+       *
+       * @param {object} paymentData response from Google Pay API after user approves payment
+       * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentData|PaymentData object reference}
+       */
+      async function processPayment(paymentData) {
+        const resultElement = document.getElementById("result");
+        const modal = document.getElementById("resultModal");
+        resultElement.innerHTML = "";
+        try {
+          const { id } = await fetch(\`\ /
+                googlepay /
+                api /
+                orders\`\, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).then((res) => res.json());
+
+          console.log(" ===== Order Created ===== ");
+          /** Approve Payment */
+
+          const { status } = await paypal.Googlepay().confirmOrder({
+            orderId: id,
+            paymentMethodData: paymentData.paymentMethodData,
+          });
+
+          if (status === "PAYER_ACTION_REQUIRED") {
+            console.log(
+              " ===== Confirm Payment Completed Payer Action Required ===== "
+            );
+            paypal
+              .Googlepay()
+              .initiatePayerAction({ orderId: id })
+              .then(async () => {
+                /**
+                 *  GET Order
+                 */
+                const orderResponse = await fetch(\`\/googlepay/api/orders/\${id}\`\, {
+                  method: "GET",
+                }).then((res) => res.json());
+
+                console.log(" ===== 3DS Contingency Result Fetched ===== ");
+                console.log(
+                  orderResponse?.payment_source?.google_pay?.card
+                    ?.authentication_result
+                );
+                /*
+                 * CAPTURE THE ORDER
+                 */
+                console.log(" ===== Payer Action Completed ===== ");
+
+                modal.style.display = "block";
+                resultElement.classList.add("spinner");
+                const captureResponse = await fetch(
+                  \`\/googlepay/api/orders/\${id}/capture\`\,
+                  {
+                    method: "POST",
+                  }
+                ).then((res) => res.json());
+
+                console.log(" ===== Order Capture Completed ===== ");
+                resultElement.classList.remove("spinner");
+                resultElement.innerHTML = prettyPrintJson.toHtml(captureResponse, {
+                  indent: 2,
+                });
+              });
+          } else {
+            /*
+             * CAPTURE THE ORDER
+             */
+
+            const response = await fetch(\`\/googlepay/api/orders/\${id}/capture\`\, {
+              method: "POST",
+            }).then((res) => res.json());
+
+            console.log(" ===== Order Capture Completed ===== ");
+            modal.style.display = "block";
+            resultElement.innerHTML = prettyPrintJson.toHtml(response, {
+              indent: 2,
+            });
+          }
+
+          return { transactionState: "SUCCESS" };
+        } catch (err) {
+          return {
+            transactionState: "ERROR",
+            error: {
+              message: err.message,
+            },
+          };
+        }
+      }
+      const modal = document.getElementById("resultModal");
+
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      `,
+        html: `
+      &lt;html&gt;
+        &lt;head&gt;
+          &lt;meta charset=&quot;utf-8&quot; /&gt;
+          &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot; /&gt;
+          &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot; /&gt;
+          &lt;style&gt;
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            main {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+            }
+
+            .container {
+              display: flex;
+              flex-direction: column;
+              text-align: center;
+              background-color: lightgray;
+              max-width: 500px;
+              min-height: 15em;
+              padding: 20px;
+            }
+
+            #googlepay-container {
+              flex-grow: 1;
+            }
+          &lt;/style&gt;
+
+          &lt;!-- Include Google SDK Script --&gt;
+          &lt;script src=&quot;https://pay.google.com/gp/p/js/pay.js&quot;&gt;&lt;/script&gt;
+          &lt;!-- Include PayPal SDK Script with components=googlepay for Custom Googlepay Component--&gt;
+          &lt;script
+            src=&quot;https://www.paypal.com/sdk/js?components=googlepay&amp;client-id=&lt;%= clientId %&gt;&amp;merchant-id=&lt;%= merchantId %&gt;&quot;
+            data-client-token=&quot;&lt;%= clientToken %&gt;&quot; data-partner-attribution-id=&quot;GOOGLEPAY&quot;
+          &gt;&lt;/script&gt;
+
+          &lt;link
+            href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css&quot;
+            rel=&quot;stylesheet&quot;
+            integrity=&quot;sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3&quot;
+            crossorigin=&quot;anonymous&quot;
+          /&gt;
+
+          &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/pretty-print-json@1.4/dist/css/pretty-print-json.css&quot;&gt;
+          &lt;script src=&quot;https://cdn.jsdelivr.net/npm/pretty-print-json@1.3/dist/pretty-print-json.min.js&quot;&gt;&lt;/script&gt;
+
+        &lt;/head&gt;
+        &lt;body&gt;
+
+          &lt;main&gt;
+            &lt;section&gt;
+              &lt;h4&gt;Direct Merchant Integration&lt;/h4&gt;
+              &lt;h4&gt;To use this integration please use your ip address instead of localhost&lt;/h4&gt;
+              &lt;h4&gt;127.0.0.1&lt;/h4&gt;
+              &lt;div id=&quot;container&quot;&gt;&lt;/div&gt;
+            &lt;/section&gt;
+
+            &lt;!-- Result Modal --&gt;
+            &lt;div id=&quot;resultModal&quot; class=&quot;modal&quot;&gt;
+              &lt;span onclick=&quot;document.getElementById('resultModal').style.display='none'&quot; class=&quot;close&quot; title=&quot;Close Modal&quot;&gt;&times;&lt;/span&gt;
+              &lt;form class=&quot;modal-content&quot;&gt;
+                &lt;div class=&quot;modalContainer&quot;&gt;
+                  &lt;span class=&quot;modalHeader&quot;&gt;Capture Order Result&lt;/span&gt;
+                  &lt;pre id=&quot;result&quot; class=&quot;json-container&quot;&gt;&lt;/pre&gt;
+                &lt;/div&gt;
+              &lt;/form&gt;
+            &lt;/div&gt;
+
+          &lt;/main&gt;
+
+          &lt;script&gt;
+            document.addEventListener(&quot;DOMContentLoaded&quot;, (event) =&gt; {
+              if (google &amp;&amp; paypal.Googlepay) {
+                onGooglePayLoaded().catch(console.log);
+              }
+            });
+          &lt;/script&gt;
+          &lt;script src=&quot;modal.js&quot;&gt;&lt;/script&gt;
+          &lt;script src=&quot;googlepay.js&quot;&gt;&lt;/script&gt;
+          &lt;!-- &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt; --&gt;
+
+        &lt;/body&gt;
+      &lt;/html&gt;`,
       };
 
       function showCode(section) {
         const codeDisplay = document.getElementById("code-display");
         codeDisplay.innerHTML = `<pre><code>${codeSamples[section]}</code></pre>`;
+        hljs.highlightAll();
       }
     </script>
   </body>
