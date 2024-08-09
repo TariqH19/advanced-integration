@@ -15,9 +15,22 @@ import * as googlepay from "./googlepay-api.js";
 import * as subs from "./subs-api.js";
 import * as authcap from "./authcap-api.js";
 import * as standard from "./standard-api.js";
-
-const { PAYPAL_CLIENT_ID, PAYPAL_MERCHANT_ID } = process.env;
-
+import * as braintreeAPI from "./braintree-api.js";
+import braintree from "braintree";
+const {
+  PAYPAL_CLIENT_ID,
+  PAYPAL_MERCHANT_ID,
+  BRAINTREE_MERCHANT_ID,
+  BRAINTREE_API_KEY,
+  BRAINTREE_API_SECRET,
+  BRAINTREE_CURRENCY,
+} = process.env;
+const gateway = new braintree.BraintreeGateway({
+  environment: braintree.Environment.Sandbox,
+  merchantId: BRAINTREE_MERCHANT_ID,
+  publicKey: BRAINTREE_API_KEY,
+  privateKey: BRAINTREE_API_SECRET,
+});
 const base = "https://api-m.sandbox.paypal.com";
 // Convert file URL to file path
 const app = express();
@@ -371,6 +384,54 @@ app.post("/standard/api/orders/:orderID/capture", async (req, res) => {
   } catch (error) {
     console.error("Failed to create order:", error);
     res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.post("/clientToken", async (req, res) => {
+  try {
+    const customerID = req.body.customerID;
+    console.log("req.body customerID", req.body.customerID);
+    const clientToken = await braintreeAPI.generateAccessToken(customerID);
+
+    return res.json({
+      clientToken,
+    });
+  } catch (error) {
+    res.status(500).send("Fail to generate Access Token");
+  }
+});
+
+app.get("/hostedfields", async (req, res) => {
+  // render paypal view
+  res.render("hostedfields", {
+    currency: BRAINTREE_CURRENCY,
+    MID: BRAINTREE_MERCHANT_ID,
+  });
+});
+
+app.post("/transaction/create", async (req, res) => {
+  try {
+    const nonceFromTheClient = req.body.payment_method_nonce;
+    console.log("req.body", req.body);
+
+    gateway.transaction
+      .sale({
+        amount: req.body.amount,
+        paymentMethodNonce: nonceFromTheClient,
+        // deviceData: deviceDataFromTheClient,
+        options: {
+          submitForSettlement: true,
+        },
+      })
+      .then((result) => {
+        console.log(result);
+        res.json(result);
+      });
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({
+      error: "Failed to create order.",
+    });
   }
 });
 
