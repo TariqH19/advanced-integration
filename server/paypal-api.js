@@ -14,7 +14,7 @@ export async function generateAccessToken() {
     ).toString("base64");
     const response = await fetch(`${baseUrl.sandbox}/v1/oauth2/token`, {
       method: "POST",
-      body: `grant_type=client_credentials&response_type=idtoken&target_customer_id=iqOtguscgz`,
+      body: `grant_type=client_credentials&response_type=idtoken&target_customer_id=mAlQTMeFfy`, //mAlQTMeFfy iqOtguscgz
       headers: {
         Authorization: `Basic ${auth}`,
         "Content-Type": "application/x-www-form-urlencoded",
