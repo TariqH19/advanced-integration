@@ -486,7 +486,7 @@ app.get(
       path.join(
         __dirname,
         "..",
-        "public",
+
         ".well-known",
         "apple-developer-merchantid-domain-association"
       ),
