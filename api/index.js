@@ -479,6 +479,26 @@ app.get("/viewauthcap", async (req, res) => {
   res.render("viewauthcap");
 });
 
+app.get(
+  "/.well-known/apple-developer-merchantid-domain-association",
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        __dirname,
+        "..",
+
+        ".well-known",
+        "apple-developer-merchantid-domain-association"
+      ),
+      {
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      }
+    );
+  }
+);
+
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
 });
