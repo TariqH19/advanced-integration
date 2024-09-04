@@ -485,7 +485,7 @@ app.get(
     res.sendFile(
       path.join(
         __dirname,
-        ".",
+        "..",
 
         ".well-known",
         "apple-developer-merchantid-domain-association"
