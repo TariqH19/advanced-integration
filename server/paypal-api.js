@@ -75,7 +75,7 @@ export async function createOrder(task, saveCard, vaultID) {
       {
         amount: {
           currency_code: "GBP",
-          value: "10.00",
+          value: "30.00",
         },
       },
     ],
