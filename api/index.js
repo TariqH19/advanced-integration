@@ -183,7 +183,7 @@ app.get("/googlepay", async (req, res) => {
       throw new Error("Client Id or App Secret or Merchant Id is missing.");
     }
     const clientToken = await googlepay.generateClientToken();
-    res.render("checkout", { clientId, clientToken, merchantId });
+    res.render("googlepay", { clientId, clientToken, merchantId });
   } catch (err) {
     res.status(500).send(err.message);
   }
