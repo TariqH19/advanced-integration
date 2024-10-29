@@ -17,6 +17,7 @@ import * as subs from "./subs-api.js";
 import * as authcap from "./authcap-api.js";
 import * as standard from "./standard-api.js";
 import * as braintreeAPI from "./braintree-api.js";
+import * as old from "./old-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
@@ -57,6 +58,51 @@ app.get("/acdc", async (req, res) => {
   res.render("checkout", {
     clientId,
   });
+});
+
+app.get("/old", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("oldintegration", {
+    clientId,
+  });
+});
+
+app.post("/old/api/orders", async (req, res) => {
+  try {
+    const { task, saveCard, vaultID } = req.body;
+    const order = await old.createOrder(task, saveCard, vaultID);
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+app.get("/old/api/orders/:orderID", async (req, res) => {
+  const { orderID } = req.params; // Ensure orderID is defined here
+  try {
+    const orderDetails = await old.getOrderDetails(orderID);
+    res.json(orderDetails);
+  } catch (error) {
+    console.error(
+      `Error fetching order details for ${orderID}:`,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: `Failed to get order details: ${error.message}` });
+  }
+});
+
+// Capture payment
+app.post("/old/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const captureData = await old.capturePayment(orderID);
+    res.json(captureData);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to capture payment" });
+  }
 });
 
 app.get("/serversdk", async (req, res) => {

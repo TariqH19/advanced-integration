@@ -73,7 +73,7 @@ if (cardField.isEligible()) {
 async function createOrderCallback() {
   resultMessage("");
   try {
-    const response = await fetch("/serversdk/api/orders", {
+    const response = await fetch("/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -110,87 +110,47 @@ async function createOrderCallback() {
 
 async function onApproveCallback(data, actions) {
   try {
-    const result = await fetch(`/api/orders/${data.orderID}`, {
-      method: "GET",
+    const response = await fetch(`/api/orders/${data.orderID}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    if (!result.ok) {
-      throw new Error(`Failed to fetch order details: ${result.statusText}`);
-    }
+    const orderData = await response.json();
+    // Three cases to handle:
+    //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+    //   (2) Other non-recoverable errors -> Show a failure message
+    //   (3) Successful transaction -> Show confirmation or thank you message
 
-    const challenge = await result.json();
-    console.log("Challenge data:", JSON.stringify(challenge, null, 2));
+    const transaction =
+      orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
+      orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
+    const errorDetail = orderData?.details?.[0];
 
-    if (data.liabilityShift === "NO") {
-      resultMessage(
-        `Liability shift issue occured please try again or contact your bank`
-      );
-    }
-
-    const authenticationStatus =
-      challenge?.payment_source?.card?.authentication_result?.three_d_secure
-        ?.authentication_status;
-    const enrollmentStatus =
-      challenge?.payment_source?.card?.authentication_result?.three_d_secure
-        ?.enrollment_status;
-    if (
-      data.liabilityShift === "POSSIBLE" &&
-      enrollmentStatus === "Y" &&
-      authenticationStatus === "Y"
-    ) {
-      const response = await fetch(
-        `/serversdk/api/orders/${data.orderID}/capture`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const orderData = await response.json();
-
-      // Three cases to handle:
-      //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-      //   (2) Other non-recoverable errors -> Show a failure message
-      //   (3) Successful transaction -> Show confirmation or thank you message
-
-      const transaction =
-        orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
-        orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
-      console.log("trans", transaction);
-      const errorDetail = orderData?.details?.[0];
-      console.log("errorDetail", errorDetail);
-
-      if (
-        errorDetail ||
-        !transaction ||
-        transaction.status === "DECLINED" ||
-        transaction.status === "CCREJECT-REFUSED"
-      ) {
-        // (2) Other non-recoverable errors -> Show a failure message
-        let errorMessage;
-        if (transaction) {
-          errorMessage = `Transaction ${transaction.status}: ${transaction.id}`;
-        } else if (errorDetail) {
-          errorMessage = `${errorDetail.description} (${orderData.debug_id})`;
-        } else {
-          errorMessage = JSON.stringify(orderData);
-        }
-
-        throw new Error(errorMessage);
+    if (errorDetail || !transaction || transaction.status === "DECLINED") {
+      // (2) Other non-recoverable errors -> Show a failure message
+      let errorMessage;
+      if (transaction) {
+        errorMessage = `Transaction ${transaction.status}: ${transaction.id}`;
+      } else if (errorDetail) {
+        errorMessage = `${errorDetail.description} (${orderData.debug_id})`;
       } else {
-        // (3) Successful transaction -> Show confirmation or thank you message
-        // Or go to another URL:  actions.redirect('thank_you.html');
-        resultMessage(
-          `Transaction ${transaction.status}: ${transaction.id}<br><br>See console for all available details`
-        );
-        console.log(
-          "Capture result",
-          orderData,
-          JSON.stringify(orderData, null, 2)
-        );
+        errorMessage = JSON.stringify(orderData);
       }
+
+      throw new Error(errorMessage);
+    } else {
+      // (3) Successful transaction -> Show confirmation or thank you message
+      // Or go to another URL:  actions.redirect('thank_you.html');
+      resultMessage(
+        `Transaction ${transaction.status}: ${transaction.id}<br><br>See console for all available details`
+      );
+      console.log(
+        "Capture result",
+        orderData,
+        JSON.stringify(orderData, null, 2)
+      );
     }
   } catch (error) {
     console.error(error);
