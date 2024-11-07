@@ -68,6 +68,14 @@ app.get("/old", async (req, res) => {
   });
 });
 
+app.get("/donate", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("donate", {
+    clientId,
+  });
+});
+
 app.post("/old/api/orders", async (req, res) => {
   try {
     const { task, saveCard, vaultID } = req.body;

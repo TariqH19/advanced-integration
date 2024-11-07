@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Ensures optimal rendering on mobile devices. -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <script
+    src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js"
+    charset="UTF-8"></script>
+</head>
+
+<style>
+    /* Style to center the container */
+    .donatebtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh; /* Full viewport height */
+      margin: 0; /* Remove default body margin */
+      font-family: Arial, sans-serif;
+    }
+        h1 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0; /* Remove default body margin */
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1> Donation integration</h1>
+  <div class="donatebtn" id="paypal-donate-button-container"></div>
+
+  <script>
+    PayPal.Donation.Button({
+      env: "sandbox",
+      hosted_button_id: "UET2FC4CLPEDU",
+      // business: 'YOUR_EMAIL_OR_PAYERID',
+      image: {
+        src: "https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif",
+        title: "PayPal - The safer, easier way to pay online!",
+        alt: "Donate with PayPal button",
+      },
+      onComplete: function (params) {
+        console.log("params", params);
+      },
+    }).render("#paypal-donate-button-container");
+  </script>
+</body>
+</html>
