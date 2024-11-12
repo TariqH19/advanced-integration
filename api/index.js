@@ -18,6 +18,7 @@ import * as standard from "../server/standard-api.js";
 import * as braintreeAPI from "../server/braintree-api.js";
 import * as old from "../server/old-api.js";
 import * as shipping from "./shipping-api.js";
+import * as invoice from "./invoice-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
@@ -76,12 +77,53 @@ app.get("/donate", async (req, res) => {
   });
 });
 
+app.get("/invoice", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("invoice", {
+    clientId,
+  });
+});
+
 app.get("/old", async (req, res) => {
   const clientId = process.env.PAYPAL_CLIENT_ID;
 
   res.render("oldintegration", {
     clientId,
   });
+});
+
+app.post("/api/create-invoice", async (req, res) => {
+  try {
+    const accessToken = await invoice.generateAccessToken();
+    const invoiceData = req.body;
+    const invoice = await invoice.createInvoice(accessToken, invoiceData);
+
+    if (invoice && invoice.id) {
+      res.status(200).json({ id: invoice.id });
+    } else {
+      console.error("Error retrieving invoice ID:", invoice); // Log the full invoice response
+      res.status(500).json({
+        error: "Failed to retrieve invoice ID from PayPal.",
+        details: invoice,
+      });
+    }
+  } catch (error) {
+    console.error("Invoice creation error:", error);
+    res.status(500).json({ error: "Failed to create invoice" });
+  }
+});
+
+app.post("/api/send-invoice", async (req, res) => {
+  try {
+    const accessToken = await invoice.generateAccessToken();
+    const { invoiceId } = req.body;
+    const response = await invoice.sendInvoice(accessToken, invoiceId);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to send invoice" });
+  }
 });
 
 app.post("/api/orders", async (req, res) => {
