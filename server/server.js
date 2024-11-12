@@ -18,6 +18,7 @@ import * as authcap from "./authcap-api.js";
 import * as standard from "./standard-api.js";
 import * as braintreeAPI from "./braintree-api.js";
 import * as old from "./old-api.js";
+import * as shipping from "./shipping-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
@@ -45,8 +46,6 @@ app.set("views", "./views");
 // Host static files
 const clientPath = path.join(__dirname, "../client");
 app.use(express.static(clientPath));
-app.set("view engine", "ejs");
-app.set("views", "./views");
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -56,6 +55,14 @@ app.get("/acdc", async (req, res) => {
   const clientId = process.env.PAYPAL_CLIENT_ID;
 
   res.render("checkout", {
+    clientId,
+  });
+});
+
+app.get("/shipping", (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("shipping", {
     clientId,
   });
 });
@@ -74,6 +81,56 @@ app.get("/donate", async (req, res) => {
   res.render("donate", {
     clientId,
   });
+});
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { cart } = req.body;
+    const order = await shipping.createOrder(cart);
+    res.json(order);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const order = await shipping.captureOrder(orderID);
+    res.json(order);
+  } catch (error) {
+    console.error("Failed to capture order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.patch("/api/orders/update-shipping", async (req, res) => {
+  try {
+    const { orderID, selectedShippingOption } = req.body;
+    const updatedOrder = await shipping.updateShippingOption(
+      orderID,
+      selectedShippingOption
+    );
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Failed to update shipping option:", error);
+    res.status(500).json({ error: "Failed to update shipping option." });
+  }
+});
+
+app.patch("/api/orders/update-address", async (req, res) => {
+  try {
+    const { orderID, shippingAddress } = req.body;
+    const updatedOrder = await shipping.updateShippingAddress(
+      orderID,
+      shippingAddress
+    );
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Failed to update shipping address:", error);
+    res.status(500).json({ error: "Failed to update shipping address." });
+  }
 });
 
 app.post("/old/api/orders", async (req, res) => {

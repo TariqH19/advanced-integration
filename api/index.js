@@ -17,6 +17,7 @@ import * as authcap from "../server/authcap-api.js";
 import * as standard from "../server/standard-api.js";
 import * as braintreeAPI from "../server/braintree-api.js";
 import * as old from "../server/old-api.js";
+import * as shipping from "./shipping-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
@@ -59,6 +60,14 @@ app.get("/acdc", async (req, res) => {
   });
 });
 
+app.get("/shipping", (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("shipping", {
+    clientId,
+  });
+});
+
 app.get("/donate", async (req, res) => {
   const clientId = process.env.PAYPAL_CLIENT_ID;
 
@@ -73,6 +82,56 @@ app.get("/old", async (req, res) => {
   res.render("oldintegration", {
     clientId,
   });
+});
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { cart } = req.body;
+    const order = await shipping.createOrder(cart);
+    res.json(order);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const order = await shipping.captureOrder(orderID);
+    res.json(order);
+  } catch (error) {
+    console.error("Failed to capture order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.patch("/api/orders/update-shipping", async (req, res) => {
+  try {
+    const { orderID, selectedShippingOption } = req.body;
+    const updatedOrder = await shipping.updateShippingOption(
+      orderID,
+      selectedShippingOption
+    );
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Failed to update shipping option:", error);
+    res.status(500).json({ error: "Failed to update shipping option." });
+  }
+});
+
+app.patch("/api/orders/update-address", async (req, res) => {
+  try {
+    const { orderID, shippingAddress } = req.body;
+    const updatedOrder = await shipping.updateShippingAddress(
+      orderID,
+      shippingAddress
+    );
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Failed to update shipping address:", error);
+    res.status(500).json({ error: "Failed to update shipping address." });
+  }
 });
 
 app.post("/old/api/orders", async (req, res) => {
