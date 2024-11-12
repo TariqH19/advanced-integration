@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Multi-Recipient Payout</title>
+  </head>
+  <body>
+    <h1>PayPal Payout to Multiple Recipients</h1>
+    <form id="payout-form">
+      <div id="recipients">
+        <div class="recipient">
+          <label>Email:</label>
+          <input type="email" name="recipientEmail" required />
+          <label>Amount (GBP):</label>
+          <input type="number" name="recipientAmount" required />
+        </div>
+      </div>
+      <button type="button" onclick="addRecipient()">
+        Add Another Recipient
+      </button>
+      <button type="submit">Send Payout</button>
+    </form>
+    <button id="showPayoutButton" onclick="showPayout()" disabled>
+      Show Payout
+    </button>
+    <div id="payoutDetails"></div>
+
+    <script src="payout.js"></script>
+  </body>
+</html>

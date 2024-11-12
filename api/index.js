@@ -19,6 +19,7 @@ import * as braintreeAPI from "../server/braintree-api.js";
 import * as old from "../server/old-api.js";
 import * as shipping from "./shipping-api.js";
 import * as invoice from "./invoice-api.js";
+import * as payout from "./payout-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
@@ -83,6 +84,94 @@ app.get("/invoice", async (req, res) => {
   res.render("invoice", {
     clientId,
   });
+});
+
+app.get("/payout", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("payout", {
+    clientId,
+  });
+});
+
+app.post("/create-payout", async (req, res) => {
+  const { recipients } = req.body;
+  try {
+    const accessToken = await payout.getAccessToken();
+
+    const items = recipients.map((recipient, index) => ({
+      recipient_type: "EMAIL",
+      amount: {
+        value: recipient.amount,
+        currency: "GBP",
+      },
+      receiver: recipient.email,
+      note: "Thanks for your business!",
+      sender_item_id: `item_${index}`,
+    }));
+
+    const payoutResponse = await fetch(`${base}/v1/payments/payouts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        sender_batch_header: {
+          sender_batch_id: `batch_${Math.random() * 1e18}`,
+          email_subject: "You have a payment",
+        },
+        items,
+      }),
+    });
+
+    const payoutResult = await payoutResponse.json();
+    if (payoutResponse.ok) {
+      res.json({
+        message: "Payout created successfully!",
+        details: payoutResult,
+      });
+    } else {
+      res.status(400).json({ error: payoutResult });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating the payout." });
+  }
+});
+
+app.get("/payout/:batchId", async (req, res) => {
+  const { batchId } = req.params;
+
+  try {
+    const accessToken = await payout.getAccessToken();
+
+    const payoutDetailsResponse = await fetch(
+      `${base}/v1/payments/payouts/${batchId}?fields=batch_header`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const payoutDetails = await payoutDetailsResponse.json();
+
+    if (payoutDetailsResponse.ok) {
+      res.json(payoutDetails);
+    } else {
+      res.status(400).json({ error: payoutDetails });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while retrieving payout details." });
+  }
 });
 
 app.get("/old", async (req, res) => {
