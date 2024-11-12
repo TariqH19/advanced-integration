@@ -17,9 +17,9 @@ import * as authcap from "../server/authcap-api.js";
 import * as standard from "../server/standard-api.js";
 import * as braintreeAPI from "../server/braintree-api.js";
 import * as old from "../server/old-api.js";
-import * as shipping from "./shipping-api.js";
-import * as invoice from "./invoice-api.js";
-import * as payout from "./payout-api.js";
+import * as shipping from "../server/shipping-api.js";
+import * as invoice from "../server/invoice-api.js";
+import * as payout from "../server/payout-api.js";
 import braintree from "braintree";
 const {
   PAYPAL_CLIENT_ID,
