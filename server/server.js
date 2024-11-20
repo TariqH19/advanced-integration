@@ -810,7 +810,7 @@ app.get(
       ),
       {
         headers: {
-          "Content-Type": "text/plain",
+          "Content-Type": "application/octet-stream",
         },
       }
     );
