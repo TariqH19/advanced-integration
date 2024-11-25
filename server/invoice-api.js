@@ -67,3 +67,26 @@ export async function sendInvoice(accessToken, invoiceId) {
   );
   return response.json();
 }
+
+// Fetch Invoice Details
+export async function getInvoiceDetails(accessToken, invoiceId) {
+  const response = await fetch(`${base}/v2/invoicing/invoices/${invoiceId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+}
+
+export async function listInvoices(accessToken) {
+  const response = await fetch(`${base}/v2/invoicing/invoices`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+}

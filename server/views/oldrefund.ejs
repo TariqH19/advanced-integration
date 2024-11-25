@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
+    using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
+    <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
+    <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
+    <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
+    <!-- https://developer.paypal.com/sdk/js/configuration/ -->
+    <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
+  </head>
+  <body>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 0.9rem;
+      }
+
+      .paypal-button-container {
+        padding: 0 !important;
+      }
+
+      #mycart > h2 {
+        color: #015c86;
+        margin-bottom: 0.4rem;
+        margin-left: 0.2rem;
+      }
+
+      .nbtn {
+        margin: 0;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 33.3rem;
+        background-color: #015c86;
+        color: #fff;
+        border-radius: 0.2em;
+        cursor: pointer;
+        font-family: sans-serif;
+        font-size: 1.2rem;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+
+      .nbtn:hover {
+        background-color: #026b9c;
+        border-color: #01345c;
+      }
+
+      .nbtn:active {
+        background-color: #014566;
+        border-color: #01345c;
+      }
+
+      .card-field-name {
+        background-color: #ff0000 !important;
+        color: red;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #mycart {
+        width: 34rem;
+        margin: 2rem auto;
+      }
+
+      #checkout-form {
+        text-align: center;
+      }
+
+      #api-response {
+        width: 50%;
+        margin-left: 10rem;
+        margin-top: 3rem;
+        display: none;
+      }
+      .refund-div {
+        margin-top: 1rem;
+      }
+    </style>
+    <div id="mycart">
+      <!-- Pay Later Messages:
+             https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
+             Please replace the amount with your variable -->
+      <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
+
+      <!-- PayPal Buttons:
+             https://developer.paypal.com/docs/checkout/advanced/integrate/ -->
+      <div id="paypal-button-container" class="paypal-button-container"></div>
+
+      <br />
+      <h2>Credit Card</h2>
+      <div id="checkout-form">
+        <div id="card-name-field-container"></div>
+        <div id="card-number-field-container"></div>
+        <div id="card-expiry-field-container"></div>
+        <div id="card-cvv-field-container"></div>
+        <button
+          value="submit"
+          id="card-field-submit-button"
+          class="nbtn"
+          type="button">
+          Pay
+        </button>
+        <div class="refund-div">
+          <button id="refund-button" class="nbtn">Refund</button>
+          <p id="refund-message"></p>
+          <p id="result-message"></p>
+        </div>
+      </div>
+    </div>
+    <!-- JavaScript file that includes our buttons and cardField events -->
+    <script src="oldrefund.js"></script>
+  </body>
+</html>

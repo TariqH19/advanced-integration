@@ -20,7 +20,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
       margin: 0;
     }
 
@@ -139,7 +138,7 @@
         </div>
 
         <div class="form-group">
-          <label for="item-price">Item Price ($)</label>
+          <label for="item-price">Item Price</label>
           <input
             type="number"
             id="item-price"
@@ -155,9 +154,15 @@
       </form>
 
       <!-- Send Invoice Button (Initially Disabled) -->
-      <button id="send-invoice" class="btn-secondary" disabled>
-        Send Invoice
-      </button>
+      <button id="send-invoice" class="btn-secondary">Send Invoice</button>
+
+      <!-- Invoice List Dropdown -->
+      <div class="form-group">
+        <label for="invoice-list">Select an Invoice</label>
+        <select id="invoice-list" class="form-group">
+          <option value="">-- Select an Invoice --</option>
+        </select>
+      </div>
 
       <p id="status"></p>
     </div>

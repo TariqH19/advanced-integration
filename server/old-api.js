@@ -116,3 +116,34 @@ export async function capturePayment(orderId) {
   const data = await response.json();
   return data;
 }
+
+// Refund a captured payment using PayPal's API
+export async function refundCapturedPayment(captureId) {
+  const accessToken = await generateAccessToken();
+  const url = `${baseUrl.sandbox}/v2/payments/captures/${captureId}/refund`;
+
+  // No need to specify amount, as it will refund the full amount by default
+  const payload = {}; // No need to pass amount to refund the full capture
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error processing refund: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data; // Returns the PayPal refund response
+  } catch (error) {
+    console.error("Error refunding payment:", error);
+    throw error;
+  }
+}

@@ -19,9 +19,12 @@ import * as standard from "./standard-api.js";
 import * as braintreeAPI from "./braintree-api.js";
 import * as old from "./old-api.js";
 import * as shipping from "./shipping-api.js";
-import * as invoice from "./invoice-api.js";
+import * as invoiceAPI from "./invoice-api.js";
 import * as payout from "./payout-api.js";
+import * as tracking from "./tracking-api.js";
 import braintree from "braintree";
+import * as multi from "./multi-api.js";
+import * as multiacdc from "./multiacdc-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -77,6 +80,22 @@ app.get("/old", async (req, res) => {
   });
 });
 
+app.get("/oldrefund", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("oldrefund", {
+    clientId,
+  });
+});
+
+app.get("/tracking", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("tracking", {
+    clientId,
+  });
+});
+
 app.get("/donate", async (req, res) => {
   const clientId = process.env.PAYPAL_CLIENT_ID;
 
@@ -99,6 +118,79 @@ app.get("/payout", async (req, res) => {
   res.render("payout", {
     clientId,
   });
+});
+
+app.get("/multiacdc", async (req, res) => {
+  try {
+    const { jsonResponse } = await multiacdc.generateClientToken();
+    res.render("multiacdc", {
+      clientId:
+        "ARocB5vASgIfpjzqB1o2VqWJmjlrwsWEtq03k5m02Bc148BM5HdgJmR9UOUYdG7Cd-96L8UGWy6oNlWg",
+      clientToken: jsonResponse.client_token,
+      BN_CODE: "FLAVORsb-owgkx33159963_MP",
+      merchantId: "3LTVQ6ETBNNM2",
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.post("/multi/api/orders", async (req, res) => {
+  try {
+    // Use the cart information passed from the front-end to calculate the order amount details
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await multiacdc.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({
+      error: "Failed to create order.",
+    });
+  }
+});
+
+app.post("/multi/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await multiacdc.captureOrder(
+      orderID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({
+      error: "Failed to capture order.",
+    });
+  }
+});
+
+app.get("/multi", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("multi", {
+    clientId,
+  });
+});
+
+app.post("/start-onboarding", async (req, res) => {
+  try {
+    const approvalUrl = await multi.createPartnerReferral();
+    res.json({ approvalUrl });
+  } catch (error) {
+    console.error("Error starting onboarding:", error.message);
+    res.status(500).json({ error: "Failed to initiate onboarding." });
+  }
+});
+
+// Endpoint to handle PayPal redirect after onboarding completion
+app.get("/onboarding-complete", (req, res) => {
+  const queryParams = req.query;
+  console.log("Onboarding completed with query params:", queryParams);
+
+  // Show a success page or handle the merchant details here
+  res.send(
+    "Onboarding process completed! You can now use the merchant details."
+  );
 });
 
 // Route to create payout
@@ -184,9 +276,9 @@ app.get("/payout/:batchId", async (req, res) => {
 
 app.post("/api/create-invoice", async (req, res) => {
   try {
-    const accessToken = await invoice.generateAccessToken();
+    const accessToken = await invoiceAPI.generateAccessToken();
     const invoiceData = req.body;
-    const invoice = await invoice.createInvoice(accessToken, invoiceData);
+    const invoice = await invoiceAPI.createInvoice(accessToken, invoiceData);
 
     if (invoice && invoice.id) {
       res.status(200).json({ id: invoice.id });
@@ -205,13 +297,29 @@ app.post("/api/create-invoice", async (req, res) => {
 
 app.post("/api/send-invoice", async (req, res) => {
   try {
-    const accessToken = await invoice.generateAccessToken();
+    const accessToken = await invoiceAPI.generateAccessToken();
     const { invoiceId } = req.body;
-    const response = await invoice.sendInvoice(accessToken, invoiceId);
+    const response = await invoiceAPI.sendInvoice(accessToken, invoiceId);
     res.status(200).json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to send invoice" });
+  }
+});
+
+app.get("/api/list-invoices", async (req, res) => {
+  try {
+    const accessToken = await invoiceAPI.generateAccessToken();
+    const invoices = await invoiceAPI.listInvoices(accessToken);
+
+    if (invoices.items) {
+      res.status(200).json(invoices.items);
+    } else {
+      res.status(404).json({ error: "No invoices found." });
+    }
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    res.status(500).json({ error: "Failed to fetch invoices." });
   }
 });
 
@@ -299,6 +407,36 @@ app.post("/old/api/orders/:orderID/capture", async (req, res) => {
     res.json(captureData);
   } catch (error) {
     res.status(500).json({ error: "Failed to capture payment" });
+  }
+});
+
+// Handle the refund route for captured payments
+app.post("/old/api/captures/:captureId/refund", async (req, res) => {
+  const { captureId } = req.params;
+
+  try {
+    const refundData = await old.refundCapturedPayment(captureId);
+    res.json(refundData); // Return the response from PayPal
+  } catch (error) {
+    console.error("Error processing refund:", error);
+    res.status(500).json({ error: "Failed to process refund" });
+  }
+});
+
+app.post("/api/orders/:orderId/track", async (req, res) => {
+  const { orderId } = req.params;
+  const { tracking_data, capture_id } = req.body;
+
+  try {
+    // Update the tracking info with PayPal
+    const result = await tracking.updateTrackingInfo(
+      orderId,
+      tracking_data,
+      capture_id
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update tracking information." });
   }
 });
 
