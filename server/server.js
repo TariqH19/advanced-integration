@@ -857,6 +857,14 @@ app.post("/clientToken", async (req, res) => {
   }
 });
 
+app.get("/dropin", async (req, res) => {
+  // render paypal view
+  res.render("dropin", {
+    currency: BRAINTREE_CURRENCY,
+    MID: BRAINTREE_MERCHANT_ID,
+  });
+});
+
 app.get("/hostedfields", async (req, res) => {
   // render paypal view
   res.render("hostedfields", {
