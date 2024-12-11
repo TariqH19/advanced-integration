@@ -572,8 +572,7 @@ app.post("/googlepay/api/orders", async (req, res) => {
   }
 });
 
-// Get order
-app.post("/googlepay/api/orders/:orderID", async (req, res) => {
+app.get("/googlepay/api/orders/:orderID", async (req, res) => {
   const { orderID } = req.params;
   try {
     const order = await googlepay.getOrder(orderID);
