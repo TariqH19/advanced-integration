@@ -805,7 +805,7 @@ app.post("/brain/process_payment", async (req, res) => {
   }
 });
 
-app.get("/brainapple", async (req, res) => {
+app.get("/brain", async (req, res) => {
   // render paypal view
   res.render("brain", {
     currency: BRAINTREE_CURRENCY,
