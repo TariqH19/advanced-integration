@@ -899,6 +899,46 @@ app.post("/transaction/create", async (req, res) => {
   }
 });
 
+app.get("/brainapple/client_token", async (req, res) => {
+  try {
+    const response = await gateway.clientToken.generate({});
+    res.json({ clientToken: response.clientToken });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+// Handle Payment
+app.post("/brainapple/process_payment", async (req, res) => {
+  const nonce = req.body.paymentMethodNonce;
+
+  try {
+    const result = await gateway.transaction.sale({
+      amount: "10.00", // Example amount
+      paymentMethodNonce: nonce,
+      options: {
+        submitForSettlement: true,
+      },
+    });
+
+    if (result.success) {
+      res.json({ success: true, transaction: result.transaction });
+    } else {
+      res.status(500).json({ success: false, error: result.message });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
+app.get("/brainapple", async (req, res) => {
+  // render paypal view
+  res.render("brainapple", {
+    currency: BRAINTREE_CURRENCY,
+    MID: BRAINTREE_MERCHANT_ID,
+  });
+});
+
 app.get("/standard", async (req, res) => {
   res.render("standard");
 });

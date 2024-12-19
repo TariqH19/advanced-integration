@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Braintree Apple Pay</title>
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/client.min.js"></script>
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/apple-pay.min.js"></script>
+    <script src="https://js.braintreegateway.com/web/dropin/1.33.6/js/dropin.min.js"></script>
+  </head>
+  <body>
+    <h1>Braintree Apple Pay Integration</h1>
+    <div id="dropin-container"></div>
+    <button id="submit-button">Pay Now</button>
+
+    <script>
+      fetch("/brainapple/client_token")
+        .then((response) => response.json())
+        .then((data) => {
+          braintree.dropin.create(
+            {
+              authorization: data.clientToken,
+              container: "#dropin-container",
+              applePay: {
+                displayName: "Your Store",
+                paymentRequest: {
+                  total: {
+                    label: "Your Store",
+                    amount: "10.00",
+                  },
+                  countryCode: "GB",
+                  currencyCode: "GBP",
+                  supportedNetworks: ["visa", "masterCard", "amex"],
+                  merchantCapabilities: ["supports3DS"],
+                },
+              },
+            },
+            (err, dropinInstance) => {
+              if (err) {
+                console.error(err);
+                return;
+              }
+
+              document
+                .getElementById("submit-button")
+                .addEventListener("click", () => {
+                  dropinInstance.requestPaymentMethod((err, payload) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
+
+                    // Send payment nonce to server
+                    fetch("/brainapple/process_payment", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        paymentMethodNonce: payload.nonce,
+                      }),
+                    })
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data.success) {
+                          alert("Payment successful!");
+                        } else {
+                          alert("Payment failed.");
+                        }
+                      });
+                  });
+                });
+            }
+          );
+        });
+      if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+        document.getElementById("apple-pay-button").style.display = "block";
+      } else {
+        console.error("Apple Pay is not available on this device.");
+      }
+    </script>
+  </body>
+</html>
