@@ -8,12 +8,12 @@
     <script src="https://js.braintreegateway.com/web/dropin/1.33.6/js/dropin.min.js"></script>
   </head>
   <body>
-    <h1>Braintree Apple Pay Integration</h1>
+    <h1>Braintree Integration</h1>
     <div id="dropin-container"></div>
     <button id="submit-button">Pay Now</button>
 
     <script>
-      fetch("/brainapple/client_token")
+      fetch("/brain/client_token")
         .then((response) => response.json())
         .then((data) => {
           braintree.dropin.create(
@@ -33,6 +33,27 @@
                   merchantCapabilities: ["supports3DS"],
                 },
               },
+              googlePay: {
+                googlePayVersion: 2,
+                merchantId: "sxp9q5rd2sg95h8f",
+                transactionInfo: {
+                  totalPriceStatus: "FINAL",
+                  totalPrice: "123.45",
+                  currencyCode: "EUR",
+                },
+                allowedPaymentMethods: [
+                  {
+                    type: "CARD",
+                    parameters: {
+                      // We recommend collecting and passing billing address information with all Google Pay transactions as a best practice.
+                      billingAddressRequired: true,
+                      billingAddressParameters: {
+                        format: "FULL",
+                      },
+                    },
+                  },
+                ],
+              },
             },
             (err, dropinInstance) => {
               if (err) {
@@ -50,7 +71,7 @@
                     }
 
                     // Send payment nonce to server
-                    fetch("/brainapple/process_payment", {
+                    fetch("/brain/process_payment", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",

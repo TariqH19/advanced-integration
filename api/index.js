@@ -773,7 +773,7 @@ app.post("/clientToken", async (req, res) => {
   }
 });
 
-app.get("/brainapple/client_token", async (req, res) => {
+app.get("/brain/client_token", async (req, res) => {
   try {
     const response = await gateway.clientToken.generate({});
     res.json({ clientToken: response.clientToken });
@@ -783,7 +783,7 @@ app.get("/brainapple/client_token", async (req, res) => {
 });
 
 // Handle Payment
-app.post("/brainapple/process_payment", async (req, res) => {
+app.post("/brain/process_payment", async (req, res) => {
   const nonce = req.body.paymentMethodNonce;
 
   try {
@@ -807,7 +807,7 @@ app.post("/brainapple/process_payment", async (req, res) => {
 
 app.get("/brainapple", async (req, res) => {
   // render paypal view
-  res.render("brainapple", {
+  res.render("brain", {
     currency: BRAINTREE_CURRENCY,
     MID: BRAINTREE_MERCHANT_ID,
   });
