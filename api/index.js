@@ -494,6 +494,14 @@ app.post("/old/api/orders/:orderID/capture", async (req, res) => {
   }
 });
 
+app.get("/oldrefund", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("oldrefund", {
+    clientId,
+  });
+});
+
 app.post("/old/api/captures/:captureId/refund", async (req, res) => {
   const { captureId } = req.params;
 
