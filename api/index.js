@@ -773,6 +773,14 @@ app.post("/clientToken", async (req, res) => {
   }
 });
 
+app.get("/dropin", async (req, res) => {
+  // render paypal view
+  res.render("dropin", {
+    currency: BRAINTREE_CURRENCY,
+    MID: BRAINTREE_MERCHANT_ID,
+  });
+});
+
 app.get("/brain/client_token", async (req, res) => {
   try {
     const response = await gateway.clientToken.generate({});
