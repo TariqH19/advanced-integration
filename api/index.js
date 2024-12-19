@@ -22,6 +22,7 @@ import * as invoiceAPI from "../server/invoice-api.js";
 import * as tracking from "../server/tracking-api.js";
 import * as multi from "../server/multi-api.js";
 import * as multiacdc from "../server/multiacdc-api.js";
+import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
 import braintree from "braintree";
 const {
@@ -329,6 +330,80 @@ app.get("/api/list-invoices", async (req, res) => {
   } catch (error) {
     console.error("Error fetching invoices:", error);
     res.status(500).json({ error: "Failed to fetch invoices." });
+  }
+});
+
+app.get("/serversdk", async (req, res) => {
+  res.render("serversdk");
+});
+
+app.post("/serversdk/api/orders", async (req, res) => {
+  try {
+    // use the cart information passed from the front-end to calculate the order amount detals
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/serversdk/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await serversdk.captureOrder(
+      orderID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.post("/serversdk/api/orders/:orderID/authorize", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await serversdk.authorizeOrder(
+      orderID
+    );
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to authorize order." });
+  }
+});
+
+app.post(
+  "/serversdk/orders/:authorizationId/captureAuthorize",
+  async (req, res) => {
+    try {
+      const { authorizationId } = req.params;
+      const { jsonResponse, httpStatusCode } = await serversdk.captureAuthorize(
+        authorizationId
+      );
+      res.status(httpStatusCode).json(jsonResponse);
+    } catch (error) {
+      console.error("Failed to create order:", error);
+      res.status(500).json({ error: "Failed to capture authorize." });
+    }
+  }
+);
+
+app.get("/serversdk/api/orders/:orderID", async (req, res) => {
+  const { orderID } = req.params; // Ensure orderID is defined here
+  try {
+    const orderDetails = await serversdk.getOrderDetails(orderID);
+    res.json(orderDetails);
+  } catch (error) {
+    console.error(
+      `Error fetching order details for ${orderID}:`,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: `Failed to get order details: ${error.message}` });
   }
 });
 
