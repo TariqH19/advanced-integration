@@ -178,31 +178,6 @@ app.get("/payout/:batchId", async (req, res) => {
   }
 });
 
-app.get("/tracking", async (req, res) => {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-
-  res.render("tracking", {
-    clientId,
-  });
-});
-
-app.post("/api/orders/:orderId/track", async (req, res) => {
-  const { orderId } = req.params;
-  const { tracking_data, capture_id } = req.body;
-
-  try {
-    // Update the tracking info with PayPal
-    const result = await tracking.updateTrackingInfo(
-      orderId,
-      tracking_data,
-      capture_id
-    );
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update tracking information." });
-  }
-});
-
 app.get("/multiacdc", async (req, res) => {
   try {
     const { jsonResponse } = await multiacdc.generateClientToken();
@@ -512,6 +487,118 @@ app.post("/old/api/captures/:captureId/refund", async (req, res) => {
     console.error("Error processing refund:", error);
     res.status(500).json({ error: "Failed to process refund" });
   }
+});
+
+app.post("/add-tracking", async (req, res) => {
+  const trackers = req.body.trackers; // Asumiendo que la información de tracking viene en el body del request
+
+  try {
+    const trackingResponse = await tracking.addTrackingInfo(trackers);
+    res.json({
+      message: "Tracking added successfully",
+      data: trackingResponse,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error adding tracking", error: error.message });
+  }
+});
+
+app.get("/get-tracking/:transactionId/:trackingNumber", async (req, res) => {
+  const { transactionId, trackingNumber } = req.params; // Obtenemos los valores de los parámetros dinámicos
+
+  try {
+    const trackingInfo = await tracking.fetchTrackingInfo(
+      transactionId,
+      trackingNumber
+    ); // Pasamos los valores a la función
+    res.json(trackingInfo); // Enviamos la información de tracking de vuelta al cliente
+  } catch (error) {
+    res.status(500).json({
+      message: "Error retrieving tracking information",
+      error: error.message,
+    });
+  }
+});
+
+// Endpoint para actualizar la información de tracking
+app.put("/update-tracking", async (req, res) => {
+  const { transactionId, trackingNumber, status, carrier } = req.body;
+
+  try {
+    const accessToken = await tracking.generateAccessToken(); // Obtener el access token del servidor
+
+    const trackingInfo = {
+      transaction_id: transactionId,
+      tracking_number: trackingNumber,
+      status: status,
+      carrier: carrier,
+    };
+
+    const response = await fetch(
+      `${base}/v1/shipping/trackers/${transactionId}-${trackingNumber}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(trackingInfo),
+      }
+    );
+
+    if (response.ok) {
+      res.status(204).send(); // HTTP 204 No Content
+    } else {
+      const errorData = await response.json();
+      res.status(400).json({ error: errorData });
+    }
+  } catch (error) {
+    console.error("Error updating tracking info:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/tracking/orders", async (req, res) => {
+  try {
+    // Usar la información del carrito desde el front-end para calcular el monto de la orden
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await tracking.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/tracking/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode, orderDetails } =
+      await tracking.captureOrder(orderID);
+
+    if (orderDetails) {
+      // Extrae el número de teléfono del pagador
+      const phoneNumber =
+        orderDetails?.payment_source?.paypal?.phone_number?.national_number ||
+        "No phone number provided";
+
+      console.log(`Phone Number: ${phoneNumber}`);
+
+      // Devuelve también los detalles del pedido al cliente
+      res.status(httpStatusCode).json({ ...jsonResponse, phoneNumber });
+    } else {
+      res.status(httpStatusCode).json(jsonResponse);
+    }
+  } catch (error) {
+    console.error("Failed to capture order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
+
+app.get("/tracking", async (req, res) => {
+  res.render("tracking");
 });
 
 app.post("/api/orders", async (req, res) => {

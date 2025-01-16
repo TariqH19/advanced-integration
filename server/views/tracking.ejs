@@ -2,100 +2,195 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
-    using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
-    <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
-    <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
-    <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
-    <!-- https://developer.paypal.com/sdk/js/configuration/ -->
-    <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
+    <title>PayPal Tracking API</title>
   </head>
-  <body>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 0.9rem;
-      }
-
-      .paypal-button-container {
-        padding: 0 !important;
-      }
-
-      #mycart > h2 {
-        color: #015c86;
-        margin-bottom: 0.4rem;
-        margin-left: 0.2rem;
-      }
-
-      .nbtn {
-        margin: 0;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        width: 33.3rem;
-        background-color: #015c86;
-        color: #fff;
-        border-radius: 0.2em;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1.2rem;
-        font-weight: bold;
-        transition: 0.3s;
-      }
-
-      .nbtn:hover {
-        background-color: #026b9c;
-        border-color: #01345c;
-      }
-
-      .nbtn:active {
-        background-color: #014566;
-        border-color: #01345c;
-      }
-
-      .card-field-name {
-        background-color: #ff0000 !important;
-        color: red;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      #mycart {
-        width: 34rem;
-        margin: 2rem auto;
-      }
-
-      #checkout-form {
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #169bd7;
+      display: flex !important;
+      width: 100%;
+      justify-content: center;
+    }
+    @media only screen and (min-width: 800px) {
+      #content-container {
         text-align: center;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 30%;
       }
+    }
+    @media only screen and (max-width: 800px) {
+      #content-container {
+        width: 80%;
+        text-align: center;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+    }
+    #paypal-button-container {
+      margin-bottom: 20px;
+    }
 
-      #api-response {
-        width: 50%;
-        margin-left: 10rem;
-        margin-top: 3rem;
-        display: none;
-      }
-    </style>
-    <div id="mycart">
+    #checkout-form {
+      display: inline-block;
+      text-align: center;
+      width: 100%;
+    }
+
+    #result-message {
+      margin-top: 20px;
+    }
+
+    #content-container p {
+      font-family: "roboto", sans-serif;
+      color: #222d65;
+      font-size: 16px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .button-card-fields {
+      font-size: 17px;
+      background-color: transparent;
+      border: solid 2px #222d65;
+      color: #222d65;
+      padding: 10px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    /* Input Fields */
+    input[type="text"],
+    select {
+      width: 80%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 1em;
+      background-color: #f9f9f9;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: #0070ba;
+      outline: none;
+    }
+
+    /* Labels */
+    label {
+      display: block;
+      margin-bottom: 5px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+    }
+
+    /* Buttons */
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0070ba;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005ea6;
+    }
+
+    button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 112, 186, 0.3);
+    }
+
+    /* Result Messages */
+    #result-message,
+    #tracking-result-message,
+    #admin-result-message {
+      font-size: 1.1em;
+      color: #333;
+      margin-top: 20px;
+    }
+
+    /* Success Message */
+    .success {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    /* Error Message */
+    .error {
+      color: #dc3545;
+      font-weight: bold;
+    }
+  </style>
+  <body>
+    <div id="content-container">
+      <p>Tracking API</p>
+      <!-- PayPal Button Container -->
       <div id="paypal-button-container" class="paypal-button-container"></div>
-
-      <div id="tracking-form-container"></div>
-
-      <!-- Result Message -->
-      <div id="tracking-result-message"></div>
-
-      <div id="result-message"></div>
+      <!-- Result Message Container -->
+      <p id="result-message"></p>
+      <!-- Customer Tracking Info Form -->
+      <label for="transactionId">Transaction ID:</label>
+      <input
+        type="text"
+        id="transactionId"
+        placeholder="Input transaction ID" />
+      <label for="trackingNumber">Tracking Number:</label>
+      <input
+        type="text"
+        id="trackingNumber"
+        placeholder="Input tracking number" />
+      <!-- Button to fetch tracking info -->
+      <button id="get-tracking-info-button">Retrieve tracking info</button>
+      <!-- Container to display the result -->
+      <p id="tracking-result-message"></p>
+      <h3>Update tracking info</h3>
+      <label for="adminTransactionId">Transaction ID:</label>
+      <input
+        type="text"
+        id="adminTransactionId"
+        placeholder="Input transaction ID" />
+      <label for="adminTrackingNumber">Tracking Number:</label>
+      <input
+        type="text"
+        id="adminTrackingNumber"
+        placeholder="Input tracking number" />
+      <label for="adminCarrier">Carrier:</label>
+      <input type="text" id="adminCarrier" placeholder="Input carrier name" />
+      <label for="adminStatus">Status:</label>
+      <select id="adminStatus">
+        <option value="ON_HOLD">On hold</option>
+        <option value="SHIPPED">Shipped</option>
+        <option value="DELIVERED">Delivered</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+      <!-- Button to update tracking information -->
+      <button id="update-tracking-button">Update tracking</button>
+      <!-- Result message -->
+      <p id="admin-result-message"></p>
     </div>
-    <p id="result-message"></p>
-    <!-- JavaScript file that includes our buttons and cardField events -->
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP&components=messages,card-fields,buttons&enable-funding=paylater&buyer-country=GB"></script>
     <script src="tracking.js"></script>
   </body>
 </html>
