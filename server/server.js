@@ -172,6 +172,14 @@ app.get("/multi", async (req, res) => {
   });
 });
 
+app.get("/stc", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+
+  res.render("stc", {
+    clientId,
+  });
+});
+
 app.post("/start-onboarding", async (req, res) => {
   try {
     const approvalUrl = await multi.createPartnerReferral();
@@ -936,6 +944,175 @@ app.post("/standard/api/orders/:orderID/capture", async (req, res) => {
     console.error("Failed to create order:", error);
     res.status(500).json({ error: "Failed to capture order." });
   }
+});
+
+const PAYPAL_API = "https://api-m.sandbox.paypal.com"; // Use live PayPal API for production
+
+// Generate Access Token
+const getAccessToken = async () => {
+  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(
+        `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+      ).toString("base64")}`,
+    },
+    body: "grant_type=client_credentials",
+  });
+  const data = await response.json();
+  return data.access_token;
+};
+
+// Endpoint to Get Tracking ID
+app.get("/stc/getTrackingID", (req, res) => {
+  const trackingID = `tracking_${Date.now()}`;
+  res.send(trackingID);
+});
+
+app.post("/stc/setTransactionContext", async (req, res) => {
+  const { trackingID } = req.body;
+
+  if (!trackingID) {
+    return res.status(400).json({ error: "Tracking ID is required" });
+  }
+
+  const accessToken = await getAccessToken();
+
+  const additionalData = {
+    additional_data: [
+      { key: "sender_account_id", value: "123456789" },
+      { key: "sender_first_name", value: "Jack" },
+      { key: "sender_last_name", value: "Reacher" },
+      { key: "sender_email", value: "jack.reacher@gmail.com" },
+      { key: "sender_phone", value: "0830711234" },
+      { key: "sender_country_code", value: "FR" },
+      { key: "sender_create_date", value: "2012-12-09T19:14:55.277Z" },
+    ],
+  };
+
+  try {
+    const response = await fetch(
+      `${PAYPAL_API}/v1/risk/transaction-contexts/X46S3PVBA88NC/${trackingID}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(additionalData),
+      }
+    );
+
+    // Log the raw response for debugging
+    const rawText = await response.text();
+    console.log("Raw Response Text:", rawText);
+
+    // Parse JSON only if the response body is not empty
+    const responseData = rawText ? JSON.parse(rawText) : {};
+
+    if (!response.ok) {
+      console.error("Error setting transaction context:", responseData);
+      return res.status(response.status).json(responseData);
+    }
+
+    console.log("Set Transaction Context:", responseData);
+    res.json(responseData);
+  } catch (error) {
+    console.error("Error setting transaction context:", error.message);
+    res.status(500).json({
+      error: "An error occurred while setting the transaction context",
+    });
+  }
+});
+
+// Show Transaction Context Data
+app.post("/stc/showTransactionContextData", async (req, res) => {
+  const { trackingID } = req.body;
+
+  if (!trackingID) {
+    return res.status(400).json({ error: "Tracking ID is required" });
+  }
+
+  const accessToken = await getAccessToken();
+
+  try {
+    const response = await fetch(
+      `${PAYPAL_API}/v1/risk/transaction-contexts/J36FP579FJ6NW/${trackingID}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("Error fetching transaction context data:", responseData);
+      return res.status(response.status).json(responseData);
+    }
+
+    console.log("Transaction Context Data:", responseData);
+    res.json(responseData);
+  } catch (error) {
+    console.error("Error fetching transaction context data:", error.message);
+    res.status(500).json({
+      error: "An error occurred while fetching the transaction context data",
+    });
+  }
+});
+
+// Endpoint to Create PayPal Order
+app.post("/stc/createOrder", async (req, res) => {
+  const { trackingID } = req.body;
+
+  const accessToken = await getAccessToken();
+  const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "PayPal-Request-Id": trackingID,
+      "PayPal-Client-Metadata-Id": trackingID,
+    },
+    body: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "GBP",
+            value: "240.00",
+          },
+        },
+      ],
+    }),
+  });
+
+  const order = await response.json();
+  res.json(order);
+});
+
+// Endpoint to Capture PayPal Order
+app.post("/stc/captureOrder", async (req, res) => {
+  const { orderID } = req.body;
+
+  const accessToken = await getAccessToken();
+  const response = await fetch(
+    `${PAYPAL_API}/v2/checkout/orders/${orderID}/capture`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const captureDetails = await response.json();
+  res.json(captureDetails);
 });
 
 app.post("/clientToken", async (req, res) => {
