@@ -477,6 +477,17 @@ app.get("/oldrefund", async (req, res) => {
   });
 });
 
+app.get("/ppcp", async (req, res) => {
+  const clientId = PAYPAL_CLIENT_ID,
+    merchantId = PAYPAL_MERCHANT_ID;
+  try {
+    const clientToken = await applepay.generateClientToken();
+    res.render("ppcp", { clientId, clientToken, merchantId });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 app.post("/old/api/captures/:captureId/refund", async (req, res) => {
   const { captureId } = req.params;
 
