@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>iDEAL Example</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- <link rel="stylesheet" href="./styles.css" /> -->
+</head>
+
+<body>
+    <br />
+
+    <label>
+        <input type="radio" name="payment-option" value="paypal" id="paypal-radio" checked />
+        <span id="paypal-mark"></span>
+    </label>
+
+    <label>
+        <input id="ideal-radio" value="ideal" name="payment-option" type="radio" />
+        <span id="ideal-mark"></span>
+    </label>
+
+    <div id="ideal-fields"></div>
+
+    <div id="paypal-btn"></div>
+    <div id="ideal-btn"></div>
+
+    <script
+        src="https://www.paypal.com/sdk/js?client-id=AWwL_1VNxGwAdynAtud_k5-2DX5JAHN_Jgv-NDYIRGcSuCqjt8iqALdJE6Lsy4XwCBbOj1CKOicf9J6Z&components=buttons,payment-fields,marks,funding-eligibility&enable-funding=ideal&currency=EUR&buyer-country=NL"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js" async></script>
+
+    <script src="ideal.js"></script>
+</body>
+
+</html>

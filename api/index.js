@@ -25,6 +25,7 @@ import * as multiacdc from "../server/multiacdc-api.js";
 import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
 import braintree from "braintree";
+import * as ideal from "../server/oauth.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -467,6 +468,65 @@ app.post("/old/api/orders/:orderID/capture", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to capture payment" });
   }
+});
+
+app.get("/ideal", (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID_NL;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET_NL;
+  if (!clientId || !clientSecret) {
+    res.status(500).send("Client ID and/or Client Secret is missing");
+  } else {
+    res.render("ideal", { clientId });
+  }
+});
+
+app.post("/ideal/api/orders", async (req, res) => {
+  // use the cart information passed from the front-end to calculate the purchase unit details
+  const { cart } = req.body;
+
+  const { access_token } = await ideal.getAccessToken();
+  const { data } = await axios({
+    url: `${base}/v2/checkout/orders`,
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+    data: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "EUR",
+            value: "49.99",
+          },
+        },
+      ],
+    }),
+  });
+
+  console.log(`Order Created!`);
+  res.json(data);
+});
+
+app.post("/ideal/api/orders/:orderId/capture", async (req, res) => {
+  const { orderId } = req.params;
+
+  const { access_token } = await ideal.getAccessToken();
+
+  const { data } = await axios({
+    url: `${base}/v2/checkout/orders/${orderId}/capture`,
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+  });
+
+  console.log(`💰 Payment captured!`);
+  res.json(data);
 });
 
 app.get("/oldrefund", async (req, res) => {

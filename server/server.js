@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import axios from "axios";
 import { fileURLToPath } from "url";
 import path from "path";
 import {
@@ -25,6 +26,7 @@ import * as tracking from "./tracking-api.js";
 import braintree from "braintree";
 import * as multi from "./multi-api.js";
 import * as multiacdc from "./multiacdc-api.js";
+import * as ideal from "./oauth.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -698,6 +700,128 @@ app.delete("/api/payment-tokens/:tokenId", async (req, res) => {
     console.error("Error handling delete request:", error.message);
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get("/ideal", (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID_NL;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET_NL;
+  if (!clientId || !clientSecret) {
+    res.status(500).send("Client ID and/or Client Secret is missing");
+  } else {
+    res.render("ideal", { clientId });
+  }
+});
+
+app.post("/ideal/api/orders", async (req, res) => {
+  // use the cart information passed from the front-end to calculate the purchase unit details
+  const { cart } = req.body;
+
+  const { access_token } = await ideal.getAccessToken();
+  const { data } = await axios({
+    url: `${base}/v2/checkout/orders`,
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+    data: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "EUR",
+            value: "49.99",
+          },
+        },
+      ],
+    }),
+  });
+
+  console.log(`Order Created!`);
+  res.json(data);
+});
+
+app.post("/ideal/api/orders/:orderId/capture", async (req, res) => {
+  const { orderId } = req.params;
+
+  const { access_token } = await ideal.getAccessToken();
+
+  const { data } = await axios({
+    url: `${base}/v2/checkout/orders/${orderId}/capture`,
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+  });
+
+  console.log(`💰 Payment captured!`);
+  res.json(data);
+});
+
+app.post("/webhook", async (req, res) => {
+  const { access_token } = await ideal.getAccessToken();
+
+  const { event_type, resource } = req.body;
+  const orderId = resource.id;
+
+  console.log(`🪝 Recieved Webhook Event`);
+
+  /* verify the webhook signature */
+  try {
+    const { data } = await axios({
+      url: `${base}/v1/notifications/verify-webhook-signature`,
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${access_token}`,
+      },
+      data: {
+        transmission_id: req.headers["paypal-transmission-id"],
+        transmission_time: req.headers["paypal-transmission-time"],
+        cert_url: req.headers["paypal-cert-url"],
+        auth_algo: req.headers["paypal-auth-algo"],
+        transmission_sig: req.headers["paypal-transmission-sig"],
+        webhook_id: WEBHOOK_ID,
+        webhook_event: req.body,
+      },
+    });
+
+    const { verification_status } = data;
+
+    if (verification_status !== "SUCCESS") {
+      console.log(`⚠️  Webhook signature verification failed.`);
+      return res.sendStatus(400);
+    }
+  } catch (err) {
+    console.log(`⚠️  Webhook signature verification failed.`);
+    return res.sendStatus(400);
+  }
+
+  /* capture the order */
+  if (event_type === "CHECKOUT.ORDER.APPROVED") {
+    try {
+      const { data } = await axios({
+        url: `${base}/v2/checkout/orders/${orderId}/capture`,
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      console.log(`💰 Payment captured!`);
+    } catch (err) {
+      console.log(`❌ Payment failed.`);
+      return res.sendStatus(400);
+    }
+  }
+
+  res.sendStatus(200);
 });
 
 app.get("/applepay", async (req, res) => {

@@ -3,6 +3,35 @@ body {
   font-size: 0.9rem;
 }
 
+#paypal-radio {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#ideal-mark {
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+#paypal-mark {
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+#paypal-fields {
+  margin: 20px 0;
+}
+
+#ideal-fields {
+  padding-top: 1rem;
+}
+
+#paypal-btn {
+  margin-top: 1rem;
+}
+
 .paypal-button-container {
   padding: 0 !important;
 }
