@@ -27,6 +27,7 @@ import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
 import braintree from "braintree";
 import * as ideal from "../server/oauth.js";
+import * as pui from "../server/pui-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -1095,6 +1096,31 @@ app.post("/transaction/create", async (req, res) => {
       error: "Failed to create order.",
     });
   }
+});
+
+app.post("/pui/orders", async (req, res) => {
+  try {
+    if (!req || !req.headers) {
+      throw new Error("Invalid request: Missing headers.");
+    }
+
+    const clientMetadataId = req.headers["paypal-client-metadata-id"];
+    if (!clientMetadataId) {
+      return res
+        .status(400)
+        .json({ error: "Missing PayPal-Client-Metadata-Id" });
+    }
+
+    const order = await pui.createOrder(req, res); // Assuming createOrder is defined elsewhere
+    res.json(order);
+  } catch (err) {
+    console.error("Error creating order:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.get("/pui", async (req, res) => {
+  res.render("pui");
 });
 
 app.get("/stc/getTrackingID", (req, res) => {
