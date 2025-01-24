@@ -311,6 +311,17 @@ app.get("/api/list-invoices", async (req, res) => {
   }
 });
 
+app.get("/bart", async (req, res) => {
+  const clientId = PAYPAL_CLIENT_ID,
+    merchantId = PAYPAL_MERCHANT_ID;
+  try {
+    const clientToken = await applepay.generateClientToken();
+    res.render("bart", { clientId, clientToken, merchantId });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 app.get("/serversdk", async (req, res) => {
   res.render("serversdk");
 });
