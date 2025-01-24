@@ -1,5 +1,24 @@
 // Dev docs: https://developer.paypal.com/api/limited-release/reference-transactions/v1/
 //Sandbox account will need to have reference transactions enabled
+document.addEventListener("DOMContentLoaded", () => {
+  document
+    .getElementById("fetchAccessTokenButton")
+    .addEventListener("click", getAccessToken);
+  document
+    .getElementById("createBaTokenButton")
+    .addEventListener("click", getBaToken);
+  document.getElementById("buyerLinkBtn").addEventListener("click", () => {
+    window.open(redirectURL, "popup");
+    liConsentButton.innerHTML += "<span>✔</span>";
+  });
+  document
+    .getElementById("createBaButton")
+    .addEventListener("click", getBillingAgreement);
+  document
+    .getElementById("executeRefTransButton")
+    .addEventListener("click", getRefTrans);
+});
+
 let accessToken;
 let baToken;
 let redirectURL;
