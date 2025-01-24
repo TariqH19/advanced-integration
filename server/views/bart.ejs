@@ -158,13 +158,28 @@
 <body>
   <div id="main">
 
-    <h1>Billing Agreements</h1>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      This is a live example in the sandbox environment for demonstration purposes only. A sandbox client id and secret
+      are exposed here to show how this API works, <strong>the REST App Secret field is sensitive information and should
+        not be shared.</strong>
+    </div>
 
-    <br>
+
+    <h1>Billing Agreement Demo</h1>
+    <h5><a href="https://developer.paypal.com/limited-release/reference-transactions/">
+        Billing Agreements and Reference Transactions developer documentation.</a></h5>
+    <p>Below is an interactive demo of the payment flow for billing agreement creation, the buyer consenting to the
+      billing agreement and the buyer being charged for a merchant initiated transaction at a later date (without the
+      customer present). Click the blue buttons in order to trigger the flow.</p>
+    <hr>
     <ol id="list">
+      <li>Merchant server creates an access token.
+        <button type="button" class="btn btn-primary" onclick="getAccessToken()" aria-pressed="true">Fetch access
+          token</button>
+      </li>
 
       <li>A Billing Agreement token is created with the buyers details.
-        <button type="button" class="btn btn-primary" id="create-ba">Create Billing Agreement Token</button>
+        <button type="button" class="btn btn-primary" onclick="getBaToken()">Create Billing Agreement Token</button>
       </li>
 
       <li>Within the response of the BA token api call, is a redirect URL for the buyer.
@@ -174,19 +189,29 @@
       </li>
 
       <li>After the buyer approves the BA, the merchant server creates the BA using the BA Token.
-        <button type="button" class="btn btn-primary" id="get-ba">Get Billing
+        <button type="button" class="btn btn-primary" onclick="getBillingAgreement()">Creating Billing
           Agreement</button>
       </li>
 
       <li>The resulting BA id can then be used for future MIT payments from this buyer.
-        <button type="button" class="btn btn-primary" id="bart">Payment using Reference
+        <button type="button" class="btn btn-primary" onclick="getRefTrans()">Payment using Reference
           Transactions</button>
       </li>
     </ol>
 
-
+    <hr>
+    <small>
+      <h5>Tips for developers:</h5>
+      <ul>
+        <li>Your sandbox/live account will need to be enabled for reference transaction. This can be requested with
+          PayPal's customer support team.</li>
+        <li>Make sure to pass a request-id with your headers for creating an order using a billing agreement id with
+          your order api call.</li>
+        <li>For converting the cURL requests on the PayPal developer site to other languages, some developers have had
+          success using <a href="https://curlconverter.com/">curlconverter.com</a></li>
+      </ul>
+    </small>
   </div>
-  <script src="bart.js"></script>
 </body>
 
 </html>
