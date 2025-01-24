@@ -27,6 +27,7 @@ import braintree from "braintree";
 import * as multi from "./multi-api.js";
 import * as multiacdc from "./multiacdc-api.js";
 import * as ideal from "./oauth.js";
+import * as pui from "./pui-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -866,6 +867,20 @@ app.post("/applepay/api/orders", async (req, res) => {
   } catch (err) {
     res.status(500).send(err.message);
   }
+});
+
+app.post("/pui/orders", async (req, res) => {
+  try {
+    const order = await pui.createOrder();
+    console.log("order", order);
+    res.json(order);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.get("/pui", async (req, res) => {
+  res.render("pui");
 });
 
 // capture payment

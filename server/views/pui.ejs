@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Pay Upon Invoice</title>
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy"
+        content="script-src 'self' https://www.paypal.com https://c.paypal.com 'unsafe-inline';" />
+</head>
+
+<body>
+    <h1>Pay with PayPal - Pay Upon Invoice</h1>
+
+    <!-- PayPal Button -->
+    <div id="paypal-button-container"></div>
+    <div id="paypal-legal-container"></div>
+
+    <!-- FraudNet Noscript -->
+    <noscript>
+        <img src="https://c.paypal.com/da/r/fb.js" alt="FraudNet Fallback" />
+    </noscript>
+
+    <!-- Application Script -->
+    <script src="pui.js"></script>
+</body>
+
+</html>
