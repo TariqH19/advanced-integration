@@ -871,10 +871,21 @@ app.post("/applepay/api/orders", async (req, res) => {
 
 app.post("/pui/orders", async (req, res) => {
   try {
-    const order = await pui.createOrder();
-    console.log("order", order);
+    if (!req || !req.headers) {
+      throw new Error("Invalid request: Missing headers.");
+    }
+
+    const clientMetadataId = req.headers["paypal-client-metadata-id"];
+    if (!clientMetadataId) {
+      return res
+        .status(400)
+        .json({ error: "Missing PayPal-Client-Metadata-Id" });
+    }
+
+    const order = await pui.createOrder(req, res); // Assuming createOrder is defined elsewhere
     res.json(order);
   } catch (err) {
+    console.error("Error creating order:", err.message);
     res.status(500).send(err.message);
   }
 });

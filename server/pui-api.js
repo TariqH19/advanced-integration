@@ -1,3 +1,5 @@
+import { get } from "mongoose";
+
 // PayPal API credentials
 const PAYPAL_CLIENT_ID =
   "AZZcaNxzv0bpXBz0qoto4lBToqSM3M_rS6uVMh3GLno5zvG5-EuIkVLDuY0DUYJXh-7G-Rm4fNcir-y5";
@@ -7,7 +9,13 @@ const PAYPAL_API_BASE = "https://api-m.sandbox.paypal.com"; // Use sandbox for t
 
 // Function to generate a unique request ID
 function generateRequestId() {
-  return `paypal_${uuidv4()}`;
+  const randomPart = Math.random().toString(36).substring(2, 15);
+  const timestampPart = Date.now().toString(36);
+  return `paypal_${randomPart}${timestampPart}`;
+}
+
+function generateReferenceId() {
+  return `REF_${Math.random().toString(36).substring(2, 10)}${Date.now()}`;
 }
 
 // Function to generate an access token
@@ -50,7 +58,7 @@ export async function createOrder(req, res) {
       processing_instruction: "ORDER_COMPLETE_ON_PAYMENT_APPROVAL",
       purchase_units: [
         {
-          reference_id: "PU12345",
+          reference_id: generateReferenceId(),
           amount: {
             currency_code: "EUR",
             value: "100.00",
@@ -81,8 +89,8 @@ export async function createOrder(req, res) {
               country_code: "DE",
             },
           },
-          invoice_id: "MERCHANT_INVOICE_ID",
-          custom_id: "MERCHANT_CUSTOM_ID",
+          invoice_id: generateRequestId(),
+          custom_id: generateRequestId(),
         },
       ],
       payment_source: {
@@ -112,14 +120,14 @@ export async function createOrder(req, res) {
       },
     };
 
-    const requestId = generateRequestId();
+    // const requestId = generateRequestId();
 
     const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
-        "PayPal-Request-Id": requestId,
+        "PayPal-Request-Id": generateRequestId(),
         "PayPal-Client-Metadata-Id": clientMetadataId,
       },
       body: JSON.stringify(orderData),

@@ -66,7 +66,7 @@ function initializePayPalButton(fraudNetSessionId) {
           });
       },
       onApprove: function (data) {
-        alert(`Order Approved! Order ID: ${data.orderID}`);
+        console.log(`Order Approved! Order ID: ${data.orderID}`);
       },
       onError: function (err) {
         console.error("An error occurred:", err);
