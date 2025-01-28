@@ -1072,6 +1072,33 @@ app.get("/dropin", async (req, res) => {
   });
 });
 
+app.get("/dropinn", (req, res) => {
+  gateway.clientToken.generate({}, (err, response) => {
+    err ? console.log(err) : res.send(response.clientToken);
+  });
+});
+app.post("/dropincreate", (req, res, next) => {
+  const nonce = req.body.paymentMethodNonce;
+  const setAmount = req.body.amount;
+  gateway.transaction.sale(
+    {
+      paymentMethodNonce: nonce,
+      amount: setAmount,
+      options: {
+        submitForSettlement: true,
+      },
+    },
+    (error, result) => {
+      if (result) {
+        res.send(result);
+      } else {
+        res.status(500).send(error);
+        console.log(error);
+      }
+    }
+  );
+});
+
 app.get("/brain/client_token", async (req, res) => {
   try {
     const response = await gateway.clientToken.generate({});
