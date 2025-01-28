@@ -1,116 +1,121 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
-      }
+    .navbar {
+      background-color: #333;
+      overflow: hidden;
+      padding: 40px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
+    .navbar h1 {
+      color: white;
+      margin: 0;
+      font-size: 24px;
+      font-weight: normal;
+    }
 
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      main {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-      }
+    .navbar a {
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+      font-size: 17px;
+      transition: background-color 0.3s, color 0.3s;
+    }
 
-      .container {
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        background-color: lightgray;
-        max-width: 500px;
-        min-height: 15em;
-        padding: 20px;
-      }
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+      border-radius: 5px;
+    }
 
-      #applepay-container {
-        flex-grow: 1;
-      }
-    </style>
+    .navbar a:not(:last-child) {
+      margin-right: 10px;
+    }
 
-    <!-- Include Apple SDK Script -->
-    <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
-    <!-- Include PayPal SDK Script with components=applepay for Custom Applepay Component-->
-    <script
-      src="https://www.paypal.com/sdk/js?components=applepay&buyer-country=GB&currency=GBP&client-id=<%= clientId %>&merchant-id=<%= merchantId %>"
-      data-client-token="<%= clientToken %>"
-      data-partner-attribution-id="APPLEPAY"></script>
-    <!-- 
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      max-width: 500px;
+      min-height: 15em;
+      padding: 20px;
+    }
+
+    #applepay-container {
+      flex-grow: 1;
+    }
+  </style>
+
+  <!-- Include Apple SDK Script -->
+  <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
+  <!-- Include PayPal SDK Script with components=applepay for Custom Applepay Component-->
+  <script
+    src="https://www.paypal.com/sdk/js?components=applepay&buyer-country=GB&currency=GBP&client-id=<%= clientId %>&merchant-id=<%= merchantId %>"
+    data-client-token="<%= clientToken %>" data-partner-attribution-id="APPLEPAY"></script>
+  <!-- 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
       crossorigin="anonymous" /> -->
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
+</head>
 
-        <a href="/cards">Cards</a>
-      </div>
+<body>
+  <div class="navbar">
+    <h1>
+      <a href="/">Code Example Website</a>
+    </h1>
+    <div>
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+
+      <a href="/cards">Cards</a>
     </div>
-    <main>
-      <div class="container">
-        <h3>Sample Applepay Integration</h3>
-        <h6>Basic Integration (no amount breakdown / no shipping)</h6>
-        <div id="applepay-container"></div>
-
-        <div>
-          <i>
-            You wont be charged any money. Try with Apple Pay Test Cards on
-            Sandbox. You can find them
-            <a
-              target="_blank"
-              href="https://developer.apple.com/apple-pay/sandbox-testing/"
-              >here</a
-            ></i
-          >
+  </div>
+  <main>
+    <div class="container">
+      <h1>Checkout</h1>
+      <div class="product">
+        <img src="https://picsum.photos/200" alt="Product Image" />
+        <div class="product-info">
+          <div class="product-title">Sample Product</div>
+          <div class="product-price">£10.00</div>
         </div>
       </div>
-    </main>
-    <script src="applepay.js"></script>
-  </body>
+      <h3>Sample Applepay Integration</h3>
+      <h6>Basic Integration (no amount breakdown / no shipping)</h6>
+      <div id="applepay-container"></div>
+
+      <div>
+        <i>
+          You wont be charged any money. Try with Apple Pay Test Cards on
+          Sandbox. You can find them
+          <a target="_blank" href="https://developer.apple.com/apple-pay/sandbox-testing/">here</a></i>
+      </div>
+    </div>
+  </main>
+  <script src="applepay.js"></script>
+</body>
+
 </html>

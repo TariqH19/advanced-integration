@@ -1,243 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
     using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
-    <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
-    <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
-    <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
-    <!-- https://developer.paypal.com/sdk/js/configuration/ -->
-    <!-- <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script> -->
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
+  <link rel="stylesheet" type="text/css"
+    href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
+  <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
+  <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
+  <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
+  <!-- https://developer.paypal.com/sdk/js/configuration/ -->
+  <!-- <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script> -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
-      }
+    .navbar {
+      background-color: #333;
+      overflow: hidden;
+      padding: 40px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
-      }
+    .navbar h1 {
+      color: white;
+      margin: 0;
+      font-size: 24px;
+      font-weight: normal;
+    }
 
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
+    .navbar a {
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+      font-size: 17px;
+      transition: background-color 0.3s, color 0.3s;
+    }
 
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 0.9rem;
-      }
-      #payment-container {
-        display: none;
-      }
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+      border-radius: 5px;
+    }
 
-      .payments {
-        width: 100%;
-        border-collapse: collapse;
-      }
+    .navbar a:not(:last-child) {
+      margin-right: 10px;
+    }
 
-      .payments th,
-      .payments td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-      }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.9rem;
+    }
 
-      .payments th {
-        background-color: #f4f4f4;
-      }
+    #payment-container {
+      display: none;
+    }
 
-      .delete-button {
-        color: #d9534f;
-        background-color: #fff;
-        border: none;
-        cursor: pointer;
-      }
+    .payments {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-      .delete-button:hover {
-        text-decoration: underline;
-      }
+    .payments th,
+    .payments td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
 
-      #message-container {
-        margin-top: 10px;
-        font-size: 1rem;
-      }
+    .payments th {
+      background-color: #f4f4f4;
+    }
 
-      .paypal-button-container {
-        padding: 0 !important;
-      }
+    .delete-button {
+      color: #d9534f;
+      background-color: #fff;
+      border: none;
+      cursor: pointer;
+    }
 
-      #mycart > h2 {
-        color: #015c86;
-        margin-bottom: 0.4rem;
-        margin-left: 0.2rem;
-      }
+    .delete-button:hover {
+      text-decoration: underline;
+    }
 
-      .nbtn {
-        margin: 0;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        width: 33.3rem;
-        background-color: #015c86;
-        color: #fff;
-        border-radius: 0.2em;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1.2rem;
-        font-weight: bold;
-        transition: 0.3s;
-      }
+    #message-container {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
 
-      .nbtn:hover {
-        background-color: #026b9c;
-        border-color: #01345c;
-      }
+    .paypal-button-container {
+      padding: 0 !important;
+    }
 
-      .nbtn:active {
-        background-color: #014566;
-        border-color: #01345c;
-      }
+    #mycart>h2 {
+      color: #015c86;
+      margin-bottom: 0.4rem;
+      margin-left: 0.2rem;
+    }
 
-      .card-field-name {
-        background-color: #ff0000 !important;
-        color: red;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
+    .nbtn {
+      margin: 0;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 33.3rem;
+      background-color: #015c86;
+      color: #fff;
+      border-radius: 0.2em;
+      cursor: pointer;
+      font-family: sans-serif;
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: 0.3s;
+    }
 
-      #mycart {
-        width: 34rem;
-        margin: 2rem auto;
-      }
+    .nbtn:hover {
+      background-color: #026b9c;
+      border-color: #01345c;
+    }
 
-      #checkout-form {
-        text-align: center;
-      }
+    .nbtn:active {
+      background-color: #014566;
+      border-color: #01345c;
+    }
 
-      #api-response {
-        width: 50%;
-        margin-left: 10rem;
-        margin-top: 3rem;
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
+    .card-field-name {
+      background-color: #ff0000 !important;
+      color: red;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
 
-        <a href="/cards">Cards</a>
-      </div>
+    #mycart {
+      width: 34rem;
+      margin: 2rem auto;
+    }
+
+    #checkout-form {
+      text-align: center;
+    }
+
+    #api-response {
+      width: 50%;
+      margin-left: 10rem;
+      margin-top: 3rem;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">
+    <h1>
+      <a href="/">Code Example Website</a>
+    </h1>
+    <div>
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+
+      <a href="/cards">Cards</a>
     </div>
-    <div id="mycart">
-      <div id="status-message"></div>
-      <!-- Pay Later Messages:
+  </div>
+  <h1>
+    This will show the saved payment methods for a customer already created. Once the checkbox is checked, the payment
+    method will be saved for future use.
+  </h1>
+  <div id="mycart">
+    <div id="status-message"></div>
+    <!-- Pay Later Messages:
              https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
              Please replace the amount with your variable -->
-      <h1>
-        If you want to save your wallet please click the checkbox prior to
-        initiating payment. Please refresh the page to see saved payment methods
-      </h1>
 
-      <br />
-      <br />
 
-      <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
+    <br />
+    <br />
 
-      <!-- PayPal Buttons:
+    <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
+
+    <!-- PayPal Buttons:
              https://developer.paypal.com/docs/checkout/advanced/integrate/ -->
-      <div id="paypal-button-container" class="paypal-button-container"></div>
+    <div id="paypal-button-container" class="paypal-button-container"></div>
 
-      <div id="payment-container">
-        <h3>Or choose your saved credit card:</h3>
-        <form id="payment-form" method="POST">
-          <table class="payments" id="payment-methods-table">
-            <thead>
-              <tr>
-                <th>Select</th>
-                <th>Card Brand</th>
-                <th>Card Number</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Payment methods will be dynamically inserted here -->
-            </tbody>
-          </table>
-        </form>
-      </div>
-
-      <!-- Add a message container for better user feedback -->
-      <div id="message-container"></div>
-
-      <div style="width: 100%; text-align: center; margin-top: 2rem">
-        <button type="submit" id="submit" class="button">Pay Now</button>
-      </div>
-
-      <br />
-      <h2>Credit Card</h2>
-      <div id="checkout-form">
-        <div id="card-name-field-container"></div>
-        <div id="card-number-field-container"></div>
-        <div id="card-expiry-field-container"></div>
-        <div id="card-cvv-field-container"></div>
-        <button
-          value="submit"
-          id="card-field-submit-button"
-          class="nbtn"
-          type="button">
-          Pay
-        </button>
-      </div>
-
-      <br /><br />
-      <div>
-        <input type="checkbox" id="save" name="save" />
-        <label for="save">Save your payment method</label>
-      </div>
+    <div id="payment-container">
+      <h3>Or choose your saved credit card:</h3>
+      <form id="payment-form" method="POST">
+        <table class="payments" id="payment-methods-table">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Card Brand</th>
+              <th>Card Number</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Payment methods will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </form>
     </div>
 
-    <!-- JavaScript file that includes our buttons and cardField events -->
-    <script src="app.js"></script>
-  </body>
+    <!-- Add a message container for better user feedback -->
+    <div id="message-container"></div>
+
+    <div style="width: 100%; text-align: center; margin-top: 2rem">
+      <button type="submit" id="submit" class="button">Pay Now</button>
+    </div>
+
+    <br />
+    <h2>Credit Card</h2>
+    <div id="checkout-form">
+      <div id="card-name-field-container"></div>
+      <div id="card-number-field-container"></div>
+      <div id="card-expiry-field-container"></div>
+      <div id="card-cvv-field-container"></div>
+      <button value="submit" id="card-field-submit-button" class="nbtn" type="button">
+        Pay
+      </button>
+    </div>
+
+    <br /><br />
+    <div>
+      <input type="checkbox" id="save" name="save" />
+      <label for="save">Save your payment method</label>
+    </div>
+  </div>
+
+  <!-- JavaScript file that includes our buttons and cardField events -->
+  <script src="app.js"></script>
+</body>
+
 </html>
