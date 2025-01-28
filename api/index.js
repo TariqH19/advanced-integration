@@ -446,6 +446,43 @@ app.patch("/api/orders/update-address", async (req, res) => {
   }
 });
 
+// Route to vault a payment method
+app.post("/vault-payment-method", async (req, res) => {
+  try {
+    const accessToken = await old.generateAccessToken();
+    const vaultedPaymentMethod = await old.vaultPaymentMethod(accessToken);
+    res.json({ success: true, vaultedPaymentMethod });
+  } catch (error) {
+    console.error("Error vaulting payment method:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to vault payment method" });
+  }
+});
+// Route to create a subscription
+app.post("/create-subscription", async (req, res) => {
+  try {
+    const { vaultedPaymentTokenId } = req.body;
+    const accessToken = await old.generateAccessToken();
+    const subscription = await old.createSubscription(
+      accessToken,
+      vaultedPaymentTokenId
+    );
+    res.json({ success: true, subscription });
+  } catch (error) {
+    console.error("Error creating subscription:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to create subscription" });
+  }
+});
+app.get("/vaultsub", async (req, res) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  res.render("vaultsub", {
+    clientId,
+  });
+});
+
 app.post("/old/api/orders", async (req, res) => {
   try {
     const { task, saveCard, vaultID } = req.body;
