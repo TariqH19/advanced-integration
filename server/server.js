@@ -1455,6 +1455,10 @@ app.get("/", async (req, res) => {
   res.render("index");
 });
 
+app.get("/applereact", async (req, res) => {
+  res.render("applereact");
+});
+
 app.get("/standardview", async (req, res) => {
   res.render("standardview");
 });
