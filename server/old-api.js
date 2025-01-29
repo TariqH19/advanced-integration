@@ -148,6 +148,10 @@ export async function createOrder(task, saveCard) {
         shipping_preference: "NO_SHIPPING",
         return_url: "https://example.com/returnUrl",
         cancel_url: "https://example.com/cancelUrl",
+        order_update_callback_config: {
+          callback_events: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
+          callback_url: "https://advanced-integration.vercel.app/",
+        },
       },
     },
   };
