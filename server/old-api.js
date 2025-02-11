@@ -5,7 +5,7 @@ const baseUrl = {
 export async function generateAccessToken() {
   try {
     const auth = Buffer.from(
-      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+      `${process.env.PAYPAL_CLIENT_ID_US}:${process.env.PAYPAL_CLIENT_SECRET_US}`
     ).toString("base64");
     const response = await fetch(`${baseUrl.sandbox}/v1/oauth2/token`, {
       method: "POST",
@@ -136,8 +136,8 @@ export async function createOrder(task, saveCard) {
     purchase_units: [
       {
         amount: {
-          currency_code: "GBP",
-          value: "10.00",
+          currency_code: "USD",
+          value: "110.00",
         },
       },
     ],
@@ -145,12 +145,14 @@ export async function createOrder(task, saveCard) {
   const paypalSource = {
     paypal: {
       experience_context: {
-        shipping_preference: "NO_SHIPPING",
+        user_action: "PAY_NOW",
+
         return_url: "https://example.com/returnUrl",
         cancel_url: "https://example.com/cancelUrl",
         order_update_callback_config: {
           callback_events: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
-          callback_url: "https://advanced-integration.vercel.app/",
+          callback_url:
+            "https://p4vvvahfm0.execute-api.us-east-2.amazonaws.com/default/ssc",
         },
       },
     },
