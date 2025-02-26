@@ -141,6 +141,15 @@ export async function createOrder(task, saveCard) {
         },
       },
     ],
+    payment_source: {
+      card: {
+        attributes: {
+          verification: {
+            method: "SCA_ALWAYS",
+          },
+        },
+      },
+    },
   };
   const paypalSource = {
     paypal: {
@@ -149,11 +158,6 @@ export async function createOrder(task, saveCard) {
 
         return_url: "https://example.com/returnUrl",
         cancel_url: "https://example.com/cancelUrl",
-        order_update_callback_config: {
-          callback_events: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
-          callback_url:
-            "https://p4vvvahfm0.execute-api.us-east-2.amazonaws.com/default/ssc",
-        },
       },
     },
   };
