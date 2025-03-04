@@ -136,7 +136,7 @@ export async function createOrder(task, saveCard) {
     purchase_units: [
       {
         amount: {
-          currency_code: "USD",
+          currency_code: "GBP",
           value: "110.00",
         },
       },
