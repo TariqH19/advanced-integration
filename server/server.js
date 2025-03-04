@@ -931,6 +931,10 @@ app.get("/pui", async (req, res) => {
   res.render("pui");
 });
 
+app.get("/nocode", async (req, res) => {
+  res.render("nocode");
+});
+
 // capture payment
 app.post("/applepay/api/orders/:orderID/capture", async (req, res) => {
   const { orderID } = req.params;

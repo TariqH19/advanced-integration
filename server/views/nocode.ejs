@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Code</title>
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy"
+        content="script-src 'self' https://www.paypal.com https://c.paypal.com 'unsafe-inline';" />
+</head>
+<style>
+    body {
+        display: grid;
+        place-items: center;
+    }
+</style>
+
+<body>
+    <h1>No Code</h1>
+
+    <script
+        src="https://www.paypal.com/sdk/js?client-id=BAAICvTcU27OMqZcK9vQfJJ10ES-Wex7O-chuh8t-IZ3B-7Rz82o3L4L4YG6zxzUZz11rDVNjVkh5cAeBU&components=hosted-buttons,googlepay,applepay&disable-funding=venmo&currency=GBP"></script>
+    <div id="paypal-container-KEQL7F99MJAS4"></div>
+    <script>
+        paypal.HostedButtons({
+            hostedButtonId: "KEQL7F99MJAS4",
+        }).render("#paypal-container-KEQL7F99MJAS4")
+    </script>
+</body>
+
+</html>
