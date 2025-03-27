@@ -1418,7 +1418,7 @@ app.get("/viewauthcap", async (req, res) => {
   res.render("viewauthcap");
 });
 
-app.send(
+app.get(
   "/.well-known/apple-developer-merchantid-domain-association",
   (req, res) => {
     res.sendFile(
