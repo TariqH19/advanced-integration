@@ -46,7 +46,7 @@ const newClient = new Client({
 });
 
 const ordersController = new OrdersController(client);
-const newOrdersController = new OrdersController(client);
+const newOrdersController = new OrdersController(newClient);
 const paymentsController = new PaymentsController(client);
 
 export async function createOrder(cart) {
