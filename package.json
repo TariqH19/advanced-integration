@@ -12,7 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@paypal/paypal-server-sdk": "^0.5.1",
     "axios": "^1.7.3",
     "body-parser": "^1.20.2",
     "braintree": "^3.24.0",

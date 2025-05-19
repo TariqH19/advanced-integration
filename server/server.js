@@ -587,11 +587,29 @@ app.get("/serversdk", async (req, res) => {
   res.render("serversdk");
 });
 
+app.get("/newstuff", async (req, res) => {
+  res.render("newstuff");
+});
+
 app.post("/serversdk/api/orders", async (req, res) => {
   try {
     // use the cart information passed from the front-end to calculate the order amount detals
     const { cart } = req.body;
     const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/serversdk/api/neworders", async (req, res) => {
+  try {
+    // use the cart information passed from the front-end to calculate the order amount detals
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await serversdk.newCreateOrder(
+      cart
+    );
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);

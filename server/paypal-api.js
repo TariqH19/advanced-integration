@@ -14,7 +14,7 @@ export async function generateAccessToken() {
     ).toString("base64");
     const response = await fetch(`${baseUrl.sandbox}/v1/oauth2/token`, {
       method: "POST",
-      body: `grant_type=client_credentials&response_type=idtoken&target_customer_id=mAlQTMeFfy`, //mAlQTMeFfy iqOtguscgz
+      body: `grant_type=client_credentials&response_type=idtoken&target_customer_id=YzrrVgcMkV`, //mAlQTMeFfy iqOtguscgz
       headers: {
         Authorization: `Basic ${auth}`,
         "Content-Type": "application/x-www-form-urlencoded",
@@ -128,7 +128,7 @@ export async function createOrder(task, saveCard, vaultID) {
 
   const savedCC = {
     card: {
-      vault_id: vaultID,
+      vault_id: "2gm19597mj477660b",
     },
   };
 
@@ -136,7 +136,7 @@ export async function createOrder(task, saveCard, vaultID) {
     payload.payment_source = paypalSourceVault;
   } else if (task === "advancedCC" && saveCard) {
     payload.payment_source = advancedCreditCardSource;
-  } else if (task === "useToken" && vaultID) {
+  } else if (task === "useToken" && "2gm19597mj477660b") {
     payload.payment_source = savedCC;
   } else if (task === "button") {
     payload.payment_source = paypalButton;

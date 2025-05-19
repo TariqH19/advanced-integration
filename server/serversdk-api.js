@@ -7,11 +7,15 @@ import {
   LogLevel,
   OrdersController,
   PaymentsController,
+  PaypalExperienceLandingPage,
+  PaypalExperienceUserAction,
+  ShippingPreference,
 } from "@paypal/paypal-server-sdk";
 import bodyParser from "body-parser";
 const app = express();
 app.use(bodyParser.json());
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
+const { PAYPAL_CLIENT_ID_US, PAYPAL_CLIENT_SECRET_US } = process.env;
 
 const client = new Client({
   clientCredentialsAuthCredentials: {
@@ -26,7 +30,23 @@ const client = new Client({
     logResponse: { logHeaders: true },
   },
 });
+
+const newClient = new Client({
+  clientCredentialsAuthCredentials: {
+    oAuthClientId: PAYPAL_CLIENT_ID_US,
+    oAuthClientSecret: PAYPAL_CLIENT_SECRET_US,
+  },
+  timeout: 0,
+  environment: Environment.Sandbox,
+  logging: {
+    logLevel: LogLevel.Info,
+    logRequest: { logBody: true },
+    logResponse: { logHeaders: true },
+  },
+});
+
 const ordersController = new OrdersController(client);
+const newOrdersController = new OrdersController(client);
 const paymentsController = new PaymentsController(client);
 
 export async function createOrder(cart) {
@@ -43,7 +63,7 @@ export async function createOrder(cart) {
       ],
       paymentSource: {
         card: {
-          attribute: {
+          attributes: {
             verification: {
               method: "SCA_ALWAYS",
             },
@@ -57,6 +77,87 @@ export async function createOrder(cart) {
   try {
     const { body, ...httpResponse } = await ordersController.ordersCreate(
       payload
+    );
+    // Get more response info...
+    // const { statusCode, headers } = httpResponse;
+    return {
+      jsonResponse: JSON.parse(body),
+      httpStatusCode: httpResponse.statusCode,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      // const { statusCode, headers } = error;
+      throw new Error(error.message);
+    }
+  }
+}
+
+export async function newCreateOrder(cart) {
+  const collect = {
+    body: {
+      intent: "CAPTURE",
+      purchaseUnits: [
+        {
+          amount: {
+            currencyCode: "USD",
+            value: "100",
+            breakdown: {
+              itemTotal: {
+                currencyCode: "USD",
+                value: "100",
+              },
+            },
+          },
+          // lookup item details in `cart` from database
+          items: [
+            {
+              name: "T-Shirt",
+              unitAmount: {
+                currencyCode: "USD",
+                value: "100",
+              },
+              quantity: "1",
+              description: "Super Fresh Shirt",
+              sku: "sku01",
+            },
+          ],
+          shipping: {
+            email_address: "buyer_shipping_email@example.com",
+            phone_number: {
+              country_code: "1",
+              national_number: "4081111111",
+            },
+          },
+        },
+      ],
+      paymentSource: {
+        paypal: {
+          experienceContext: {
+            userAction: PaypalExperienceUserAction.PayNow,
+            returnUrl:
+              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
+            cancelUrl:
+              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
+            appSwitchPreference: {
+              launchPaypalApp: true,
+            },
+            landingPage: PaypalExperienceLandingPage.Login,
+            shippingPreference: ShippingPreference.GetFromFile,
+            orderUpdateCallbackConfig: {
+              callbackEvents: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
+              callbackUrl: "https://advanced-integration.vercel.app/",
+            },
+            contactPreference: "NO_CONTACT_INFO",
+          },
+        },
+      },
+    },
+    prefer: "return=minimal",
+  };
+
+  try {
+    const { body, ...httpResponse } = await newOrdersController.createOrder(
+      collect
     );
     // Get more response info...
     // const { statusCode, headers } = httpResponse;
