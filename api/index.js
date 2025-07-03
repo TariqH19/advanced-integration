@@ -1456,53 +1456,41 @@ app.get(
   }
 );
 
-app.post("/shipping-callback", (req, res) => {
-  const callbackData = req.body;
+app.post("/paypal/shipping-options", async (req, res) => {
+  try {
+    const shippingAddress = req.body.shipping_address;
+    //review the incoming shipping address from PayPal
+    // Here you could use zip code, country, etc. for dynamic logic
+    console.log("Incoming shipping address from PayPal:", shippingAddress);
 
-  console.log("Received shipping callback:", callbackData);
-
-  // You would process the shipping address or options here,
-  // e.g., calculate shipping costs, delivery times, etc.
-
-  // Example response with updated shipping options:
-  const response = {
-    shipping_options: [
+    const shippingOptions = [
       {
-        id: "standard",
+        id: "STANDARD",
         label: "Standard Shipping",
+        type: "SHIPPING",
+        selected: true,
         amount: {
-          currency_code: "USD",
           value: "5.00",
-        },
-        delivery_time: {
-          min: 3,
-          max: 5,
-          unit: "DAY",
-        },
-      },
-    ],
-    purchase_units: [
-      {
-        reference_id: "PUHF",
-        amount: {
           currency_code: "USD",
-          value: "105.00", // total updated with shipping
-          breakdown: {
-            item_total: {
-              currency_code: "USD",
-              value: "100.00",
-            },
-            shipping: {
-              currency_code: "USD",
-              value: "5.00",
-            },
-          },
         },
       },
-    ],
-  };
+      {
+        id: "EXPRESS",
+        label: "Express Shipping",
+        type: "SHIPPING",
+        selected: false,
+        amount: {
+          value: "15.00",
+          currency_code: "USD",
+        },
+      },
+    ];
 
-  res.json(response);
+    res.json({ shipping_options: shippingOptions });
+  } catch (error) {
+    console.error("Error providing shipping options:", error);
+    res.status(500).json({ error: "Failed to provide shipping options" });
+  }
 });
 
 app.listen(8888, () => {
