@@ -138,9 +138,9 @@ export async function newCreateOrder(cart) {
             shippingPreference: ShippingPreference.GetFromFile,
             orderUpdateCallbackConfig: {
               callbackEvents: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
-              callbackUrl: "https://advanced-integration.vercel.app/",
+              callbackUrl: "/paypal/shipping-options",
             },
-            contactPreference: "NO_CONTACT_INFO",
+            contactPreference: "UPDATE_CONTACT_INFO",
           },
         },
       },

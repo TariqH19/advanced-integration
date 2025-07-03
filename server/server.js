@@ -1461,6 +1461,44 @@ app.post("/brain/process_payment", async (req, res) => {
   }
 });
 
+app.post("/paypal/shipping-options", async (req, res) => {
+  try {
+    // Optionally use address info from req.body.shipping_address
+    const shippingAddress = req.body?.shipping_address;
+
+    // Here you could use zip code, country, etc. for dynamic logic
+    console.log("Incoming shipping address from PayPal:", shippingAddress);
+
+    const shippingOptions = [
+      {
+        id: "STANDARD",
+        label: "Standard Shipping",
+        type: "SHIPPING",
+        selected: true,
+        amount: {
+          value: "5.00",
+          currency_code: "USD",
+        },
+      },
+      {
+        id: "EXPRESS",
+        label: "Express Shipping",
+        type: "SHIPPING",
+        selected: false,
+        amount: {
+          value: "15.00",
+          currency_code: "USD",
+        },
+      },
+    ];
+
+    res.json({ shipping_options: shippingOptions });
+  } catch (error) {
+    console.error("Error providing shipping options:", error);
+    res.status(500).json({ error: "Failed to provide shipping options" });
+  }
+});
+
 app.get("/brain", async (req, res) => {
   // render paypal view
   res.render("brain", {
