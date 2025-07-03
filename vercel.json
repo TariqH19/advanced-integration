@@ -1,21 +1,12 @@
 {
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/paypal/shipping-options",
-      "dest": "/api/index.js"
+      "source": "/paypal/shipping-options",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/index.html"
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
