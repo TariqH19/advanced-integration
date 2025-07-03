@@ -1458,6 +1458,8 @@ app.get(
 
 app.post("/paypal/shipping-options", async (req, res) => {
   try {
+    const shippingAddress = req.body.shipping_address;
+
     // Here you could use zip code, country, etc. for dynamic logic
     console.log("Incoming shipping address from PayPal:", shippingAddress);
 
