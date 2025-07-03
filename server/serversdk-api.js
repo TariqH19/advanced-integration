@@ -49,7 +49,7 @@ const ordersController = new OrdersController(client);
 const newOrdersController = new OrdersController(newClient);
 const paymentsController = new PaymentsController(client);
 
-export async function createOrder(cart) {
+export async function createOrder() {
   const payload = {
     body: {
       intent: "CAPTURE",
@@ -134,6 +134,7 @@ export async function newCreateOrder(cart) {
         paypal: {
           experienceContext: {
             userAction: PaypalExperienceUserAction.PayNow,
+
             landingPage: PaypalExperienceLandingPage.Login,
             shippingPreference: ShippingPreference.GetFromFile,
             orderUpdateCallbackConfig: {
@@ -150,7 +151,7 @@ export async function newCreateOrder(cart) {
   };
 
   try {
-    const { body, ...httpResponse } = await newOrdersController.createOrder(
+    const { body, ...httpResponse } = await newOrdersController.ordersCreate(
       collect
     );
     // Get more response info...
