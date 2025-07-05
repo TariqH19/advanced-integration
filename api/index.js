@@ -60,6 +60,82 @@ app.set("views", viewsPath);
 // Middleware to parse JSON requests
 app.use(express.json());
 
+app.post("/paypal/shipping-options", async (req, res) => {
+  try {
+    const shippingAddress = req.body.shipping_address;
+    console.log("Incoming shipping address from PayPal:", shippingAddress);
+
+    const response = {
+      id: "2EP9GYF4AP7T4",
+      purchase_units: [
+        {
+          reference_id: "default",
+          amount: {
+            currency_code: "USD",
+            value: "0.00",
+            breakdown: {
+              shipping: {
+                currency_code: "USD",
+                value: "0.00",
+              },
+            },
+          },
+          shipping: {
+            amount: {
+              currency_code: "USD",
+              value: "0.00",
+            },
+          },
+          shipping_options: [
+            {
+              id: "1",
+              label: "Free Shipping",
+              type: "SHIPPING",
+              selected: true,
+              amount: {
+                currency_code: "USD",
+                value: "0.00",
+              },
+            },
+            {
+              id: "2",
+              label: "USPS Priority Shipping",
+              type: "SHIPPING",
+              selected: false,
+              amount: {
+                currency_code: "USD",
+                value: "7.00",
+              },
+            },
+            {
+              id: "3",
+              label: "1-Day Shipping",
+              type: "SHIPPING",
+              selected: false,
+              amount: {
+                currency_code: "USD",
+                value: "10.00",
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error providing shipping options:", error);
+    res.status(500).json({ error: "Failed to provide shipping options" });
+  }
+});
+
 // Render checkout page with client ID
 app.get("/acdc", async (req, res) => {
   const clientId = PAYPAL_CLIENT_ID;
@@ -1455,78 +1531,6 @@ app.get(
     );
   }
 );
-
-app.post("/paypal/shipping-callback", (req, res) => {
-  const shippingAddress = req.body.shipping_address;
-
-  console.log("PayPal Shipping Callback triggered");
-  console.log("Shipping address received:", shippingAddress);
-
-  const shippingOptions = [
-    {
-      id: "1",
-      label: "Free Shipping",
-      type: "SHIPPING",
-      amount: {
-        currency_code: "USD",
-        value: "0.00",
-      },
-      selected: true,
-    },
-    {
-      id: "2",
-      label: "USPS Priority Shipping",
-      type: "SHIPPING",
-      amount: {
-        currency_code: "USD",
-        value: "7.00",
-      },
-      selected: false,
-    },
-    {
-      id: "3",
-      label: "1-Day Shipping",
-      type: "SHIPPING",
-      amount: {
-        currency_code: "USD",
-        value: "10.00",
-      },
-      selected: false,
-    },
-  ];
-
-  // Choose the selected option
-  const selectedOption = shippingOptions.find((opt) => opt.selected);
-  const totalAmount = parseFloat(selectedOption.amount.value).toFixed(2);
-
-  const response = {
-    id: "2EP9GYF4AP7T4", // Optional – you can generate or omit this
-    purchase_units: [
-      {
-        reference_id: null, // Optional or dynamic
-        amount: {
-          currency_code: "USD",
-          value: totalAmount,
-          breakdown: {
-            shipping: {
-              currency_code: "USD",
-              value: selectedOption.amount.value,
-            },
-          },
-        },
-        shipping: {
-          amount: {
-            currency_code: "USD",
-            value: selectedOption.amount.value,
-          },
-        },
-        shipping_options: shippingOptions,
-      },
-    ],
-  };
-
-  res.status(200).json(response);
-});
 
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
