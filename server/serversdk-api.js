@@ -49,7 +49,7 @@ const ordersController = new OrdersController(client);
 const newOrdersController = new OrdersController(newClient);
 const paymentsController = new PaymentsController(client);
 
-export async function createOrder() {
+export async function createOrder(cart) {
   const payload = {
     body: {
       intent: "CAPTURE",
@@ -151,7 +151,7 @@ export async function newCreateOrder(cart) {
   };
 
   try {
-    const { body, ...httpResponse } = await newOrdersController.ordersCreate(
+    const { body, ...httpResponse } = await newOrdersController.createOrder(
       collect
     );
     // Get more response info...
