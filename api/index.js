@@ -1465,17 +1465,17 @@ app.post("/paypal/shipping-options", async (req, res) => {
       id: "2EP9GYF4AP7T4",
       purchase_units: [
         {
+          reference_id: "default",
           amount: {
+            currency_code: "USD",
+            value: "0.00",
             breakdown: {
               shipping: {
                 currency_code: "USD",
                 value: "0.00",
               },
             },
-            currency_code: "USD",
-            value: "0.0",
           },
-          reference_id: null,
           shipping: {
             amount: {
               currency_code: "USD",
@@ -1484,81 +1484,52 @@ app.post("/paypal/shipping-options", async (req, res) => {
           },
           shipping_options: [
             {
+              id: "1",
+              label: "Free Shipping",
+              type: "SHIPPING",
+              selected: true,
               amount: {
                 currency_code: "USD",
                 value: "0.00",
               },
-              id: "1",
-              label: "Free Shipping",
-              selected: true,
-              type: "SHIPPING",
             },
             {
+              id: "2",
+              label: "USPS Priority Shipping",
+              type: "SHIPPING",
+              selected: false,
               amount: {
                 currency_code: "USD",
                 value: "7.00",
               },
-              id: "2",
-              label: "USPS Priority Shipping",
-              selected: false,
-              type: "SHIPPING",
             },
             {
+              id: "3",
+              label: "1-Day Shipping",
+              type: "SHIPPING",
+              selected: false,
               amount: {
                 currency_code: "USD",
                 value: "10.00",
               },
-              id: "3",
-              label: "1-Day Shipping",
-              selected: false,
-              type: "SHIPPING",
             },
           ],
         },
       ],
     };
 
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     res.json(response);
   } catch (error) {
     console.error("Error providing shipping options:", error);
     res.status(500).json({ error: "Failed to provide shipping options" });
   }
-});
-
-app.post("/shipping-callback", async (req, res) => {
-  console.log("Shipping callback triggered by PayPal:", req.body);
-
-  const patch = [
-    {
-      op: "replace",
-      path: "/purchase_units/@reference_id=='default'/shipping/options",
-      value: [
-        {
-          id: "1",
-          label: "Free Shipping",
-          type: "SHIPPING",
-          selected: true,
-          amount: { currency_code: "USD", value: "0.00" },
-        },
-        {
-          id: "2",
-          label: "USPS Priority Shipping",
-          type: "SHIPPING",
-          selected: false,
-          amount: { currency_code: "USD", value: "7.00" },
-        },
-        {
-          id: "3",
-          label: "1-Day Shipping",
-          type: "SHIPPING",
-          selected: false,
-          amount: { currency_code: "USD", value: "10.00" },
-        },
-      ],
-    },
-  ];
-
-  res.status(200).json(patch);
 });
 
 app.listen(8888, () => {
