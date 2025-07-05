@@ -1465,24 +1465,60 @@ app.post("/paypal/shipping-options", async (req, res) => {
 
     const shippingOptions = [
       {
-        id: "STANDARD",
-        label: "Standard Shipping",
-        type: "SHIPPING",
-        selected: true,
-        amount: {
-          value: "5.00",
-          currency_code: "USD",
-        },
-      },
-      {
-        id: "EXPRESS",
-        label: "Express Shipping",
-        type: "SHIPPING",
-        selected: false,
-        amount: {
-          value: "15.00",
-          currency_code: "USD",
-        },
+        id: "2EP9GYF4AP7T4",
+        purchase_units: [
+          {
+            amount: {
+              breakdown: {
+                shipping: {
+                  currency_code: "USD",
+                  value: "0.00",
+                },
+              },
+              currency_code: "USD",
+              value: "0.0",
+            },
+            reference_id: null,
+            shipping: {
+              amount: {
+                currency_code: "USD",
+                value: "0.00",
+              },
+            },
+            shipping_options: [
+              {
+                amount: {
+                  currency_code: "USD",
+                  value: "0.00",
+                },
+                id: "1",
+                label: "Free Shipping",
+                selected: true,
+                type: "SHIPPING",
+              },
+              {
+                amount: {
+                  currency_code: "USD",
+                  value: "7.00",
+                },
+                id: "2",
+                label: "USPS Priority Shipping",
+                selected: false,
+                type: "SHIPPING",
+              },
+              {
+                amount: {
+                  currency_code: "USD",
+                  value: "10.00",
+                },
+                id: "3",
+                label: "1-Day Shipping",
+                selected: false,
+                type: "SHIPPING",
+              },
+            ],
+          },
+        ],
       },
     ];
 
