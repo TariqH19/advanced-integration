@@ -134,13 +134,7 @@ export async function newCreateOrder(cart) {
         paypal: {
           experienceContext: {
             userAction: PaypalExperienceUserAction.PayNow,
-            returnUrl:
-              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
-            cancelUrl:
-              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
-            appSwitchPreference: {
-              launchPaypalApp: true,
-            },
+
             landingPage: PaypalExperienceLandingPage.Login,
             shippingPreference: ShippingPreference.GetFromFile,
             orderUpdateCallbackConfig: {
