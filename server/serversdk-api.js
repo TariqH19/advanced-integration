@@ -157,7 +157,7 @@ export async function newCreateOrder(cart) {
   };
 
   try {
-    const { body, ...httpResponse } = await ordersController.createOrder(
+    const { body, ...httpResponse } = await newOrdersController.createOrder(
       collect
     );
     // Get more response info...
