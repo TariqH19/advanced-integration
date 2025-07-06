@@ -121,7 +121,13 @@ export async function newCreateOrder(cart) {
               sku: "sku01",
             },
           ],
-          shipping: {},
+          shipping: {
+            email_address: "buyer_shipping_email@example.com",
+            phone_number: {
+              country_code: "1",
+              national_number: "4081111111",
+            },
+          },
         },
       ],
       paymentSource: {
@@ -131,11 +137,7 @@ export async function newCreateOrder(cart) {
 
             landingPage: PaypalExperienceLandingPage.Login,
             shippingPreference: ShippingPreference.GetFromFile,
-            orderUpdateCallbackConfig: {
-              callbackEvents: ["SHIPPING_ADDRESS", "SHIPPING_OPTIONS"],
-              callbackUrl:
-                "https://p4vvvahfm0.execute-api.us-east-2.amazonaws.com/default/ssc",
-            },
+
             contactPreference: "UPDATE_CONTACT_INFO",
           },
         },
