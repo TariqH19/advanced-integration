@@ -93,9 +93,14 @@ const paypalButtons = window.paypal.Buttons({
       );
     }
   },
-});
 
-paypalButtons.render("#paypal-button-container");
+  appSwitchWhenAvailable: true,
+});
+if (paypalButtons.hasReturned()) {
+  paypalButtons.resume();
+} else {
+  paypalButtons.render("#paypal-button-container");
+}
 
 // Example function to show a result to the user. Your site's UI library can be used instead.
 function resultMessage(message) {
