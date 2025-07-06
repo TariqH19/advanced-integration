@@ -122,7 +122,7 @@ export async function newCreateOrder(cart) {
             },
           ],
           shipping: {
-            email_address: "buyer_shipping_email@example.com",
+            email_address: "usth@personal.com",
             phone_number: {
               country_code: "1",
               national_number: "4081111111",
