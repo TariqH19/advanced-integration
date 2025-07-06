@@ -121,13 +121,7 @@ export async function newCreateOrder(cart) {
               sku: "sku01",
             },
           ],
-          shipping: {
-            email_address: "usth@personal.com",
-            phone_number: {
-              country_code: "1",
-              national_number: "4081111111",
-            },
-          },
+          shipping: {},
         },
       ],
       paymentSource: {
