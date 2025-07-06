@@ -62,22 +62,54 @@ app.use(express.json());
 
 app.post("/paypal/shipping-options", async (req, res) => {
   try {
-    const shippingAddress = req.body.shipping_address;
-    console.log("Incoming shipping address from PayPal:", shippingAddress);
+    const shippingAddress = req.body.shipping;
+    console.log("Shipping Address:", shippingAddress);
+
+    const defaultShipping = {
+      id: "1",
+      label: "Free Shipping",
+      type: "SHIPPING",
+      selected: true,
+      amount: {
+        currency_code: "USD",
+        value: "0.00",
+      },
+    };
+
+    const options = [
+      defaultShipping,
+      {
+        id: "2",
+        label: "USPS Priority Shipping",
+        type: "SHIPPING",
+        selected: false,
+        amount: {
+          currency_code: "USD",
+          value: "7.00",
+        },
+      },
+      {
+        id: "3",
+        label: "1-Day Shipping",
+        type: "SHIPPING",
+        selected: false,
+        amount: {
+          currency_code: "USD",
+          value: "10.00",
+        },
+      },
+    ];
 
     const response = {
-      id: "2EP9GYF4AP7T4",
       purchase_units: [
         {
           reference_id: "default",
           amount: {
             currency_code: "USD",
-            value: "0.00",
+            value: "100.00",
             breakdown: {
-              shipping: {
-                currency_code: "USD",
-                value: "0.00",
-              },
+              item_total: { currency_code: "USD", value: "100.00" },
+              shipping: { currency_code: "USD", value: "0.00" },
             },
           },
           shipping: {
@@ -85,54 +117,20 @@ app.post("/paypal/shipping-options", async (req, res) => {
               currency_code: "USD",
               value: "0.00",
             },
+            options,
           },
-          shipping_options: [
-            {
-              id: "1",
-              label: "Free Shipping",
-              type: "SHIPPING",
-              selected: true,
-              amount: {
-                currency_code: "USD",
-                value: "0.00",
-              },
-            },
-            {
-              id: "2",
-              label: "USPS Priority Shipping",
-              type: "SHIPPING",
-              selected: false,
-              amount: {
-                currency_code: "USD",
-                value: "7.00",
-              },
-            },
-            {
-              id: "3",
-              label: "1-Day Shipping",
-              type: "SHIPPING",
-              selected: false,
-              amount: {
-                currency_code: "USD",
-                value: "10.00",
-              },
-            },
-          ],
         },
       ],
     };
 
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
     res.json(response);
   } catch (error) {
-    console.error("Error providing shipping options:", error);
-    res.status(500).json({ error: "Failed to provide shipping options" });
+    console.error("Shipping Options Error:", error);
+    res.status(500).json({ error: "Failed to return shipping options" });
   }
 });
 
