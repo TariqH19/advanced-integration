@@ -13,6 +13,8 @@ import {
 } from "../server/paypal-api.js"; // Import your PayPal helper functions
 import * as googlepay from "../server/googlepay-api.js";
 import * as applepay from "../server/apple-api.js";
+// const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 import * as subs from "../server/subs-api.js";
 import * as authcap from "../server/authcap-api.js";
 import * as standard from "../server/standard-api.js";
@@ -59,6 +61,36 @@ app.set("views", viewsPath);
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+const USER = "tariqhoran88@gmail.com";
+const PASS = "fastLane11";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: USER,
+    pass: PASS,
+  },
+});
+
+app.post("/send-email", (req, res) => {
+  const { to, subject, text } = req.body;
+
+  const mailOptions = {
+    from: USER,
+    to,
+    subject,
+    text,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Failed to send email" });
+    }
+    res.json({ success: true, message: "Email sent!" });
+  });
+});
 
 app.post("/paypal/shipping-options", async (req, res) => {
   try {
