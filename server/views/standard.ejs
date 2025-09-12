@@ -1,138 +1,457 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal JS SDK Standard Integration - Checkout</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Checkout - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .checkout-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .order-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .security-badges {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border-left: 4px solid #28a745;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #28a745;
+      font-weight: 500;
+    }
+
+    .product-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: #fafafa;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .product-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-details {
+      flex: 1;
+    }
+
+    .product-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-description {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+    }
+
+    .order-total {
+      border-top: 2px solid #e9ecef;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.final {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      border-top: 1px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .payment-section {
+      margin-top: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #paypal-button-container {
+      margin-top: 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0070ba;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .message-container {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .message-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .message-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
       .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        padding: 1rem;
       }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
+      .navbar .nav-links {
+        display: none;
       }
 
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
+      .checkout-container,
+      .order-summary {
+        padding: 1.5rem;
       }
+    }
 
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
+    .trust-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
 
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #d8c2c2;
-      }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
 
-      .container {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-
-      .product {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding: 10px 0;
-        margin-bottom: 10px;
-      }
-
-      .product img {
-        width: 80px;
-        height: 80px;
-        margin-right: 20px;
-      }
-
-      .product-info {
-        flex-grow: 1;
-      }
-
-      .product-title {
-        font-weight: bold;
-      }
-
-      .product-price {
-        color: #666;
-      }
-
-      #paypal-button-container {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      #result-message {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 16px;
-        color: #333;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
-
-        <a href="/cards">Cards</a>
-      </div>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
     </div>
-    <h1>PayPal JS SDK Standard Integration - Checkout</h1>
-    <div class="container">
-      <h1>Checkout</h1>
+  </nav>
 
-      <div class="product">
-        <img src="https://picsum.photos/200" alt="Product Image" />
-        <div class="product-info">
-          <div class="product-title">Sample Product</div>
-          <div class="product-price">£10.00</div>
+  <div class="main-container">
+    <div class="checkout-container">
+      <h1 class="page-title">
+        <i class="fas fa-shopping-cart"></i>
+        Secure Checkout
+      </h1>
+      <p class="page-subtitle">Complete your purchase securely with PayPal</p>
+
+      <div class="security-badges">
+        <div class="security-badge">
+          <i class="fas fa-shield-alt"></i>
+          SSL Encrypted
+        </div>
+        <div class="security-badge">
+          <i class="fas fa-lock"></i>
+          Secure Payment
+        </div>
+        <div class="security-badge">
+          <i class="fas fa-award"></i>
+          Trusted by millions
         </div>
       </div>
 
-      <div id="paypal-button-container"></div>
-      <p id="result-message"></p>
+      <div class="payment-section">
+        <h2 class="section-title">
+          <i class="fas fa-credit-card"></i>
+          Payment Method
+        </h2>
+        <p style="color: #666; margin-bottom: 1rem;">Choose your preferred payment method below. Your payment
+          information is encrypted and secure.</p>
+
+        <div id="paypal-button-container"></div>
+
+        <div class="loading-spinner" id="loading-spinner">
+          <div class="spinner"></div>
+          <p style="margin-top: 1rem; color: #666;">Processing your payment...</p>
+        </div>
+
+        <div class="message-container" id="message-container">
+          <div id="message-content"></div>
+        </div>
+
+        <div class="trust-indicators">
+          <div class="trust-item">
+            <i class="fab fa-paypal"></i>
+            PayPal Protected
+          </div>
+          <div class="trust-item">
+            <i class="fas fa-undo"></i>
+            Easy Returns
+          </div>
+          <div class="trust-item">
+            <i class="fas fa-headset"></i>
+            24/7 Support
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP"></script>
-    <script src="standard.js"></script>
-  </body>
+    <div class="order-summary">
+      <h2 class="section-title">
+        <i class="fas fa-receipt"></i>
+        Order Summary
+      </h2>
+
+      <div class="product-card">
+        <div class="product">
+          <img src="https://images.unsplash.com/photo-1560472355-536de3962603?w=200&h=200&fit=crop&crop=center"
+            alt="Lovely stuff" class="product-image" />
+          <div class="product-details">
+            <div class="product-title">Lovely stuff</div>
+            <div class="product-description">
+              High-quality audio with noise cancellation
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">
+              <i class="fas fa-truck"></i> Free shipping
+            </div>
+            <div class="product-price">£89.99</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>£89.99</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping:</span>
+          <span style="color: #28a745;">FREE</span>
+        </div>
+        <div class="total-row">
+          <span>Tax:</span>
+          <span>£0.00</span>
+        </div>
+        <div class="total-row final">
+          <span>Total:</span>
+          <span>£89.99</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #0070ba;"></i>
+          <strong>Order Protection</strong>
+        </div>
+        <p style="color: #666; margin: 0;">Your purchase is protected by PayPal's Buyer Protection policy.</p>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP"></script>
+  <script src="standard.js"></script>
+</body>
+
 </html>

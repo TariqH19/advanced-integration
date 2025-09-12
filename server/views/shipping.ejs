@@ -1,88 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal JS SDK Standard Integration - Checkout</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #d8c2c2;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Checkout with Shipping - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .checkout-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .order-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .shipping-info {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #0070ba;
+    }
+
+    .shipping-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #0070ba;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .product-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: #fafafa;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .product-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-details {
+      flex: 1;
+    }
+
+    .product-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-description {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+    }
+
+    .shipping-options {
+      margin-bottom: 2rem;
+    }
+
+    .shipping-option {
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .shipping-option:hover {
+      border-color: #0070ba;
+      background: #f0f8ff;
+    }
+
+    .shipping-option.selected {
+      border-color: #0070ba;
+      background: #f0f8ff;
+    }
+
+    .shipping-details {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .shipping-price {
+      font-weight: 600;
+      color: #0070ba;
+    }
+
+    .order-total {
+      border-top: 2px solid #e9ecef;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.final {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      border-top: 1px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #paypal-button-container {
+      margin-top: 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0070ba;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
 
-      .container {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .message-container {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .message-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .message-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
       }
 
-      h1 {
-        text-align: center;
-        color: #333;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
       }
 
-      .product {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding: 10px 0;
-        margin-bottom: 10px;
+      .navbar {
+        padding: 1rem;
       }
 
-      .product img {
-        width: 80px;
-        height: 80px;
-        margin-right: 20px;
+      .checkout-container,
+      .order-summary {
+        padding: 1.5rem;
       }
+    }
+  </style>
+</head>
 
-      .product-info {
-        flex-grow: 1;
-      }
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
 
-      .product-title {
-        font-weight: bold;
-      }
+  <div class="main-container">
+    <div class="checkout-container">
+      <h1 class="page-title">
+        <i class="fas fa-truck"></i>
+        Shipping Checkout
+      </h1>
+      <p class="page-subtitle">Complete your purchase with flexible shipping options</p>
 
-      .product-price {
-        color: #666;
-      }
-
-      #paypal-button-container {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      #result-message {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 16px;
-        color: #333;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>PayPal JS SDK Standard Integration - Checkout</h1>
-    <div class="container">
-      <h1>Checkout</h1>
-
-      <div class="product">
-        <img src="https://picsum.photos/200" alt="Product Image" />
-        <div class="product-info">
-          <div class="product-title">Sample Product</div>
-          <div class="product-price">£10.00</div>
+      <div class="shipping-info">
+        <div class="shipping-feature">
+          <i class="fas fa-map-marker-alt"></i>
+          Real-time address validation
+        </div>
+        <div class="shipping-feature">
+          <i class="fas fa-calculator"></i>
+          Dynamic shipping calculation
+        </div>
+        <div class="shipping-feature">
+          <i class="fas fa-shield-alt"></i>
+          Delivery insurance included
         </div>
       </div>
 
+      <div class="section-title">
+        <i class="fas fa-shipping-fast"></i>
+        Shipping Information
+      </div>
+
+      <div
+        style="background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; border-left: 4px solid #0070ba;">
+        <h3 style="color: #333; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-info-circle"></i>
+          Shipping Handled by PayPal
+        </h3>
+        <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+          During PayPal checkout, you'll be able to:
+        </p>
+        <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #0070ba;">
+            <i class="fas fa-check-circle"></i>
+            <span>Enter and validate your shipping address</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #0070ba;">
+            <i class="fas fa-check-circle"></i>
+            <span>Choose from available shipping methods</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #0070ba;">
+            <i class="fas fa-check-circle"></i>
+            <span>See real-time shipping costs</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #0070ba;">
+            <i class="fas fa-check-circle"></i>
+            <span>Get delivery estimates for your location</span>
+          </div>
+        </div>
+        <div style="background: #fff3cd; border-radius: 8px; padding: 1rem; border: 1px solid #ffeaa7;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-lightbulb" style="color: #856404;"></i>
+            <strong style="color: #856404;">Note</strong>
+          </div>
+          <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+            Shipping options and costs will be calculated based on your delivery address during PayPal checkout.
+          </p>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <i class="fas fa-credit-card"></i>
+        Payment Method
+      </div>
+
       <div id="paypal-button-container"></div>
-      <p id="result-message"></p>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Processing your payment...</p>
+      </div>
+
+      <div class="message-container" id="message-container">
+        <div id="message-content"></div>
+      </div>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=<%= clientId %>&currency=GBP"></script>
-    <script src="shipping.js"></script>
-  </body>
+    <div class="order-summary">
+      <h2 class="section-title">
+        <i class="fas fa-receipt"></i>
+        Order Summary
+      </h2>
+
+      <div class="product-card">
+        <div class="product">
+          <img src="https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=200&h=200&fit=crop&crop=center"
+            alt="Wireless Bluetooth Speaker" class="product-image" />
+          <div class="product-details">
+            <div class="product-title">Wireless Bluetooth Speaker</div>
+            <div class="product-description">
+              Premium sound quality with 12-hour battery life
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">
+              <i class="fas fa-box"></i> In stock - Ready to ship
+            </div>
+            <div class="product-price">£89.99</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>£89.99</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping:</span>
+          <span id="shipping-cost" style="color: #28a745;">FREE</span>
+        </div>
+        <div class="total-row">
+          <span>Tax:</span>
+          <span>£0.00</span>
+        </div>
+        <div class="total-row final">
+          <span>Total:</span>
+          <span id="total-cost">£89.99</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-truck" style="color: #0070ba;"></i>
+          <strong>Shipping Information</strong>
+        </div>
+        <p style="color: #666; margin: 0;">Your shipping address will be collected during PayPal checkout.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=<%= clientId %>&currency=GBP"></script>
+  <script src="shipping.js"></script>
+
+  <script>
+    // Shipping option selection
+    document.querySelectorAll('.shipping-option').forEach(option => {
+      option.addEventListener('click', function () {
+        document.querySelectorAll('.shipping-option').forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+
+        const price = parseFloat(this.dataset.price);
+        const subtotal = 89.99;
+        const total = subtotal + price;
+
+        document.getElementById('shipping-cost').textContent = price === 0 ? 'FREE' : `£${price.toFixed(2)}`;
+        document.getElementById('total-cost').textContent = `£${total.toFixed(2)}`;
+
+        if (price === 0) {
+          document.getElementById('shipping-cost').style.color = '#28a745';
+        } else {
+          document.getElementById('shipping-cost').style.color = '#333';
+        }
+      });
+    });
+  </script>
+</body>
+
 </html>

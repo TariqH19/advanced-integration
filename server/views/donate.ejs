@@ -1,51 +1,678 @@
 <!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Ensures optimal rendering on mobile devices. -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <script
-    src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js"
-    charset="UTF-8"></script>
-</head>
-
-<style>
-    /* Style to center the container */
-    .donatebtn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh; /* Full viewport height */
-      margin: 0; /* Remove default body margin */
-      font-family: Arial, sans-serif;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Our Cause - PayPal Donation Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-        h1 {
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .hero-section {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      margin: 2rem auto;
+      max-width: 1200px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #333, #666);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.3rem;
+      color: #444;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .donation-container {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .cause-info {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .cause-card {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cause-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hearts" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><text x="10" y="15" text-anchor="middle" fill="rgba(255,255,255,0.1)" font-size="16">💖</text></pattern></defs><rect width="100" height="100" fill="url(%23hearts)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .cause-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cause-description {
+      color: #fff;
+      font-size: 1rem;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 1.5rem;
+    }
+
+    .impact-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #fff;
+      opacity: 0.9;
+    }
+
+    .donation-amounts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .amount-button {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .amount-button:hover {
+      background: #ff6b6b;
+      border-color: #ff6b6b;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+    }
+
+    .amount-button.selected {
+      background: #ff6b6b;
+      border-color: #ff6b6b;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+    }
+
+    .custom-amount {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1rem;
+      font-size: 1rem;
+      width: 100%;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .custom-amount:focus {
+      outline: none;
+      border-color: #ff6b6b;
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    .donation-section {
+      background: #fff9f9;
+      border: 2px dashed #ff6b6b;
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .donation-section h3 {
+      color: #ff6b6b;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0; /* Remove default body margin */
-      font-family: Arial, sans-serif;
+      gap: 0.5rem;
+    }
+
+    #paypal-donate-button-container {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .impact-examples {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .impact-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #ff6b6b;
+    }
+
+    .impact-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .impact-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .trust-indicators {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .trust-item {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(255, 107, 107, 0.1);
+      border-radius: 8px;
+    }
+
+    .trust-item i {
+      color: #ff6b6b;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .trust-item span {
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+
+      .donation-container,
+      .cause-info {
+        padding: 1.5rem;
+      }
+
+      .donation-amounts {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
+  <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
 </head>
+
 <body>
-  <h1> Donation integration</h1>
-  <div class="donatebtn" id="paypal-donate-button-container"></div>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
+
+  <div class="hero-section">
+    <h1 class="hero-title">💝 Make a Difference Today</h1>
+    <p class="hero-subtitle">
+      Join thousands of supporters in creating positive change. Every donation,
+      no matter the size, helps us build a better future for communities in need.
+    </p>
+  </div>
+
+  <div class="main-container">
+    <div class="donation-container">
+      <h1 class="page-title">
+        <i class="fas fa-heart"></i>
+        Support Our Mission
+      </h1>
+      <p class="page-subtitle">
+        Your generous contribution helps us provide essential resources, education,
+        and support to communities worldwide. Together, we can create lasting change.
+      </p>
+
+      <div class="cause-card">
+        <h3>🌍 Global Education Initiative</h3>
+        <p class="cause-description">
+          We're working to provide quality education and learning resources to
+          underserved communities around the world. Your donation helps fund
+          schools, educational materials, and teacher training programs.
+        </p>
+
+        <div class="impact-stats">
+          <div class="stat-item">
+            <div class="stat-number">2,500+</div>
+            <div class="stat-label">Students Helped</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">45</div>
+            <div class="stat-label">Schools Built</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">150+</div>
+            <div class="stat-label">Teachers Trained</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="impact-examples">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-chart-line"></i>
+          Your Impact
+        </h3>
+
+        <div class="impact-item">
+          <div class="impact-icon">
+            <i class="fas fa-book"></i>
+          </div>
+          <div>
+            <strong>£25</strong> provides school supplies for 5 children for a month
+          </div>
+        </div>
+
+        <div class="impact-item">
+          <div class="impact-icon">
+            <i class="fas fa-utensils"></i>
+          </div>
+          <div>
+            <strong>£50</strong> funds nutritious meals for 20 students for a week
+          </div>
+        </div>
+
+        <div class="impact-item">
+          <div class="impact-icon">
+            <i class="fas fa-chalkboard-teacher"></i>
+          </div>
+          <div>
+            <strong>£100</strong> sponsors teacher training for rural communities
+          </div>
+        </div>
+
+        <div class="impact-item">
+          <div class="impact-icon">
+            <i class="fas fa-laptop"></i>
+          </div>
+          <div>
+            <strong>£250</strong> provides digital learning tools for an entire classroom
+          </div>
+        </div>
+      </div>
+
+      <div class="donation-section">
+        <h3>
+          <i class="fas fa-gift"></i>
+          Choose Your Donation Amount
+        </h3>
+        <p style="color: #666; margin-bottom: 1.5rem;">
+          Every contribution makes a difference. Select an amount or enter a custom donation.
+        </p>
+
+        <div class="donation-amounts">
+          <div class="amount-button" onclick="selectAmount(25)">£25</div>
+          <div class="amount-button" onclick="selectAmount(50)">£50</div>
+          <div class="amount-button" onclick="selectAmount(100)">£100</div>
+          <div class="amount-button" onclick="selectAmount(250)">£250</div>
+        </div>
+
+        <input type="number" class="custom-amount" placeholder="Enter custom amount (£)" min="1"
+          id="custom-amount-input" onchange="selectCustomAmount()" />
+
+        <div id="paypal-donate-button-container"></div>
+      </div>
+    </div>
+
+    <div class="cause-info">
+      <h2 style="margin-bottom: 1.5rem; color: #333; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-info-circle"></i>
+        About This Cause
+      </h2>
+
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎓</div>
+        <h3 style="color: #333; margin-bottom: 1rem;">Education Changes Lives</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+          We believe that education is the foundation of progress. Our mission is to
+          ensure that every child, regardless of their circumstances, has access to
+          quality learning opportunities.
+        </p>
+      </div>
+
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h4 style="color: #333; margin-bottom: 1rem;">Where Your Money Goes</h4>
+        <div style="margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.9rem;">Educational Programs</span>
+            <span style="font-weight: 600;">75%</span>
+          </div>
+          <div style="background: #e9ecef; height: 6px; border-radius: 3px; overflow: hidden;">
+            <div style="background: #ff6b6b; width: 75%; height: 100%;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.9rem;">Infrastructure</span>
+            <span style="font-weight: 600;">15%</span>
+          </div>
+          <div style="background: #e9ecef; height: 6px; border-radius: 3px; overflow: hidden;">
+            <div style="background: #48dbfb; width: 15%; height: 100%;"></div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.9rem;">Administration</span>
+            <span style="font-weight: 600;">10%</span>
+          </div>
+          <div style="background: #e9ecef; height: 6px; border-radius: 3px; overflow: hidden;">
+            <div style="background: #feca57; width: 10%; height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trust-indicators">
+        <div class="trust-item">
+          <i class="fas fa-shield-alt"></i>
+          <div><span>Secure Payments</span></div>
+        </div>
+        <div class="trust-item">
+          <i class="fas fa-certificate"></i>
+          <div><span>Registered Charity</span></div>
+        </div>
+        <div class="trust-item">
+          <i class="fas fa-chart-pie"></i>
+          <div><span>Transparent Spending</span></div>
+        </div>
+        <div class="trust-item">
+          <i class="fas fa-award"></i>
+          <div><span>Impact Reports</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    PayPal.Donation.Button({
-      env: "sandbox",
-      hosted_button_id: "UET2FC4CLPEDU",
-      // business: 'YOUR_EMAIL_OR_PAYERID',
-      image: {
-        src: "https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif",
-        title: "PayPal - The safer, easier way to pay online!",
-        alt: "Donate with PayPal button",
-      },
-      onComplete: function (params) {
-        console.log("params", params);
-      },
-    }).render("#paypal-donate-button-container");
+    let selectedAmount = 25; // Default amount
+
+    function selectAmount(amount) {
+      selectedAmount = amount;
+      // Clear custom input
+      document.getElementById('custom-amount-input').value = '';
+
+      // Update button states
+      document.querySelectorAll('.amount-button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+
+      // Re-render PayPal button with new amount
+      renderDonationButton();
+    }
+
+    function selectCustomAmount() {
+      const customInput = document.getElementById('custom-amount-input');
+      const customAmount = parseFloat(customInput.value);
+
+      if (customAmount && customAmount > 0) {
+        selectedAmount = customAmount;
+
+        // Clear preset button selections
+        document.querySelectorAll('.amount-button').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+
+        // Re-render PayPal button with custom amount
+        renderDonationButton();
+      }
+    }
+
+    function renderDonationButton() {
+      // Clear existing button
+      const container = document.getElementById('paypal-donate-button-container');
+      container.innerHTML = '';
+
+      // Render new button with selected amount
+      PayPal.Donation.Button({
+        env: "sandbox",
+        hosted_button_id: "UET2FC4CLPEDU",
+        image: {
+          src: "https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif",
+          title: "PayPal - The safer, easier way to pay online!",
+          alt: `Donate £${selectedAmount} with PayPal button`,
+        },
+        onComplete: function (params) {
+          console.log("Donation completed:", params);
+
+          // Show success message
+          showSuccessMessage();
+        },
+        onCancel: function (params) {
+          console.log("Donation cancelled:", params);
+        },
+        onError: function (err) {
+          console.error("Donation error:", err);
+        }
+      }).render("#paypal-donate-button-container");
+    }
+
+    function showSuccessMessage() {
+      const container = document.querySelector('.donation-container');
+
+      container.innerHTML = `
+          <div style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem;">🙏</div>
+            <h2 style="color: #28a745; margin-bottom: 1rem; font-size: 2.5rem;">Thank You!</h2>
+            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+              Your generous donation of <strong>£${selectedAmount}</strong> will make a real difference 
+              in the lives of children and communities we serve.
+            </p>
+            
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+              <h3 style="color: #333; margin-bottom: 1rem;">What Happens Next?</h3>
+              <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+                  <span>You'll receive a donation receipt via email</span>
+                </div>
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+                  <span>Your funds will be allocated to our education programs</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+                  <span>You'll receive updates on the impact of your donation</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <button onclick="window.location.href='/'" style="background: #0070ba; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                <i class="fas fa-home"></i> Back to Home
+              </button>
+              <button onclick="window.location.reload()" style="background: #ff6b6b; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                <i class="fas fa-heart"></i> Donate Again
+              </button>
+            </div>
+          </div>
+        `;
+    }
+
+    // Initialize with default amount
+    document.addEventListener('DOMContentLoaded', function () {
+      // Select default amount button
+      document.querySelector('.amount-button').classList.add('selected');
+      renderDonationButton();
+    });
   </script>
 </body>
+
 </html>

@@ -1,179 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal JS SDK Standard Integration - Checkout</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth & Capture Checkout - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .checkout-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .order-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .auth-process {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #ffc107;
+    }
+
+    .process-step {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ffc107;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .step-number.completed {
+      background: #28a745;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-description {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .product-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: #fafafa;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .product-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-details {
+      flex: 1;
+    }
+
+    .product-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-description {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #paypal-button-container {
+      margin-top: 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .capture-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .capture-section.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    #capture-button {
+      background: linear-gradient(135deg, #ffc107, #ff9500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    #capture-button:hover {
+      background: linear-gradient(135deg, #ff9500, #ffc107);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+    }
+
+    #capture-button:disabled {
+      background: #d6d6d6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0070ba;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-container {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .message-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .message-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .order-total {
+      border-top: 2px solid #e9ecef;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.final {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      border-top: 1px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
       .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        padding: 1rem;
       }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
+      .checkout-container,
+      .order-summary {
+        padding: 1.5rem;
       }
+    }
+  </style>
+</head>
 
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
-
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #d8c2c2;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-
-      .product {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding: 10px 0;
-        margin-bottom: 10px;
-      }
-
-      .product img {
-        width: 80px;
-        height: 80px;
-        margin-right: 20px;
-      }
-
-      .product-info {
-        flex-grow: 1;
-      }
-
-      .product-title {
-        font-weight: bold;
-      }
-
-      .product-price {
-        color: #666;
-      }
-
-      #paypal-button-container {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      #result-message {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 16px;
-        color: #333;
-      }
-
-      #capture-button {
-        display: none; /* Hidden by default */
-        background-color: #0070ba; /* PayPal Blue */
-        color: white; /* Text color */
-        border: none; /* Remove border */
-        border-radius: 4px; /* Rounded corners */
-        padding: 12px 24px; /* Padding inside the button */
-        font-size: 16px; /* Font size */
-        cursor: pointer; /* Pointer cursor on hover */
-        transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
-      }
-
-      /* Hover Effect */
-      #capture-button:hover {
-        background-color: #005ea6; /* Darker blue */
-        transform: scale(1.05); /* Slightly enlarge the button */
-      }
-
-      /* Focus Effect */
-      #capture-button:focus {
-        outline: none; /* Remove default focus outline */
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); /* Add custom focus outline */
-      }
-
-      /* Disabled State */
-      #capture-button:disabled {
-        background-color: #d6d6d6; /* Grey */
-        cursor: not-allowed; /* Not allowed cursor */
-      }
-    </style>
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
-
-        <a href="/cards">Cards</a>
-      </div>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
     </div>
-    <h1>
-      PayPal JS SDK Standard Integration - Checkout - Authorize and Capture
-    </h1>
-    <div class="container">
-      <h1>Checkout</h1>
+  </nav>
 
-      <div class="product">
-        <img src="https://picsum.photos/200" alt="Product Image" />
-        <div class="product-info">
-          <div class="product-title">Sample Product</div>
-          <div class="product-price">£10.00</div>
+  <div class="main-container">
+    <div class="checkout-container">
+      <h1 class="page-title">
+        <i class="fas fa-shield-alt"></i>
+        Auth & Capture Checkout
+      </h1>
+      <p class="page-subtitle">Two-step payment process: Authorize now, capture later</p>
+
+      <div class="auth-process">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-list-ol"></i>
+          Payment Process
+        </h3>
+
+        <div class="process-step">
+          <div class="step-number" id="step1">1</div>
+          <div class="step-content">
+            <div class="step-title">Authorization</div>
+            <div class="step-description">Reserve funds without charging the customer</div>
+          </div>
+        </div>
+
+        <div class="process-step">
+          <div class="step-number" id="step2">2</div>
+          <div class="step-content">
+            <div class="step-title">Order Validation</div>
+            <div class="step-description">Verify inventory, validate order details</div>
+          </div>
+        </div>
+
+        <div class="process-step">
+          <div class="step-number" id="step3">3</div>
+          <div class="step-content">
+            <div class="step-title">Capture Payment</div>
+            <div class="step-description">Complete the transaction and charge the customer</div>
+          </div>
         </div>
       </div>
 
+      <div class="section-title">
+        <i class="fas fa-credit-card"></i>
+        Step 1: Authorize Payment
+      </div>
+      <p style="color: #666; margin-bottom: 1rem;">Click the PayPal button to authorize the payment. Funds will be
+        reserved but not charged yet.</p>
+
       <div id="paypal-button-container"></div>
-      <p id="result-message"></p>
 
-      <h1>
-        To test this integration please create and complete the order with the
-        PayPal button, once complete capture the payment with the button that
-        appears
-      </h1>
+      <div class="capture-section" id="capture-section">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-hand-holding-usd"></i>
+          Step 2: Capture Payment
+        </h3>
+        <p style="color: #666; margin-bottom: 1rem;">
+          Authorization successful! The funds are reserved. Click below to capture the payment and complete the
+          transaction.
+        </p>
+        <button id="capture-button">
+          <i class="fas fa-check-circle"></i>
+          Capture Payment
+        </button>
+      </div>
 
-      <!-- Capture Button -->
-      <button id="capture-button">Capture Payment</button>
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Processing...</p>
+      </div>
+
+      <div class="message-container" id="message-container">
+        <div id="message-content"></div>
+      </div>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&intent=authorize&currency=GBP"></script>
-    <script src="authcap.js"></script>
-  </body>
+    <div class="order-summary">
+      <h2 class="section-title">
+        <i class="fas fa-receipt"></i>
+        Order Summary
+      </h2>
+
+      <div class="product-card">
+        <div class="product">
+          <img src="https://images.unsplash.com/photo-1560472355-536de3962603?w=200&h=200&fit=crop&crop=center"
+            alt="Premium Gaming Laptop" class="product-image" />
+          <div class="product-details">
+            <div class="product-title">Premium Gaming Laptop</div>
+            <div class="product-description">
+              High-performance laptop for gaming and productivity
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">
+              <i class="fas fa-box"></i> Pre-order - Ships in 2 weeks
+            </div>
+            <div class="product-price">£10</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>£1,299.99</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping:</span>
+          <span style="color: #28a745;">FREE</span>
+        </div>
+        <div class="total-row">
+          <span>Tax:</span>
+          <span>£0.00</span>
+        </div>
+        <div class="total-row final">
+          <span>Total:</span>
+          <span>£1,299.99</span>
+        </div>
+      </div>
+
+      <div
+        style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #856404;"></i>
+          <strong>Auth & Capture Benefits</strong>
+        </div>
+        <ul style="color: #856404; margin: 0; padding-left: 1rem;">
+          <li>Reserve funds without immediate charge</li>
+          <li>Validate inventory before processing</li>
+          <li>Perfect for pre-orders and custom items</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&intent=authorize&currency=GBP"></script>
+  <script src="authcap.js"></script>
+</body>
+
 </html>

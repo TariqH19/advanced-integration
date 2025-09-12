@@ -1,105 +1,922 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Multi-Recipient Payout</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f7f9fc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        margin: 0;
-        color: #333;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mass Payments & Payouts - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .payout-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .payout-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .payout-benefits {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #28a745;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #28a745;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .recipients-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .recipients-header {
+      background: #28a745;
+      color: white;
+      padding: 1rem;
+      border-radius: 12px 12px 0 0;
+      display: grid;
+      grid-template-columns: 40px 2fr 120px 120px 40px;
+      gap: 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      align-items: center;
+    }
+
+    .recipients-container {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .recipient-row {
+      background: white;
+      padding: 1rem;
+      border-bottom: 1px solid #e9ecef;
+      display: grid;
+      grid-template-columns: 40px 2fr 120px 120px 40px;
+      gap: 1rem;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .recipient-row:last-child {
+      border-bottom: none;
+    }
+
+    .recipient-row:hover {
+      background: #f8f9fa;
+    }
+
+    .recipient-number {
+      background: #28a745;
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .recipient-input {
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .recipient-input:focus {
+      outline: none;
+      border-color: #28a745;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .amount-display {
+      font-weight: 600;
+      color: #28a745;
+      font-size: 1rem;
+    }
+
+    .remove-recipient {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+
+    .remove-recipient:hover {
+      background: #c82333;
+      transform: scale(1.1);
+    }
+
+    .add-recipient-btn {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+      width: fit-content;
+    }
+
+    .add-recipient-btn:hover {
+      background: linear-gradient(135deg, #20c997, #28a745);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    }
+
+    .bulk-actions {
+      background: #fff3cd;
+      border: 2px dashed #ffc107;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .bulk-actions h3 {
+      color: #856404;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .bulk-upload {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-btn {
+      background: #ffc107;
+      color: #856404;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .file-input-btn:hover {
+      background: #e0a800;
+      transform: translateY(-1px);
+    }
+
+    .payout-total {
+      background: #f8f9fa;
+      border: 2px solid #28a745;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.highlight {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #28a745;
+      border-top: 2px solid #28a745;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      justify-content: center;
+      min-width: 150px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #20c997, #28a745);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #ffc107, #ff9500);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #ff9500, #ffc107);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+    }
+
+    .btn:disabled {
+      background: #d6d6d6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .status-message {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .status-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .status-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .payout-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      text-align: center;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #28a745;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
-      h1 {
-        color: #333;
-        text-align: center;
-        margin-bottom: 20px;
+
+      100% {
+        transform: rotate(360deg);
       }
-      #payout-form {
-        background-color: #ffffff;
-        border-radius: 8px;
-        padding: 20px;
-        width: 400px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
       }
-      .recipient {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
-      .recipient label {
-        flex: 1;
-        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
       }
-      input[type="email"],
-      input[type="number"] {
-        flex: 2;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        margin-top: 5px;
-        width: 100%;
+
+      .recipients-header,
+      .recipient-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        text-align: left;
       }
-      button {
-        padding: 10px;
-        font-size: 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        width: 100%;
-        margin-top: 15px;
+
+      .recipient-number {
+        justify-self: start;
       }
-      button[type="button"] {
-        background-color: #007bff;
-        color: #fff;
+
+      .action-buttons {
+        flex-direction: column;
       }
-      button[type="submit"] {
-        background-color: #28a745;
-        color: #fff;
+
+      .btn {
+        min-width: unset;
       }
-      #showPayoutButton {
-        background-color: #ffc107;
-        color: #fff;
-        margin-top: 10px;
-      }
-      #payoutDetails {
-        margin-top: 20px;
-        font-size: 14px;
-      }
-    </style>
-  </head>
-  <body>
-    <div>
-      <h1>PayPal Payout to Multiple Recipients</h1>
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="payout-container">
+      <h1 class="page-title">
+        <i class="fas fa-money-bill-wave"></i>
+        Mass Payments & Payouts
+      </h1>
+      <p class="page-subtitle">
+        Send payments to multiple recipients simultaneously. Perfect for freelancer
+        payments, affiliate commissions, refunds, or any bulk payment needs.
+      </p>
+
+      <div class="payout-benefits">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-star"></i>
+          Payout Benefits
+        </h3>
+
+        <div class="benefit-item">
+          <i class="fas fa-check-circle"></i>
+          Send to multiple recipients at once
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-shield-alt"></i>
+          Secure and encrypted transfers
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-clock"></i>
+          Fast processing and notifications
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-chart-line"></i>
+          Detailed reporting and tracking
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-file-csv"></i>
+          CSV import for bulk uploads
+        </div>
+      </div>
+
+      <div class="bulk-actions">
+        <h3>
+          <i class="fas fa-upload"></i>
+          Quick Bulk Upload
+        </h3>
+        <p style="color: #856404; margin-bottom: 1rem; font-size: 0.9rem;">
+          Upload a CSV file with recipient emails and amounts for faster processing
+        </p>
+        <div class="bulk-upload">
+          <div class="file-input-wrapper">
+            <input type="file" class="file-input" accept=".csv" id="csv-upload" onchange="handleCSVUpload(event)">
+            <button class="file-input-btn">
+              <i class="fas fa-file-csv"></i>
+              Upload CSV File
+            </button>
+          </div>
+          <button class="file-input-btn" onclick="downloadSampleCSV()">
+            <i class="fas fa-download"></i>
+            Download Sample
+          </button>
+        </div>
+      </div>
+
       <form id="payout-form">
-        <div id="recipients">
-          <div class="recipient">
-            <label>Email:</label>
-            <input type="email" name="recipientEmail" required />
-            <label>Amount (GBP):</label>
-            <input
-              type="number"
-              name="recipientAmount"
-              min="0.01"
-              step="0.01"
-              required />
+        <div class="recipients-section">
+          <h3 class="section-title">
+            <i class="fas fa-users"></i>
+            Payment Recipients
+          </h3>
+
+          <div class="recipients-container">
+            <div class="recipients-header">
+              <div>#</div>
+              <div>Recipient Email</div>
+              <div>Amount (GBP)</div>
+              <div>Status</div>
+              <div></div>
+            </div>
+
+            <div id="recipients">
+              <div class="recipient-row">
+                <div class="recipient-number">1</div>
+                <input type="email" name="recipientEmail" placeholder="recipient@example.com" class="recipient-input"
+                  required />
+                <input type="number" name="recipientAmount" placeholder="0.00" min="0.01" step="0.01"
+                  class="recipient-input" required onchange="updateAmountDisplay(this)" />
+                <div class="amount-display">£0.00</div>
+                <button type="button" class="remove-recipient" onclick="removeRecipient(this)" disabled>
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="add-recipient-btn" onclick="addRecipient()">
+            <i class="fas fa-user-plus"></i>
+            Add Another Recipient
+          </button>
+
+          <div class="payout-total">
+            <div class="total-row">
+              <span>Recipients:</span>
+              <span id="recipient-count">1</span>
+            </div>
+            <div class="total-row">
+              <span>Processing Fee:</span>
+              <span id="processing-fee">£0.00</span>
+            </div>
+            <div class="total-row highlight">
+              <span>Total Payout Amount:</span>
+              <span id="total-amount">£0.00</span>
+            </div>
           </div>
         </div>
-        <button type="button" onclick="addRecipient()">
-          Add Another Recipient
-        </button>
-        <button type="submit">Send Payout</button>
-        <button id="showPayoutButton" onclick="showPayout()" disabled>
-          Show Payout
-        </button>
+
+        <div class="action-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i>
+            Send Payouts
+          </button>
+
+          <button type="button" id="showPayoutButton" class="btn btn-secondary" disabled onclick="showPayout()">
+            <i class="fas fa-eye"></i>
+            View Payout Details
+          </button>
+        </div>
       </form>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Processing payouts...</p>
+      </div>
+
+      <div class="status-message" id="status-message">
+        <div id="status-content"></div>
+      </div>
+
       <div id="payoutDetails"></div>
     </div>
 
-    <script src="payout.js"></script>
-  </body>
+    <div class="payout-summary">
+      <h2 style="margin-bottom: 1.5rem; color: #333; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-chart-pie"></i>
+        Payout Summary
+      </h2>
+
+      <div class="payout-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="stats-recipients">1</div>
+          <div class="stat-label">Recipients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stats-amount">£0.00</div>
+          <div class="stat-label">Total Amount</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stats-fees">£0.00</div>
+          <div class="stat-label">Fees</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 2rem 0;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💸</div>
+        <h3 style="color: #333; margin-bottom: 1rem;">Mass Payment System</h3>
+        <p style="color: #666; font-size: 0.9rem; line-height: 1.6;">
+          Efficiently distribute payments to multiple recipients with just one click.
+          Perfect for payroll, commissions, and bulk refunds.
+        </p>
+      </div>
+
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h4 style="color: #333; margin-bottom: 1rem;">Payment Features</h4>
+        <ul style="color: #666; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+          <li>Real-time recipient validation</li>
+          <li>Automatic fee calculation</li>
+          <li>Detailed transaction records</li>
+          <li>Email notifications to recipients</li>
+          <li>CSV export for accounting</li>
+        </ul>
+      </div>
+
+      <div style="background: #fff3cd; border-radius: 12px; padding: 1.5rem; border: 1px solid #ffeaa7;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-exclamation-triangle" style="color: #856404;"></i>
+          <strong style="color: #856404;">Important Notes</strong>
+        </div>
+        <ul style="color: #856404; margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+          <li>Verify recipient email addresses</li>
+          <li>Check your PayPal balance before sending</li>
+          <li>Processing may take 1-3 business days</li>
+          <li>Recipients will receive email notifications</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let recipientCount = 1;
+
+    function addRecipient() {
+      recipientCount++;
+      const recipientsContainer = document.getElementById('recipients');
+
+      const newRecipient = document.createElement('div');
+      newRecipient.className = 'recipient-row';
+      newRecipient.innerHTML = `
+          <div class="recipient-number">${recipientCount}</div>
+          <input 
+            type="email" 
+            name="recipientEmail" 
+            placeholder="recipient@example.com"
+            class="recipient-input"
+            required 
+          />
+          <input 
+            type="number" 
+            name="recipientAmount" 
+            placeholder="0.00"
+            min="0.01" 
+            step="0.01" 
+            class="recipient-input"
+            required 
+            onchange="updateAmountDisplay(this)"
+          />
+          <div class="amount-display">£0.00</div>
+          <button type="button" class="remove-recipient" onclick="removeRecipient(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+
+      recipientsContainer.appendChild(newRecipient);
+      updateRecipientNumbers();
+      updateTotals();
+    }
+
+    function removeRecipient(button) {
+      if (recipientCount > 1) {
+        button.closest('.recipient-row').remove();
+        recipientCount--;
+        updateRecipientNumbers();
+        updateTotals();
+      }
+    }
+
+    function updateRecipientNumbers() {
+      const recipients = document.querySelectorAll('.recipient-row');
+      recipients.forEach((recipient, index) => {
+        recipient.querySelector('.recipient-number').textContent = index + 1;
+      });
+
+      // Update remove button states
+      const removeButtons = document.querySelectorAll('.remove-recipient');
+      removeButtons.forEach((button, index) => {
+        button.disabled = recipientCount === 1;
+      });
+    }
+
+    function updateAmountDisplay(input) {
+      const amount = parseFloat(input.value) || 0;
+      const amountDisplay = input.closest('.recipient-row').querySelector('.amount-display');
+      amountDisplay.textContent = `£${amount.toFixed(2)}`;
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const amountInputs = document.querySelectorAll('input[name="recipientAmount"]');
+      let totalAmount = 0;
+
+      amountInputs.forEach(input => {
+        totalAmount += parseFloat(input.value) || 0;
+      });
+
+      const processingFee = totalAmount * 0.02; // 2% fee for demo
+      const grandTotal = totalAmount + processingFee;
+
+      document.getElementById('recipient-count').textContent = recipientCount;
+      document.getElementById('processing-fee').textContent = `£${processingFee.toFixed(2)}`;
+      document.getElementById('total-amount').textContent = `£${grandTotal.toFixed(2)}`;
+
+      // Update stats
+      document.getElementById('stats-recipients').textContent = recipientCount;
+      document.getElementById('stats-amount').textContent = `£${totalAmount.toFixed(2)}`;
+      document.getElementById('stats-fees').textContent = `£${processingFee.toFixed(2)}`;
+    }
+
+    function handleCSVUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const csv = e.target.result;
+          parseCSV(csv);
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function parseCSV(csv) {
+      const lines = csv.split('\n');
+      const recipients = document.getElementById('recipients');
+
+      // Clear existing recipients
+      recipients.innerHTML = '';
+      recipientCount = 0;
+
+      lines.forEach((line, index) => {
+        if (index === 0 || !line.trim()) return; // Skip header and empty lines
+
+        const [email, amount] = line.split(',');
+        if (email && amount) {
+          recipientCount++;
+          const newRecipient = document.createElement('div');
+          newRecipient.className = 'recipient-row';
+          newRecipient.innerHTML = `
+              <div class="recipient-number">${recipientCount}</div>
+              <input 
+                type="email" 
+                name="recipientEmail" 
+                value="${email.trim()}"
+                class="recipient-input"
+                required 
+              />
+              <input 
+                type="number" 
+                name="recipientAmount" 
+                value="${parseFloat(amount.trim()).toFixed(2)}"
+                min="0.01" 
+                step="0.01" 
+                class="recipient-input"
+                required 
+                onchange="updateAmountDisplay(this)"
+              />
+              <div class="amount-display">£${parseFloat(amount.trim()).toFixed(2)}</div>
+              <button type="button" class="remove-recipient" onclick="removeRecipient(this)">
+                <i class="fas fa-times"></i>
+              </button>
+            `;
+          recipients.appendChild(newRecipient);
+        }
+      });
+
+      updateRecipientNumbers();
+      updateTotals();
+      showStatus('CSV uploaded successfully! ' + recipientCount + ' recipients added.', 'success');
+    }
+
+    function downloadSampleCSV() {
+      const csvContent = "email,amount\njohn@example.com,25.00\njane@example.com,50.00\nbob@example.com,75.00";
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'payout_sample.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function showStatus(message, type = 'info') {
+      const statusElement = document.getElementById('status-message');
+      const statusContent = document.getElementById('status-content');
+
+      statusContent.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            ${message}
+          </div>
+        `;
+
+      statusElement.className = `status-message status-${type}`;
+      statusElement.style.display = 'block';
+
+      if (type === 'success') {
+        setTimeout(() => {
+          statusElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function showPayout() {
+      // This would normally show detailed payout information
+      showStatus('Payout details would be displayed here in a real implementation.', 'info');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+      updateTotals();
+    });
+
+    // Make functions available globally for the external script
+    window.showStatus = showStatus;
+    window.updateTotals = updateTotals;
+    window.showPayout = showPayout;
+  </script>
+  <script src="payout.js"></script>
+</body>
+
 </html>

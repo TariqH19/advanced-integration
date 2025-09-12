@@ -1,144 +1,533 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal JS SDK Standard Integration - Checkout</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscription Billing - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .subscription-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .plan-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .subscription-benefits {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #28a745;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #28a745;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .service-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #f8f9fa, #ffffff);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #28a745, #20c997);
+    }
+
+    .service-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .service-details h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.25rem;
+    }
+
+    .service-type {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .pricing-info {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .price-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #28a745;
+    }
+
+    .price-period {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .features-list {
+      list-style: none;
+      margin: 1rem 0;
+    }
+
+    .features-list li {
+      padding: 0.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .features-list li::before {
+      content: '✓';
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .setup-section {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .setup-button {
+      background: linear-gradient(135deg, #ffc107, #ff9500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .setup-button:hover {
+      background: linear-gradient(135deg, #ff9500, #ffc107);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+    }
+
+    .setup-button:disabled {
+      background: #d6d6d6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #subscription-button-container {
+      margin-top: 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+    }
+
+    #subscription-button-container.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #28a745;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-container {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .message-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .message-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .plan-total {
+      border-top: 2px solid #e9ecef;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.highlight {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #28a745;
+      border-top: 1px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
       .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        padding: 1rem;
       }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
+      .subscription-container,
+      .plan-summary {
+        padding: 1.5rem;
       }
+    }
+  </style>
+</head>
 
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
-
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #d8c2c2;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-
-      .product {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding: 10px 0;
-        margin-bottom: 10px;
-      }
-
-      .product img {
-        width: 80px;
-        height: 80px;
-        margin-right: 20px;
-      }
-
-      .product-info {
-        flex-grow: 1;
-      }
-
-      .product-title {
-        font-weight: bold;
-      }
-
-      .product-price {
-        color: #666;
-      }
-
-      #paypal-button-container {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      #result-message {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 16px;
-        color: #333;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
-
-        <a href="/cards">Cards</a>
-      </div>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
     </div>
-    <h1>PayPal JS SDK Standard Integration - Checkout - Subscriptions</h1>
+  </nav>
 
-    <div class="container">
-      <h1>Checkout</h1>
+  <div class="main-container">
+    <div class="subscription-container">
+      <h1 class="page-title">
+        <i class="fas fa-sync-alt"></i>
+        Subscription Billing
+      </h1>
+      <p class="page-subtitle">Set up recurring payments for ongoing services</p>
 
-      <div class="product">
-        <img src="https://picsum.photos/200" alt="Product Image" />
-        <div class="product-info">
-          <div class="product-title">Gym Membership</div>
-          <div class="product-price">35.00</div>
+      <div class="subscription-benefits">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-star"></i>
+          Subscription Benefits
+        </h3>
+
+        <div class="benefit-item">
+          <i class="fas fa-check-circle"></i>
+          Automatic recurring billing
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-calendar-alt"></i>
+          Flexible billing cycles
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-user-cog"></i>
+          Easy subscription management
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-bell"></i>
+          Payment notifications
         </div>
       </div>
 
-      <h2>Monthly recurring payment</h2>
+      <div class="service-card">
+        <div class="service-header">
+          <div class="service-icon">
+            <i class="fas fa-dumbbell"></i>
+          </div>
+          <div class="service-details">
+            <h3>Premium Gym Membership</h3>
+            <div class="service-type">Fitness & Wellness</div>
+          </div>
+        </div>
+
+        <div class="pricing-info">
+          <span class="price-amount">£35.00</span>
+          <span class="price-period">per month</span>
+        </div>
+
+        <ul class="features-list">
+          <li>Unlimited gym access</li>
+          <li>Personal training sessions</li>
+          <li>Group fitness classes</li>
+          <li>Nutrition consultation</li>
+          <li>Mobile app access</li>
+          <li>Guest passes (2 per month)</li>
+        </ul>
+      </div>
+
+      <div class="setup-section">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-cog"></i>
+          Setup Required
+        </h3>
+        <p style="color: #856404; margin-bottom: 1rem; font-size: 0.9rem;">
+          Before you can subscribe, we need to create the subscription plan. Click below to set up the billing
+          structure.
+        </p>
+        <button id="create-product-plan" class="setup-button">
+          <i class="fas fa-plus-circle"></i>
+          Create Subscription Plan
+        </button>
+      </div>
+
+      <div class="section-title" style="display: none;" id="subscribe-section-title">
+        <i class="fas fa-credit-card"></i>
+        Subscribe Now
+      </div>
+
       <div id="subscription-button-container"></div>
-      <button id="create-product-plan">Create Product and Plan</button>
-      <p id="result-message"></p>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Setting up subscription...</p>
+      </div>
+
+      <div class="message-container" id="message-container">
+        <div id="result-message"></div>
+      </div>
     </div>
-    <h1>
-      To test this please create a product and plan then use the PayPal button
-      that appears to subscribe
-    </h1>
-    <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&intent=subscription&currency=GBP&vault=true"></script>
-    <script src="subs.js"></script>
-  </body>
+
+    <div class="plan-summary">
+      <h2 class="section-title">
+        <i class="fas fa-receipt"></i>
+        Subscription Summary
+      </h2>
+
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">💪</div>
+        <h3 style="color: #333; margin-bottom: 0.5rem;">Premium Gym Membership</h3>
+        <p style="color: #666; font-size: 0.9rem;">Monthly recurring subscription</p>
+      </div>
+
+      <div class="plan-total">
+        <div class="total-row">
+          <span>Monthly fee:</span>
+          <span>£35.00</span>
+        </div>
+        <div class="total-row">
+          <span>Setup fee:</span>
+          <span style="color: #28a745;">FREE</span>
+        </div>
+        <div class="total-row">
+          <span>First payment:</span>
+          <span>Today</span>
+        </div>
+        <div class="total-row highlight">
+          <span>Monthly charge:</span>
+          <span>£35.00</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #0070ba;"></i>
+          <strong>Subscription Details</strong>
+        </div>
+        <ul style="color: #666; margin: 0; padding-left: 1rem;">
+          <li>Cancel anytime from your PayPal account</li>
+          <li>Automatic renewal on the same date each month</li>
+          <li>Secure payments through PayPal</li>
+          <li>Email notifications for each payment</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&intent=subscription&currency=GBP&vault=true"></script>
+  <script src="subs.js"></script>
+</body>
+
 </html>

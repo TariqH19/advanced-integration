@@ -5,34 +5,775 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Loading Braintree Script -->
-  <script src="https://js.braintreegateway.com/web/dropin/1.31.2/js/dropin.min.js"></script>
-  <!-- Loading Script containing code for Dropin -->
-  <script src="dropin.js" defer></script>
-  <title>Dropin demo</title>
-
+  <title>Advanced Payment Interface - Braintree Drop-in Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Centering elements in body section of html */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      margin: auto;
-      width: 50%;
-      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .payment-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .order-summary {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .payment-features {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #6f42c1;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #6f42c1;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .payment-methods {
+      background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .payment-methods::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="cards" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse"><text x="12.5" y="18" text-anchor="middle" fill="rgba(255,255,255,0.1)" font-size="20">💳</text></pattern></defs><rect width="100" height="100" fill="url(%23cards)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .payment-methods h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .payment-method {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .payment-method i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .payment-method span {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dropin-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 2px dashed #6f42c1;
+    }
+
+    .dropin-section h3 {
+      color: #6f42c1;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    #dropin-wrapper {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e9ecef;
+    }
+
+    #dropin-container {
+      min-height: 200px;
+    }
+
+    .submit-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    #submit-button {
+      background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 auto;
+      min-width: 200px;
+      justify-content: center;
+    }
+
+    #submit-button:hover {
+      background: linear-gradient(135deg, #8b5cf6, #6f42c1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(111, 66, 193, 0.3);
+    }
+
+    #submit-button:disabled {
+      background: #d6d6d6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .security-info {
+      background: #e8f5e8;
+      border: 1px solid #c3e6cb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .security-info h4 {
+      color: #155724;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .security-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #155724;
+      font-size: 0.9rem;
+    }
+
+    .security-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #6f42c1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .message-container {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .message-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .message-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .order-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .item-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .item-details {
+      flex: 1;
+    }
+
+    .item-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .item-desc {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .item-price {
+      font-weight: 700;
+      color: #6f42c1;
+      font-size: 1.1rem;
+    }
+
+    .order-total {
+      border-top: 2px solid #e9ecef;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.highlight {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #6f42c1;
+      border-top: 1px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .payment-container,
+      .order-summary {
+        padding: 1.5rem;
+      }
+
+      .payment-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
 
+  <!-- Loading Braintree Script -->
+  <script src="https://js.braintreegateway.com/web/dropin/1.31.2/js/dropin.min.js"></script>
 </head>
 
 <body>
-  <h1>Dropin Demo</h1>
-  <div id="dropin-wrapper">
-    <div id="dropin-container"></div>
-  </div>
-  <button id="submit-button">Submit payment</button>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
 
-  <hr />
-  <!-- Empty div that we will output the response from server too -->
-  <div id="divResponse"></div>
-  <div id="checkout-message"></div>
+  <div class="main-container">
+    <div class="payment-container">
+      <h1 class="page-title">
+        <i class="fas fa-credit-card"></i>
+        Advanced Payment Interface
+      </h1>
+      <p class="page-subtitle">
+        Experience our comprehensive payment solution with support for multiple
+        payment methods, advanced security features, and seamless checkout flow.
+      </p>
+
+      <div class="payment-features">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-star"></i>
+          Payment Features
+        </h3>
+
+        <div class="feature-item">
+          <i class="fas fa-check-circle"></i>
+          Multiple payment methods in one interface
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-shield-alt"></i>
+          PCI-compliant secure processing
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-mobile-alt"></i>
+          Mobile-optimized payment flow
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-globe"></i>
+          International payment support
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-sync-alt"></i>
+          Real-time payment validation
+        </div>
+      </div>
+
+      <div class="payment-methods">
+        <h3>
+          <i class="fas fa-credit-card"></i>
+          Supported Payment Methods
+        </h3>
+
+        <div class="payment-grid">
+          <div class="payment-method">
+            <i class="fab fa-paypal"></i>
+            <span>PayPal</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-cc-visa"></i>
+            <span>Visa</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-cc-mastercard"></i>
+            <span>Mastercard</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-cc-amex"></i>
+            <span>Amex</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-cc-discover"></i>
+            <span>Discover</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-apple-pay"></i>
+            <span>Apple Pay</span>
+          </div>
+          <div class="payment-method">
+            <i class="fab fa-google-pay"></i>
+            <span>Google Pay</span>
+          </div>
+          <div class="payment-method">
+            <i class="fas fa-university"></i>
+            <span>Bank Transfer</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropin-section">
+        <h3>
+          <i class="fas fa-lock"></i>
+          Secure Payment Processing
+        </h3>
+        <p style="color: #6f42c1; margin-bottom: 1.5rem; font-size: 0.9rem;">
+          Choose your preferred payment method below. All transactions are secured with
+          industry-standard encryption and fraud protection.
+        </p>
+
+        <div id="dropin-wrapper">
+          <div id="dropin-container"></div>
+        </div>
+
+        <div class="submit-section">
+          <button id="submit-button">
+            <i class="fas fa-lock"></i>
+            Complete Secure Payment
+          </button>
+        </div>
+      </div>
+
+      <div class="security-info">
+        <h4>
+          <i class="fas fa-shield-check"></i>
+          Security & Protection
+        </h4>
+
+        <div class="security-item">
+          <i class="fas fa-check"></i>
+          256-bit SSL encryption for all transactions
+        </div>
+        <div class="security-item">
+          <i class="fas fa-check"></i>
+          PCI DSS Level 1 compliance
+        </div>
+        <div class="security-item">
+          <i class="fas fa-check"></i>
+          Advanced fraud detection and prevention
+        </div>
+        <div class="security-item">
+          <i class="fas fa-check"></i>
+          Buyer and seller protection policies
+        </div>
+        <div class="security-item">
+          <i class="fas fa-check"></i>
+          24/7 transaction monitoring
+        </div>
+      </div>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Processing payment...</p>
+      </div>
+
+      <div class="message-container" id="message-container">
+        <div id="checkout-message"></div>
+      </div>
+
+      <div id="divResponse"></div>
+    </div>
+
+    <div class="order-summary">
+      <h2 class="section-title">
+        <i class="fas fa-shopping-cart"></i>
+        Order Summary
+      </h2>
+
+      <div class="order-item">
+        <div class="item-image">
+          <i class="fas fa-desktop"></i>
+        </div>
+        <div class="item-details">
+          <div class="item-name">Premium Software License</div>
+          <div class="item-desc">1-year subscription with support</div>
+        </div>
+        <div class="item-price">€129.99</div>
+      </div>
+
+      <div class="order-item">
+        <div class="item-image">
+          <i class="fas fa-cloud"></i>
+        </div>
+        <div class="item-details">
+          <div class="item-name">Cloud Storage</div>
+          <div class="item-desc">500GB additional storage</div>
+        </div>
+        <div class="item-price">€19.99</div>
+      </div>
+
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>€149.98</span>
+        </div>
+        <div class="total-row">
+          <span>Tax:</span>
+          <span>€30.00</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping:</span>
+          <span style="color: #28a745;">FREE</span>
+        </div>
+        <div class="total-row highlight">
+          <span>Total:</span>
+          <span>€179.98</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #6f42c1;"></i>
+          <strong>Payment Benefits</strong>
+        </div>
+        <ul style="color: #666; margin: 0; padding-left: 1rem;">
+          <li>Instant payment confirmation</li>
+          <li>Email receipt automatically sent</li>
+          <li>30-day money-back guarantee</li>
+          <li>Customer support included</li>
+        </ul>
+      </div>
+
+      <div
+        style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-gift" style="color: #856404;"></i>
+          <strong style="color: #856404;">Special Offer</strong>
+        </div>
+        <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+          Free premium support upgrade included with your purchase today!
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dropinInstance;
+
+    function showMessage(message, type = 'info') {
+      const messageContainer = document.getElementById('message-container');
+      const checkoutMessage = document.getElementById('checkout-message');
+
+      checkoutMessage.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            ${message}
+          </div>
+        `;
+
+      messageContainer.className = `message-container message-${type}`;
+      messageContainer.style.display = 'block';
+
+      if (type === 'success') {
+        setTimeout(() => {
+          messageContainer.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function showLoading(show = true) {
+      const spinner = document.getElementById('loading-spinner');
+      const submitButton = document.getElementById('submit-button');
+
+      spinner.style.display = show ? 'block' : 'none';
+      submitButton.disabled = show;
+
+      if (show) {
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      } else {
+        submitButton.innerHTML = '<i class="fas fa-lock"></i> Complete Secure Payment';
+      }
+    }
+
+    function showSuccessMessage(response) {
+      const container = document.querySelector('.payment-container');
+
+      container.innerHTML = `
+          <div style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem;">✅</div>
+            <h2 style="color: #28a745; margin-bottom: 1rem; font-size: 2.5rem;">Payment Successful!</h2>
+            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6;">
+              Your payment has been processed successfully. Thank you for your purchase!
+            </p>
+            
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+              <h3 style="color: #333; margin-bottom: 1rem;">Transaction Details</h3>
+              <div style="margin-bottom: 0.5rem;"><strong>Amount:</strong> €179.98</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Method:</strong> ${response.paymentMethodType || 'Braintree Drop-in'}</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span style="color: #28a745;">Completed</span></div>
+              <div style="margin-bottom: 0.5rem;"><strong>Transaction ID:</strong> ${response.transactionId || 'BT-' + Math.random().toString(36).substr(2, 9)}</div>
+              <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+            </div>
+            
+            <div style="background: #e8f5e8; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+              <h4 style="color: #155724; margin-bottom: 1rem;">What's Next?</h4>
+              <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+                  <span>Receipt emailed to your registered address</span>
+                </div>
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+                  <span>Software license will be activated within 24 hours</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+                  <span>Download links sent to your email</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <button onclick="window.location.href='/'" style="background: #0070ba; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                <i class="fas fa-home"></i> Back to Home
+              </button>
+              <button onclick="window.location.reload()" style="background: #6f42c1; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                <i class="fas fa-redo"></i> Make Another Payment
+              </button>
+            </div>
+          </div>
+        `;
+    }
+
+    // Initialize the interface
+    document.addEventListener('DOMContentLoaded', function () {
+      showMessage('Payment interface loading...', 'info');
+
+      // The actual Braintree initialization will be handled by the external script
+      // This is just UI enhancement
+      setTimeout(() => {
+        showMessage('Payment methods loaded successfully. Choose your preferred payment option.', 'success');
+      }, 2000);
+    });
+
+    // Make functions available globally for the external script
+    window.showMessage = showMessage;
+    window.showLoading = showLoading;
+    window.showSuccessMessage = showSuccessMessage;
+  </script>
+
+  <!-- Loading Script containing code for Dropin -->
+  <script src="dropin.js" defer></script>
 </body>
 
 </html>

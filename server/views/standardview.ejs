@@ -1,211 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Standard Integration</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayPal Standard Integrations - Demo Gallery</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3);
+    }
+
+    .navbar .nav-links a.external {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+      font-weight: 600;
+    }
+
+    .navbar .nav-links a.external:hover {
+      background: linear-gradient(45deg, #20c997, #28a745);
+      transform: translateY(-2px);
+    }
+
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header-section {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header-subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 1rem;
+    }
+
+    .integration-stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      color: white;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0070ba, #003087);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0070ba, #003087);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+
+    .card p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .card-features {
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      background: #f0f8ff;
+      color: #0070ba;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .demo-button {
+      background: linear-gradient(135deg, #0070ba, #003087);
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .demo-button:hover {
+      background: linear-gradient(135deg, #003087, #0070ba);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(0, 112, 186, 0.3);
+    }
+
+    .difficulty-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .difficulty-beginner {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .difficulty-intermediate {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .difficulty-advanced {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    @media (max-width: 768px) {
       .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
       }
 
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
-      }
-
-      .navbar a {
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
-      }
-
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
-      }
-      /* Global body styling */
-      body {
-        font-family: "Arial", sans-serif;
-        background-color: #f4f4f4;
-        color: #333;
-      }
-
-      /* Card container styling */
-      .card-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-      }
-
-      /* Card styles */
-      .card {
-        background-color: white;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        width: 400px;
-        padding: 20px;
-        margin: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease;
-      }
-
-      .card:hover {
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      .card h3 {
-        margin-bottom: 10px;
-        font-size: 20px;
-      }
-
-      .card p {
-        margin-bottom: 20px;
-        line-height: 1.5;
-      }
-
-      .card-buttons {
-        display: flex;
+      .navbar .nav-links {
         justify-content: center;
       }
 
-      .card-buttons a {
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease;
+      .main-container {
+        padding: 1rem;
       }
 
-      .card-buttons a:hover {
-        background-color: #0056b3;
+      .header-title {
+        font-size: 2rem;
       }
-    </style>
-  </head>
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
+
+      .header-subtitle {
+        font-size: 1rem;
+      }
+
+      .integration-stats {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Integration Hub
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">
+        <i class="fas fa-layer-group"></i>
+        Standard
+      </a>
+      <a href="/advancedview">
+        <i class="fas fa-cogs"></i>
+        Advanced
+      </a>
+      <a href="/cards">
+        <i class="fas fa-credit-card"></i>
+        Cards
+      </a>
+      <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank" class="external">
+        <i class="fas fa-code-branch"></i>
+        File Compare
+      </a>
+      <a href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D"
+        class="external">
+        <i class="fas fa-envelope"></i>
+        Request Code
+      </a>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="header-section">
+      <h1 class="header-title">
+        <i class="fas fa-rocket"></i>
+        Standard PayPal Integrations
       </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
-        <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank"
-          >File compare tool</a
-        >
-        <a
-          href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D"
-          >Code sample request</a
-        >
-        <a href="/cards">Cards</a>
+      <p class="header-subtitle">
+        Explore comprehensive PayPal integration examples ready for implementation
+      </p>
+
+      <div class="integration-stats">
+        <div class="stat-item">
+          <span class="stat-number">8</span>
+          <span class="stat-label">Integration Types</span>
+        </div>
+
+
       </div>
     </div>
 
     <div class="card-container">
       <div class="card">
-        <h3>Standard</h3>
+        <div class="difficulty-badge difficulty-beginner">Beginner</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <h3>Standard Checkout</h3>
+        </div>
         <p>
-          This is a description for the first card. It contains some brief
-          information about the content or purpose of the card.
+          The most common PayPal integration for simple one-time payments. Perfect for e-commerce stores,
+          donations, and basic checkout flows with comprehensive error handling.
         </p>
+        <div class="card-features">
+          <span class="feature-tag">One-time payments</span>
+          <span class="feature-tag">Guest checkout</span>
+          <span class="feature-tag">Mobile optimized</span>
+        </div>
         <div class="card-buttons">
-          <a href="/standard" target="_blank">Demo</a>
+          <a href="/standard" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
         </div>
       </div>
 
       <div class="card">
-        <h3>Subscriptions</h3>
+        <div class="difficulty-badge difficulty-intermediate">Intermediate</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <h3>Subscriptions</h3>
+        </div>
         <p>
-          This is a description for the second card. It might offer different
-          content or actions compared to the first card.
+          Implement recurring billing for subscription services, memberships, and SaaS products.
+          Includes subscription management, plan changes, and cancellation handling.
         </p>
+        <div class="card-features">
+          <span class="feature-tag">Recurring payments</span>
+          <span class="feature-tag">Plan management</span>
+          <span class="feature-tag">Webhooks</span>
+        </div>
         <div class="card-buttons">
-          <a href="/subs" target="_blank">Demo</a>
+          <a href="/subs" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
         </div>
       </div>
 
       <div class="card">
-        <h3>Auth and capture</h3>
-        <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
-        </p>
-        <div class="card-buttons">
-          <a href="/authcap" target="_blank">Demo</a>
+        <div class="difficulty-badge difficulty-intermediate">Intermediate</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Auth & Capture</h3>
         </div>
-      </div>
-      <div class="card">
-        <h3>Donate</h3>
         <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
+          Authorize payments first, then capture later. Perfect for inventory management,
+          pre-orders, and situations where you need to validate orders before charging.
         </p>
-        <div class="card-buttons">
-          <a href="/donate" target="_blank">Demo</a>
+        <div class="card-features">
+          <span class="feature-tag">Two-step payment</span>
+          <span class="feature-tag">Inventory hold</span>
+          <span class="feature-tag">Order validation</span>
         </div>
-      </div>
-      <div class="card">
-        <h3>Shipping</h3>
-        <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
-        </p>
         <div class="card-buttons">
-          <a href="/shipping" target="_blank">Demo</a>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Invoice</h3>
-        <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
-        </p>
-        <div class="card-buttons">
-          <a href="/invoice" target="_blank">Demo</a>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Payout</h3>
-        <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
-        </p>
-        <div class="card-buttons">
-          <a href="/payout" target="_blank">Demo</a>
+          <a href="/authcap" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
         </div>
       </div>
 
       <div class="card">
-        <h3>Braintree Dropin</h3>
+        <div class="difficulty-badge difficulty-beginner">Beginner</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h3>Donations</h3>
+        </div>
         <p>
-          This is a description for the third card. You can customize the
-          content to fit the needs of your website.
+          Optimized donation flow for non-profits, charities, and fundraising campaigns.
+          Includes donor information collection and recurring donation options.
         </p>
+        <div class="card-features">
+          <span class="feature-tag">Charity optimized</span>
+          <span class="feature-tag">Donor details</span>
+          <span class="feature-tag">Tax receipts</span>
+        </div>
         <div class="card-buttons">
-          <a href="/dropin" target="_blank">Demo</a>
+          <a href="/donate" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="difficulty-badge difficulty-intermediate">Intermediate</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-truck"></i>
+          </div>
+          <h3>Shipping Integration</h3>
+        </div>
+        <p>
+          Full shipping address collection and validation with real-time shipping options.
+          Perfect for physical goods with multiple shipping methods and costs.
+        </p>
+        <div class="card-features">
+          <span class="feature-tag">Address validation</span>
+          <span class="feature-tag">Shipping calculator</span>
+          <span class="feature-tag">Multi-carrier</span>
+        </div>
+        <div class="card-buttons">
+          <a href="/shipping" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="difficulty-badge difficulty-intermediate">Intermediate</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-file-invoice"></i>
+          </div>
+          <h3>Invoice System</h3>
+        </div>
+        <p>
+          Create and send professional invoices with PayPal payment integration.
+          Includes invoice templates, payment tracking, and automated reminders.
+        </p>
+        <div class="card-features">
+          <span class="feature-tag">Invoice creation</span>
+          <span class="feature-tag">Payment tracking</span>
+          <span class="feature-tag">Auto reminders</span>
+        </div>
+        <div class="card-buttons">
+          <a href="/invoice" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="difficulty-badge difficulty-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-paper-plane"></i>
+          </div>
+          <h3>Payout System</h3>
+        </div>
+        <p>
+          Send payments to multiple recipients at once. Perfect for marketplace payouts,
+          affiliate commissions, and mass disbursements with compliance tracking.
+        </p>
+        <div class="card-features">
+          <span class="feature-tag">Mass payments</span>
+          <span class="feature-tag">Compliance checks</span>
+          <span class="feature-tag">Batch processing</span>
+        </div>
+        <div class="card-buttons">
+          <a href="/payout" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="difficulty-badge difficulty-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-credit-card"></i>
+          </div>
+          <h3>Braintree Drop-in</h3>
+        </div>
+        <p>
+          Advanced payment UI with Braintree integration supporting multiple payment methods,
+          3D Secure, and enhanced fraud protection for enterprise applications.
+        </p>
+        <div class="card-features">
+          <span class="feature-tag">Multi-payment methods</span>
+          <span class="feature-tag">3D Secure</span>
+          <span class="feature-tag">Fraud protection</span>
+        </div>
+        <div class="card-buttons">
+          <a href="/dropin" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Try Demo
+          </a>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

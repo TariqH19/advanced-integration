@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal Invoice</title>
-    <!-- <link rel="stylesheet" href="styles.css"> -->
-    <script src="/invoice.js" defer></script>
-  </head>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Professional Invoicing - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * {
       margin: 0;
@@ -15,156 +14,858 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
-    }
-
-    .container {
-      background: white;
-      padding: 20px 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      max-width: 600px;
-      width: 100%;
-    }
-
-    h1 {
-      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       color: #333;
-      margin-bottom: 20px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+    }
+
+    .invoice-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .invoice-preview {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .page-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .invoice-features {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #0070ba;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #0070ba;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-section h3 {
+      color: #333;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
 
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 1rem;
     }
 
     .form-group label {
-      font-size: 14px;
-      color: #555;
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.9rem;
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
       width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      padding: 0.75rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
     }
 
-    .form-group input:focus {
-      border-color: #0070ba;
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
       outline: none;
+      border-color: #0070ba;
+      box-shadow: 0 0 0 3px rgba(0, 112, 186, 0.1);
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      cursor: pointer;
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .invoice-items {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .items-header {
+      background: #0070ba;
+      color: white;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 2fr 80px 100px 100px 40px;
+      gap: 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .invoice-item {
+      display: grid;
+      grid-template-columns: 2fr 80px 100px 100px 40px;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid #e9ecef;
+      align-items: center;
+      background: white;
+    }
+
+    .invoice-item:last-child {
+      border-bottom: none;
+    }
+
+    .invoice-item input {
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .remove-item {
+      background: #dc3545;
+      color: white;
       border: none;
-      border-radius: 4px;
-      margin-top: 20px;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+
+    .remove-item:hover {
+      background: #c82333;
+      transform: scale(1.1);
+    }
+
+    .add-item-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      margin-bottom: 1rem;
+    }
+
+    .add-item-btn:hover {
+      background: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .invoice-total {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .total-row.highlight {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0070ba;
+      border-top: 2px solid #e9ecef;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      justify-content: center;
+      min-width: 150px;
     }
 
     .btn-primary {
-      background-color: #0070ba;
+      background: linear-gradient(135deg, #0070ba, #005ea6);
       color: white;
     }
 
-    .btn-primary:disabled {
-      background-color: #ddd;
-      cursor: not-allowed;
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #005ea6, #0070ba);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(0, 112, 186, 0.3);
     }
 
     .btn-secondary {
-      background-color: #28a745;
+      background: linear-gradient(135deg, #28a745, #20c997);
       color: white;
     }
 
-    .btn-secondary:disabled {
-      background-color: #ddd;
-      cursor: not-allowed;
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #20c997, #28a745);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
     }
 
-    #status {
+    .btn:disabled {
+      background: #d6d6d6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .status-message {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .status-success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .status-info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .invoice-preview-content {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 2rem;
+      background: #fafafa;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .preview-header {
       text-align: center;
-      margin-top: 20px;
-      font-size: 16px;
-      color: #333;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #0070ba;
+    }
+
+    .preview-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #0070ba;
+      margin-bottom: 0.5rem;
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0070ba;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .items-header,
+      .invoice-item {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        min-width: unset;
+      }
     }
   </style>
-  <body>
-    <div class="container">
-      <h1>Create and Send PayPal Invoice</h1>
+  <script src="/invoice.js" defer></script>
+</head>
 
-      <!-- Invoice Creation Form -->
-      <form id="invoice-form">
-        <div class="form-group">
-          <label for="recipient-name">Recipient Name</label>
-          <input
-            type="text"
-            id="recipient-name"
-            placeholder="John Doe"
-            required />
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="invoice-container">
+      <h1 class="page-title">
+        <i class="fas fa-file-invoice-dollar"></i>
+        Professional Invoicing
+      </h1>
+      <p class="page-subtitle">
+        Create, customize, and send professional invoices to your clients with automated
+        payment processing and tracking capabilities.
+      </p>
+
+      <div class="invoice-features">
+        <h3 style="margin-bottom: 1rem; color: #333;">
+          <i class="fas fa-star"></i>
+          Invoice Features
+        </h3>
+
+        <div class="feature-item">
+          <i class="fas fa-check-circle"></i>
+          Professional invoice templates
         </div>
-
-        <div class="form-group">
-          <label for="recipient-email">Recipient Email</label>
-          <input
-            type="email"
-            id="recipient-email"
-            placeholder="recipient@example.com"
-            required />
+        <div class="feature-item">
+          <i class="fas fa-paper-plane"></i>
+          Automatic email delivery
         </div>
-
-        <div class="form-group">
-          <label for="item-name">Item Name</label>
-          <input
-            type="text"
-            id="item-name"
-            placeholder="Product or Service"
-            required />
+        <div class="feature-item">
+          <i class="fas fa-credit-card"></i>
+          Integrated payment processing
         </div>
-
-        <div class="form-group">
-          <label for="item-quantity">Item Quantity</label>
-          <input type="number" id="item-quantity" value="1" min="1" required />
+        <div class="feature-item">
+          <i class="fas fa-chart-line"></i>
+          Payment tracking and reminders
         </div>
-
-        <div class="form-group">
-          <label for="item-price">Item Price</label>
-          <input
-            type="number"
-            id="item-price"
-            value="0.00"
-            step="0.01"
-            min="0.01"
-            required />
+        <div class="feature-item">
+          <i class="fas fa-mobile-alt"></i>
+          Mobile-friendly invoice view
         </div>
-
-        <button type="submit" id="create-invoice" class="btn-primary">
-          Create Invoice
-        </button>
-      </form>
-
-      <!-- Send Invoice Button (Initially Disabled) -->
-      <button id="send-invoice" class="btn-secondary">Send Invoice</button>
-
-      <!-- Invoice List Dropdown -->
-      <div class="form-group">
-        <label for="invoice-list">Select an Invoice</label>
-        <select id="invoice-list" class="form-group">
-          <option value="">-- Select an Invoice --</option>
-        </select>
       </div>
 
-      <p id="status"></p>
+      <form id="invoice-form">
+        <div class="form-section">
+          <h3>
+            <i class="fas fa-user-tie"></i>
+            Client Information
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="recipient-name">Client Name *</label>
+              <input type="text" id="recipient-name" placeholder="John Doe" required />
+            </div>
+
+            <div class="form-group">
+              <label for="recipient-email">Client Email *</label>
+              <input type="email" id="recipient-email" placeholder="client@company.com" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="client-address">Client Address</label>
+            <textarea id="client-address" placeholder="123 Business Street, City, State, ZIP" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>
+            <i class="fas fa-file-alt"></i>
+            Invoice Details
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="invoice-date">Invoice Date</label>
+              <input type="date" id="invoice-date" />
+            </div>
+
+            <div class="form-group">
+              <label for="due-date">Due Date</label>
+              <input type="date" id="due-date" />
+            </div>
+
+            <div class="form-group">
+              <label for="currency">Currency</label>
+              <select id="currency">
+                <option value="GBP">GBP (£)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="invoice-notes">Notes / Terms</label>
+            <textarea id="invoice-notes" placeholder="Payment terms, additional notes, or special instructions..."
+              rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>
+            <i class="fas fa-list"></i>
+            Invoice Items
+          </h3>
+
+          <div class="invoice-items">
+            <div class="items-header">
+              <div>Description</div>
+              <div>Qty</div>
+              <div>Rate</div>
+              <div>Amount</div>
+              <div></div>
+            </div>
+
+            <div class="invoice-item">
+              <input type="text" placeholder="Product or Service Description" class="item-description" required />
+              <input type="number" value="1" min="1" class="item-quantity" required />
+              <input type="number" value="0.00" step="0.01" min="0.01" class="item-rate" required />
+              <div class="item-amount">£0.00</div>
+              <button type="button" class="remove-item" onclick="removeItem(this)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="add-item-btn" onclick="addItem()">
+            <i class="fas fa-plus"></i>
+            Add Line Item
+          </button>
+
+          <div class="invoice-total">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span id="subtotal">£0.00</span>
+            </div>
+            <div class="total-row">
+              <span>Tax (0%):</span>
+              <span id="tax">£0.00</span>
+            </div>
+            <div class="total-row highlight">
+              <span>Total:</span>
+              <span id="total">£0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button type="submit" id="create-invoice" class="btn btn-primary">
+            <i class="fas fa-file-plus"></i>
+            Create Invoice
+          </button>
+
+          <button type="button" id="send-invoice" class="btn btn-secondary" disabled>
+            <i class="fas fa-paper-plane"></i>
+            Send Invoice
+          </button>
+        </div>
+      </form>
+
+      <div class="form-section" style="margin-top: 2rem;">
+        <h3>
+          <i class="fas fa-archive"></i>
+          Existing Invoices
+        </h3>
+        <div class="form-group">
+          <label for="invoice-list">Select an Invoice to View</label>
+          <select id="invoice-list">
+            <option value="">-- Select an Invoice --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #666;">Processing invoice...</p>
+      </div>
+
+      <div class="status-message" id="status-message">
+        <div id="status-content"></div>
+      </div>
     </div>
-  </body>
+
+    <div class="invoice-preview">
+      <h2 style="margin-bottom: 1.5rem; color: #333; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-eye"></i>
+        Invoice Preview
+      </h2>
+
+      <div class="invoice-preview-content" id="invoice-preview-content">
+        <div class="preview-header">
+          <div class="preview-title">INVOICE</div>
+          <div style="color: #666;">#INV-001</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+          <div>
+            <strong style="color: #0070ba;">From:</strong><br>
+            Your Business Name<br>
+            123 Business Street<br>
+            City, State, ZIP
+          </div>
+          <div>
+            <strong style="color: #0070ba;">To:</strong><br>
+            <span id="preview-client-name">Client Name</span><br>
+            <span id="preview-client-address">Client Address</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+          <div>
+            <strong>Invoice Date:</strong> <span id="preview-date">Today</span><br>
+            <strong>Due Date:</strong> <span id="preview-due">Net 30</span>
+          </div>
+          <div>
+            <strong>Amount Due:</strong><br>
+            <span style="font-size: 1.5rem; color: #0070ba; font-weight: bold;" id="preview-total">£0.00</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <div style="border-bottom: 2px solid #0070ba; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+            <strong>Description</strong>
+          </div>
+          <div id="preview-items">
+            <div style="margin-bottom: 0.5rem;">
+              1x Sample Service - £0.00
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: #f0f8ff; border-radius: 8px;">
+          <small style="color: #666;">
+            Pay securely online with PayPal<br>
+            Invoice powered by PayPal Integration Demo
+          </small>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #0070ba;"></i>
+          <strong>Invoice Benefits</strong>
+        </div>
+        <ul style="color: #666; margin: 0; padding-left: 1rem;">
+          <li>Automatic payment reminders</li>
+          <li>Multiple payment options</li>
+          <li>Real-time payment notifications</li>
+          <li>Professional presentation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let invoiceTotal = 0;
+
+    // Set default dates
+    document.addEventListener('DOMContentLoaded', function () {
+      const today = new Date();
+      const dueDate = new Date(today);
+      dueDate.setDate(today.getDate() + 30);
+
+      document.getElementById('invoice-date').value = today.toISOString().split('T')[0];
+      document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
+
+      // Update preview dates
+      document.getElementById('preview-date').textContent = today.toLocaleDateString();
+      document.getElementById('preview-due').textContent = dueDate.toLocaleDateString();
+
+      // Initialize calculations
+      calculateTotal();
+      updatePreview();
+    });
+
+    function addItem() {
+      const itemsContainer = document.querySelector('.invoice-items');
+      const newItem = document.createElement('div');
+      newItem.className = 'invoice-item';
+      newItem.innerHTML = `
+          <input type="text" placeholder="Product or Service Description" class="item-description" required />
+          <input type="number" value="1" min="1" class="item-quantity" required />
+          <input type="number" value="0.00" step="0.01" min="0.01" class="item-rate" required />
+          <div class="item-amount">£0.00</div>
+          <button type="button" class="remove-item" onclick="removeItem(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+
+      itemsContainer.appendChild(newItem);
+
+      // Add event listeners to new inputs
+      const quantityInput = newItem.querySelector('.item-quantity');
+      const rateInput = newItem.querySelector('.item-rate');
+      const descriptionInput = newItem.querySelector('.item-description');
+
+      quantityInput.addEventListener('input', calculateTotal);
+      rateInput.addEventListener('input', calculateTotal);
+      descriptionInput.addEventListener('input', updatePreview);
+    }
+
+    function removeItem(button) {
+      const itemsContainer = document.querySelector('.invoice-items');
+      const items = itemsContainer.querySelectorAll('.invoice-item');
+
+      if (items.length > 1) {
+        button.closest('.invoice-item').remove();
+        calculateTotal();
+        updatePreview();
+      }
+    }
+
+    function calculateTotal() {
+      const items = document.querySelectorAll('.invoice-item');
+      let subtotal = 0;
+
+      items.forEach(item => {
+        const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+        const rate = parseFloat(item.querySelector('.item-rate').value) || 0;
+        const amount = quantity * rate;
+
+        item.querySelector('.item-amount').textContent = `£${amount.toFixed(2)}`;
+        subtotal += amount;
+      });
+
+      const tax = 0; // No tax for this demo
+      const total = subtotal + tax;
+
+      document.getElementById('subtotal').textContent = `£${subtotal.toFixed(2)}`;
+      document.getElementById('tax').textContent = `£${tax.toFixed(2)}`;
+      document.getElementById('total').textContent = `£${total.toFixed(2)}`;
+      document.getElementById('preview-total').textContent = `£${total.toFixed(2)}`;
+
+      invoiceTotal = total;
+    }
+
+    function updatePreview() {
+      const clientName = document.getElementById('recipient-name').value || 'Client Name';
+      const clientAddress = document.getElementById('client-address').value || 'Client Address';
+      const invoiceNumber = document.getElementById('invoice-number').value || 'INV-001';
+
+      document.getElementById('preview-client-name').textContent = clientName;
+      document.getElementById('preview-client-address').textContent = clientAddress;
+      document.querySelector('.preview-title').nextElementSibling.textContent = `#${invoiceNumber}`;
+
+      // Update items preview
+      const items = document.querySelectorAll('.invoice-item');
+      const previewItems = document.getElementById('preview-items');
+      previewItems.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const description = item.querySelector('.item-description').value || 'Service';
+        const quantity = item.querySelector('.item-quantity').value || '1';
+        const rate = item.querySelector('.item-rate').value || '0.00';
+        const amount = (parseFloat(quantity) * parseFloat(rate)).toFixed(2);
+
+        const itemDiv = document.createElement('div');
+        itemDiv.style.marginBottom = '0.5rem';
+        itemDiv.textContent = `${quantity}x ${description} - £${amount}`;
+        previewItems.appendChild(itemDiv);
+      });
+    }
+
+    function showStatus(message, type = 'info') {
+      const statusElement = document.getElementById('status-message');
+      const statusContent = document.getElementById('status-content');
+
+      statusContent.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            ${message}
+          </div>
+        `;
+
+      statusElement.className = `status-message status-${type}`;
+      statusElement.style.display = 'block';
+
+      if (type === 'success') {
+        setTimeout(() => {
+          statusElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    // Add event listeners for real-time updates
+    document.addEventListener('input', function (e) {
+      if (e.target.matches('.item-quantity, .item-rate')) {
+        calculateTotal();
+      }
+      if (e.target.matches('#recipient-name, #client-address, #invoice-number, .item-description')) {
+        updatePreview();
+      }
+    });
+
+    // Make original script accessible
+    window.showStatus = showStatus;
+    window.calculateTotal = calculateTotal;
+    window.updatePreview = updatePreview;
+  </script>
+</body>
+
 </html>
