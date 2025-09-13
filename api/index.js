@@ -406,6 +406,10 @@ app.get("/newstuff", async (req, res) => {
   res.render("newstuff");
 });
 
+app.get("/newstuff/return", async (req, res) => {
+  res.render("newstuff-return");
+});
+
 app.post("/serversdk/api/orders", async (req, res) => {
   try {
     // use the cart information passed from the front-end to calculate the order amount detals
@@ -420,15 +424,39 @@ app.post("/serversdk/api/orders", async (req, res) => {
 
 app.post("/serversdk/api/neworders", async (req, res) => {
   try {
-    // use the cart information passed from the front-end to calculate the order amount detals
     const { cart } = req.body;
-    const { jsonResponse, httpStatusCode } = await serversdk.newCreateOrder(
-      cart
-    );
-    res.status(httpStatusCode).json(jsonResponse);
+    const result = await serversdk.newCreateOrder(cart);
+
+    if (!result || !result.jsonResponse) {
+      console.error("newCreateOrder returned empty result", result);
+      return res.status(500).json({ error: "Failed to create order." });
+    }
+
+    const { jsonResponse, httpStatusCode } = result;
+    res.status(httpStatusCode || 200).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
     res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/serversdk/api/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const captureResult = await serversdk.newCaptureOrder(orderID);
+
+    // Ensure you always return jsonResponse even if captureResult is raw
+    if (!captureResult) {
+      return res.status(500).json({ error: "Capture returned no data" });
+    }
+
+    res.status(captureResult.httpStatusCode || 200).json({
+      jsonResponse: captureResult.jsonResponse || captureResult,
+      httpStatusCode: captureResult.httpStatusCode || 200,
+    });
+  } catch (error) {
+    console.error("Failed to capture order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
   }
 });
 
