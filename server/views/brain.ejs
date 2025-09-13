@@ -1,103 +1,869 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Braintree Apple Pay</title>
-    <script src="https://js.braintreegateway.com/web/3.111.0/js/client.min.js"></script>
-    <script src="https://js.braintreegateway.com/web/3.111.0/js/apple-pay.min.js"></script>
-    <script src="https://js.braintreegateway.com/web/dropin/1.33.6/js/dropin.min.js"></script>
-  </head>
-  <body>
-    <h1>Braintree Integration</h1>
-    <div id="dropin-container"></div>
-    <button id="submit-button">Pay Now</button>
 
-    <script>
-      fetch("/brain/client_token")
-        .then((response) => response.json())
-        .then((data) => {
-          braintree.dropin.create(
-            {
-              authorization: data.clientToken,
-              container: "#dropin-container",
-              applePay: {
-                displayName: "Your Store",
-                paymentRequest: {
-                  total: {
-                    label: "Your Store",
-                    amount: "10.00",
-                  },
-                  countryCode: "GB",
-                  currencyCode: "GBP",
-                  supportedNetworks: ["visa", "masterCard", "amex"],
-                  merchantCapabilities: ["supports3DS"],
-                },
-              },
-              googlePay: {
-                googlePayVersion: 2,
-                merchantId: "sxp9q5rd2sg95h8f",
-                transactionInfo: {
-                  totalPriceStatus: "FINAL",
-                  totalPrice: "123.45",
-                  currencyCode: "EUR",
-                },
-                allowedPaymentMethods: [
-                  {
-                    type: "CARD",
-                    parameters: {
-                      // We recommend collecting and passing billing address information with all Google Pay transactions as a best practice.
-                      billingAddressRequired: true,
-                      billingAddressParameters: {
-                        format: "FULL",
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-            (err, dropinInstance) => {
-              if (err) {
-                console.error(err);
-                return;
-              }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Braintree Drop-in UI - Advanced Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-              document
-                .getElementById("submit-button")
-                .addEventListener("click", () => {
-                  dropinInstance.requestPaymentMethod((err, payload) => {
-                    if (err) {
-                      console.error(err);
-                      return;
-                    }
+  <!-- Braintree SDK -->
+  <script src="https://js.braintreegateway.com/web/3.111.0/js/client.min.js"></script>
+  <script src="https://js.braintreegateway.com/web/3.111.0/js/apple-pay.min.js"></script>
+  <script src="https://js.braintreegateway.com/web/dropin/1.33.6/js/dropin.min.js"></script>
 
-                    // Send payment nonce to server
-                    fetch("/brain/process_payment", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        paymentMethodNonce: payload.nonce,
-                      }),
-                    })
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (data.success) {
-                          alert("Payment successful!");
-                        } else {
-                          alert("Payment failed.");
-                        }
-                      });
-                  });
-                });
-            }
-          );
-        });
-      if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
-        console.log("Apple works");
-      } else {
-        console.error("Apple Pay is not available on this device.");
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 1rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .navbar h1 {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .navbar .badge {
+      background: #ffc439;
+      color: #667eea;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .workflow-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .workflow-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .workflow-header h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .workflow-header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .steps-container {
+      padding: 2rem;
+    }
+
+    .step {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      font-weight: 600;
+    }
+
+    .step-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .step-status.pending {
+      background: #ffeaa7;
+      color: #d63031;
+    }
+
+    .step-status.processing {
+      background: #74b9ff;
+      color: white;
+    }
+
+    .step-status.completed {
+      background: #00b894;
+      color: white;
+    }
+
+    .step-status.error {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .step-content {
+      margin-left: 3rem;
+    }
+
+    .step-description {
+      color: #666;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 0.8rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .dropin-container {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      min-height: 300px;
+    }
+
+    .result-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-container.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .result-container.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-content {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .payment-methods-info {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .payment-methods-info h3 {
+      color: #1976d2;
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-methods-info ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .payment-methods-info li {
+      margin: 0.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
-    </script>
-  </body>
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .device-compatibility {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .device-compatibility h4 {
+      color: #856404;
+      margin-bottom: 0.5rem;
+    }
+
+    .compatibility-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.25rem 0;
+    }
+
+    .compatibility-icon.available {
+      color: #28a745;
+    }
+
+    .compatibility-icon.unavailable {
+      color: #dc3545;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .step-content {
+        margin-left: 0;
+      }
+
+      .step-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="navbar">
+      <h1><i class="fas fa-credit-card"></i> Braintree Drop-in UI</h1>
+      <span class="badge">Advanced Integration</span>
+    </nav>
+
+    <div class="workflow-container">
+      <div class="workflow-header">
+        <h2><i class="fas fa-wallet"></i> Universal Payment Processing</h2>
+        <p>Complete payment solution with Apple Pay, Google Pay, and Credit Cards</p>
+      </div>
+
+      <div class="steps-container">
+        <!-- Step 1: Initialize Payment -->
+        <div class="step active" id="step1">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">1</span>
+              Initialize Payment System
+            </div>
+            <span class="step-status pending" id="step1-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Initialize the Braintree Drop-in UI with support for multiple payment methods including Apple Pay, Google
+              Pay, and credit cards.
+            </p>
+
+            <div class="device-compatibility" id="deviceCompatibility">
+              <h4><i class="fas fa-mobile-alt"></i> Device Compatibility</h4>
+              <div class="compatibility-item">
+                <i class="fas fa-circle compatibility-icon" id="applePayIcon"></i>
+                <span id="applePayStatus">Checking Apple Pay availability...</span>
+              </div>
+              <div class="compatibility-item">
+                <i class="fas fa-circle compatibility-icon" id="googlePayIcon"></i>
+                <span id="googlePayStatus">Checking Google Pay availability...</span>
+              </div>
+              <div class="compatibility-item">
+                <i class="fas fa-circle compatibility-icon available"></i>
+                <span>Credit Cards: Available</span>
+              </div>
+            </div>
+
+            <button class="btn" id="initializeButton">
+              <i class="fas fa-play"></i>
+              Initialize Payment System
+            </button>
+
+            <div class="result-container" id="step1-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Configure Payment -->
+        <div class="step" id="step2">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">2</span>
+              Configure Payment Details
+            </div>
+            <span class="step-status pending" id="step2-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Configure the payment amount and currency for this transaction.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="paymentAmount">Payment Amount</label>
+                <input type="number" id="paymentAmount" value="10.00" min="0.01" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="paymentCurrency">Currency</label>
+                <select id="paymentCurrency">
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="EUR">EUR - Euro</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn" id="configurePaymentButton" disabled>
+              <i class="fas fa-cog"></i>
+              Configure Payment
+            </button>
+
+            <div class="result-container" id="step2-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 3: Select Payment Method -->
+        <div class="step" id="step3">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">3</span>
+              Select Payment Method
+            </div>
+            <span class="step-status pending" id="step3-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Choose your preferred payment method from the options below.
+            </p>
+
+            <div class="payment-methods-info">
+              <h3><i class="fas fa-info-circle"></i> Available Payment Methods</h3>
+              <ul>
+                <li><i class="fab fa-apple"></i> Apple Pay (iOS devices with Touch ID/Face ID)</li>
+                <li><i class="fab fa-google"></i> Google Pay (Android devices with compatible setup)</li>
+                <li><i class="fas fa-credit-card"></i> Credit & Debit Cards (Visa, MasterCard, Amex)</li>
+                <li><i class="fab fa-paypal"></i> PayPal Wallet</li>
+              </ul>
+            </div>
+
+            <div class="dropin-container" id="dropin-container"></div>
+
+            <button class="btn btn-success" id="submit-button" disabled>
+              <i class="fas fa-lock"></i>
+              Process Payment
+            </button>
+
+            <div class="result-container" id="step3-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 4: Payment Results -->
+        <div class="step" id="step4">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">4</span>
+              Payment Results
+            </div>
+            <span class="step-status pending" id="step4-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Review the payment processing results and transaction details.
+            </p>
+
+            <div class="result-container" id="step4-result"></div>
+
+            <button class="btn" id="makeAnotherPaymentButton" style="display: none;">
+              <i class="fas fa-redo"></i>
+              Make Another Payment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize the brain workflow
+    document.addEventListener("DOMContentLoaded", () => {
+      initializeBrainWorkflow();
+    });
+
+    let dropinInstance = null;
+    let clientToken = null;
+    let currentAmount = "10.00";
+    let currentCurrency = "GBP";
+
+    function initializeBrainWorkflow() {
+      // Check device compatibility
+      checkDeviceCompatibility();
+
+      // Step 1: Initialize button
+      document.getElementById("initializeButton").addEventListener("click", () => {
+        executeStep(1, initializePaymentSystem);
+      });
+
+      // Step 2: Configure button
+      document.getElementById("configurePaymentButton").addEventListener("click", () => {
+        executeStep(2, configurePayment);
+      });
+
+      // Step 3: Process payment button
+      document.getElementById("submit-button").addEventListener("click", () => {
+        executeStep(4, processPayment);
+      });
+
+      // Make another payment button
+      document.getElementById("makeAnotherPaymentButton").addEventListener("click", resetPaymentFlow);
+    }
+
+    function checkDeviceCompatibility() {
+      // Check Apple Pay
+      if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+        document.getElementById("applePayIcon").classList.add("available");
+        document.getElementById("applePayStatus").textContent = "Apple Pay: Available";
+      } else {
+        document.getElementById("applePayIcon").classList.add("unavailable");
+        document.getElementById("applePayStatus").textContent = "Apple Pay: Not Available";
+      }
+
+      // Google Pay is harder to detect without initializing, so we'll show as potentially available
+      document.getElementById("googlePayIcon").classList.add("available");
+      document.getElementById("googlePayStatus").textContent = "Google Pay: Potentially Available";
+    }
+
+    async function executeStep(stepNumber, stepFunction) {
+      const buttonSelectors = {
+        1: "#initializeButton",
+        2: "#configurePaymentButton",
+        4: "#submit-button"
+      };
+
+      const button = document.querySelector(buttonSelectors[stepNumber]);
+      if (!button) return;
+
+      const originalHTML = button.innerHTML;
+
+      // Show loading state
+      button.innerHTML = '<span class="spinner"></span> Processing...';
+      button.disabled = true;
+      updateStepStatus(stepNumber, "processing");
+
+      try {
+        const result = await stepFunction();
+        updateStepStatus(stepNumber, "completed");
+
+        // Enable next step
+        if (stepNumber < 4) {
+          enableStep(stepNumber + 1);
+        }
+
+        return result;
+      } catch (error) {
+        console.error(`Step ${stepNumber} error:`, error);
+        updateStepStatus(stepNumber, "error");
+        showStepResult(stepNumber, error.message, "error");
+        throw error;
+      } finally {
+        // Restore button
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+      }
+    }
+
+    function updateStepStatus(stepNumber, status) {
+      const statusElement = document.getElementById(`step${stepNumber}-status`);
+      const statusText = {
+        pending: "Pending",
+        processing: "Processing...",
+        completed: "Completed",
+        error: "Error"
+      };
+
+      statusElement.textContent = statusText[status];
+      statusElement.className = `step-status ${status}`;
+
+      // Update step visual state
+      const stepElement = document.getElementById(`step${stepNumber}`);
+      if (status === "processing" || status === "completed") {
+        stepElement.classList.add("active");
+      }
+    }
+
+    function enableStep(stepNumber) {
+      const stepElement = document.getElementById(`step${stepNumber}`);
+      stepElement.classList.add("active");
+
+      // Enable specific buttons
+      if (stepNumber === 2) {
+        document.getElementById("configurePaymentButton").disabled = false;
+      } else if (stepNumber === 3) {
+        updateStepStatus(3, "completed"); // Skip to completed since dropin handles selection
+        enableStep(4);
+      }
+    }
+
+    function showStepResult(stepNumber, content, type = "success") {
+      const resultContainer = document.getElementById(`step${stepNumber}-result`);
+
+      let resultTitle = resultContainer.querySelector(".result-title");
+      let resultContent = resultContainer.querySelector(".result-content");
+
+      if (!resultTitle) {
+        resultTitle = document.createElement("div");
+        resultTitle.className = "result-title";
+        resultContainer.appendChild(resultTitle);
+      }
+
+      if (!resultContent) {
+        resultContent = document.createElement("pre");
+        resultContent.className = "result-content";
+        resultContainer.appendChild(resultContent);
+      }
+
+      resultTitle.textContent = type === "error" ? "Error:" : "Response:";
+      resultContent.textContent = typeof content === "object" ? JSON.stringify(content, null, 2) : content;
+
+      resultContainer.className = `result-container show ${type}`;
+    }
+
+    async function initializePaymentSystem() {
+      try {
+        // Fetch client token
+        const response = await fetch("/brain/client_token");
+        const data = await response.json();
+        clientToken = data.clientToken;
+
+        showStepResult(1, {
+          message: "Client token fetched successfully",
+          token_preview: clientToken.substring(0, 50) + "...",
+          payment_methods_available: [
+            "Credit Cards",
+            "Apple Pay (if supported)",
+            "Google Pay (if supported)",
+            "PayPal"
+          ]
+        });
+
+        return { success: true, clientToken };
+      } catch (error) {
+        throw new Error(`Failed to initialize payment system: ${error.message}`);
+      }
+    }
+
+    async function configurePayment() {
+      currentAmount = document.getElementById("paymentAmount").value;
+      currentCurrency = document.getElementById("paymentCurrency").value;
+
+      try {
+        // Initialize Braintree Drop-in
+        const dropinConfig = {
+          authorization: clientToken,
+          container: "#dropin-container",
+          applePay: {
+            displayName: "Demo Store",
+            paymentRequest: {
+              total: {
+                label: "Demo Store",
+                amount: currentAmount,
+              },
+              countryCode: currentCurrency === "GBP" ? "GB" : "US",
+              currencyCode: currentCurrency,
+              supportedNetworks: ["visa", "masterCard", "amex"],
+              merchantCapabilities: ["supports3DS"],
+            },
+          },
+          googlePay: {
+            googlePayVersion: 2,
+            merchantId: "sxp9q5rd2sg95h8f",
+            transactionInfo: {
+              totalPriceStatus: "FINAL",
+              totalPrice: currentAmount,
+              currencyCode: currentCurrency,
+            },
+            allowedPaymentMethods: [
+              {
+                type: "CARD",
+                parameters: {
+                  billingAddressRequired: true,
+                  billingAddressParameters: {
+                    format: "FULL",
+                  },
+                },
+              },
+            ],
+          },
+        };
+
+        dropinInstance = await new Promise((resolve, reject) => {
+          braintree.dropin.create(dropinConfig, (err, instance) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(instance);
+            }
+          });
+        });
+
+        // Enable submit button
+        document.getElementById("submit-button").disabled = false;
+
+        showStepResult(2, {
+          amount: currentAmount,
+          currency: currentCurrency,
+          message: "Payment configuration completed",
+          dropin_initialized: true
+        });
+
+        return { success: true, amount: currentAmount, currency: currentCurrency };
+      } catch (error) {
+        throw new Error(`Failed to configure payment: ${error.message}`);
+      }
+    }
+
+    async function processPayment() {
+      try {
+        // Request payment method from Drop-in
+        const payload = await new Promise((resolve, reject) => {
+          dropinInstance.requestPaymentMethod((err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+
+        console.log("Payment method payload:", payload);
+
+        // Send to server for processing
+        const response = await fetch("/brain/process_payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentMethodNonce: payload.nonce,
+            amount: currentAmount,
+            currency: currentCurrency
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showStepResult(4, {
+            transaction_id: result.transaction?.id || "Generated on server",
+            amount: currentAmount,
+            currency: currentCurrency,
+            payment_method: payload.type,
+            status: "Success",
+            message: "Payment processed successfully!"
+          });
+
+          // Show make another payment button
+          document.getElementById("makeAnotherPaymentButton").style.display = "inline-flex";
+        } else {
+          throw new Error(result.message || "Payment processing failed");
+        }
+
+        return result;
+      } catch (error) {
+        throw new Error(`Payment processing failed: ${error.message}`);
+      }
+    }
+
+    function resetPaymentFlow() {
+      // Reset all steps
+      for (let i = 1; i <= 4; i++) {
+        updateStepStatus(i, "pending");
+        const resultContainer = document.getElementById(`step${i}-result`);
+        resultContainer.className = "result-container";
+
+        const stepElement = document.getElementById(`step${i}`);
+        stepElement.classList.remove("active");
+      }
+
+      // Activate first step
+      document.getElementById("step1").classList.add("active");
+
+      // Teardown existing dropin
+      if (dropinInstance) {
+        dropinInstance.teardown(() => {
+          console.log("Drop-in torn down");
+        });
+        dropinInstance = null;
+      }
+
+      // Reset form values
+      document.getElementById("paymentAmount").value = "10.00";
+      document.getElementById("paymentCurrency").value = "GBP";
+
+      // Reset buttons
+      document.getElementById("configurePaymentButton").disabled = true;
+      document.getElementById("submit-button").disabled = true;
+      document.getElementById("makeAnotherPaymentButton").style.display = "none";
+
+      // Clear dropin container
+      document.getElementById("dropin-container").innerHTML = "";
+
+      currentAmount = "10.00";
+      currentCurrency = "GBP";
+      clientToken = null;
+
+      console.log("Payment flow reset completed");
+    }
+  </script>
+</body>
+
 </html>

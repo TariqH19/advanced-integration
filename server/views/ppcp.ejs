@@ -5,130 +5,619 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
-    using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ -->
-  <link rel="stylesheet" type="text/css"
-    href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
-  <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
-  <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
-  <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
-  <!-- https://developer.paypal.com/sdk/js/configuration/ -->
+  <title>PayPal Commerce Platform - Advanced Integration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- PayPal SDK with all components -->
   <script
     src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields,googlepay,applepay&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"
     data-client-token="<%= clientToken %>" data-partner-attribution-id="GOOGLEPAY"
     data-partner-attribution-id="APPLEPAY"></script>
   <script src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>
   <script src="https://pay.google.com/gp/p/js/pay.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
-
   <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@1.4/dist/css/pretty-print-json.css>
   <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@1.3/dist/pretty-print-json.min.js></script>
-</head>
 
-<body>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      min-height: 100vh;
+      padding: 0;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
       font-size: 0.9rem;
     }
 
-    .paypal-button-container {
-      padding: 0 !important;
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3);
     }
 
-    #mycart>h2 {
-      color: #015c86;
-      margin-bottom: 0.4rem;
-      margin-left: 0.2rem;
+    .navbar .nav-links a.external {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+      font-weight: 600;
     }
 
-    .nbtn {
-      margin: 0;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 33.3rem;
-      background-color: #015c86;
-      color: #fff;
-      border-radius: 0.2em;
-      cursor: pointer;
-      font-family: sans-serif;
-      font-size: 1.2rem;
-      font-weight: bold;
-      transition: 0.3s;
+    .navbar .nav-links a.external:hover {
+      background: linear-gradient(45deg, #20c997, #28a745);
+      transform: translateY(-2px);
     }
 
-    .nbtn:hover {
-      background-color: #026b9c;
-      border-color: #01345c;
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
     }
 
-    .nbtn:active {
-      background-color: #014566;
-      border-color: #01345c;
-    }
-
-    .card-field-name {
-      background-color: #ff0000 !important;
-      color: red;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    #mycart {
-      width: 34rem;
-      margin: 2rem auto;
-    }
-
-    #checkout-form {
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2rem;
       text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    #api-response {
-      width: 50%;
-      margin-left: 10rem;
-      margin-top: 3rem;
+    .header h1 {
+      color: white;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+    }
+
+    .badge {
+      background: #ff6b35;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .payment-section {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .section-body {
+      padding: 1.5rem;
+    }
+
+    .info-section {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      grid-column: 1 / -1;
+    }
+
+    .info-title {
+      color: #1976d2;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+    }
+
+    .info-icon {
+      color: #2196f3;
+      font-size: 1.1rem;
+    }
+
+    .paylater-messages {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .payment-container {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .payment-container:not(:empty) {
+      border-color: #28a745;
+      background: white;
+    }
+
+    /* Card Fields Styling */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .card-field-container {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      transition: border-color 0.3s ease;
+    }
+
+    .card-field-container:focus-within {
+      border-color: #0070ba;
+      box-shadow: 0 0 0 3px rgba(0, 112, 186, 0.1);
+    }
+
+    .card-field-container.error {
+      border-color: #dc3545;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 186, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Enhanced Modal - Make sure it has proper z-index for 3DS */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 0;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 600px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modalContainer {
+      padding: 2rem;
+    }
+
+    .modalHeader {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modalHeader::before {
+      content: '✅';
+      font-size: 1.2rem;
+    }
+
+    .close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      color: #aaa;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      z-index: 10001;
+    }
+
+    .close:hover {
+      color: #000;
+      background: #f8f9fa;
+    }
+
+    .json-container {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #495057;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* Ensure 3DS modals appear correctly */
+    iframe[src*="3dsecure"],
+    iframe[src*="paypal"],
+    div[data-ppcp-3ds],
+    .paypal-checkout-iframe {
+      z-index: 999999 !important;
+    }
+
+    /* Status message styling */
+    #result-message {
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid;
+      font-weight: 500;
       display: none;
     }
-  </style>
-  <div id="mycart">
-    <!-- Pay Later Messages:
-             https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
-             Please replace the amount with your variable -->
-    <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
 
-    <!-- PayPal Buttons:
-             https://developer.paypal.com/docs/checkout/advanced/integrate/ -->
-    <div id="paypal-button-container" class="paypal-button-container"></div>
-    <div id="applepay-container"></div>
-    <div id="container"></div>
-    <div id="resultModal" class="modal">
-      <span onclick="document.getElementById('resultModal').style.display='none'" class="close"
-        title="Close Modal">&times;</span>
-      <form class="modal-content">
-        <div class="modalContainer">
-          <span class="modalHeader">Capture Order Result</span>
-          <pre id=result class=json-container></pre>
-        </div>
-      </form>
+    #result-message:not(:empty) {
+      display: block;
+    }
+
+    @media (max-width: 968px) {
+      .navbar {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .navbar .nav-links {
+        justify-content: center;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .main-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .header h1 {
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 1.8rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 95%;
+        margin: 10% auto;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Integration Hub
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">
+        <i class="fas fa-layer-group"></i>
+        Standard
+      </a>
+      <a href="/advancedview">
+        <i class="fas fa-cogs"></i>
+        Advanced
+      </a>
+      <a href="/cards">
+        <i class="fas fa-credit-card"></i>
+        Cards
+      </a>
+      <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank" class="external">
+        <i class="fas fa-code-branch"></i>
+        File Compare
+      </a>
+      <a href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D"
+        class="external">
+        <i class="fas fa-envelope"></i>
+        Request Code
+      </a>
     </div>
-    <br />
-    <h2>Credit Card</h2>
-    <div id="checkout-form">
-      <div id="card-name-field-container"></div>
-      <div id="card-number-field-container"></div>
-      <div id="card-expiry-field-container"></div>
-      <div id="card-cvv-field-container"></div>
-      <button value="submit" id="card-field-submit-button" class="nbtn" type="button">
-        Pay
-      </button>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>
+        <i class="fas fa-rocket"></i>
+        PayPal Commerce Platform
+        <span class="badge">Advanced</span>
+      </h1>
+      <p>Complete payment solution with PayPal, Apple Pay, Google Pay, and Advanced Credit Card processing</p>
+    </div>
+
+    <!-- Information Section -->
+    <div class="info-section">
+      <div class="info-title">
+        <i class="fas fa-star"></i>
+        Complete Payment Platform Features
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <i class="fab fa-paypal info-icon"></i>
+          <span>PayPal Checkout</span>
+        </div>
+        <div class="info-item">
+          <i class="fab fa-apple info-icon"></i>
+          <span>Apple Pay Integration</span>
+        </div>
+        <div class="info-item">
+          <i class="fab fa-google info-icon"></i>
+          <span>Google Pay Support</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-credit-card info-icon"></i>
+          <span>Advanced Credit Cards</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-shield-alt info-icon"></i>
+          <span>3D Secure Authentication</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-calendar-plus info-icon"></i>
+          <span>Pay Later Options</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content" id="mycart">
+      <!-- Digital Wallets Section -->
+      <div class="payment-section">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-mobile-alt"></i>
+            Digital Wallets
+          </div>
+          <div class="section-subtitle">Pay with PayPal, Apple Pay, or Google Pay</div>
+        </div>
+        <div class="section-body">
+          <!-- Pay Later Messages -->
+          <div class="paylater-messages">
+            <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
+          </div>
+
+          <!-- PayPal Buttons -->
+          <div class="payment-container" id="paypal-button-container"></div>
+
+          <!-- Apple Pay -->
+          <div class="payment-container" id="applepay-container"></div>
+
+          <!-- Google Pay -->
+          <div class="payment-container" id="container"></div>
+        </div>
+      </div>
+
+      <!-- Credit Card Section -->
+      <div class="payment-section">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-credit-card"></i>
+            Credit Card Payment
+          </div>
+          <div class="section-subtitle">Secure processing with 3D Secure authentication</div>
+        </div>
+        <div class="section-body">
+          <div id="checkout-form">
+            <div class="form-group">
+              <label class="form-label">Cardholder Name</label>
+              <div class="card-field-container" id="card-name-field-container"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Card Number</label>
+              <div class="card-field-container" id="card-number-field-container"></div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Expiry Date</label>
+                <div class="card-field-container" id="card-expiry-field-container"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CVV</label>
+                <div class="card-field-container" id="card-cvv-field-container"></div>
+              </div>
+            </div>
+
+            <button id="card-field-submit-button" class="btn" type="button">
+              <i class="fas fa-lock"></i>
+              <span>Pay Securely</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Status Messages -->
+    <div id="result-message"></div>
+  </div>
+
+  <!-- Enhanced Modal -->
+  <div id="resultModal" class="modal">
+    <div class="modal-content">
+      <span onclick="document.getElementById('resultModal').style.display='none'" class="close">&times;</span>
+      <div class="modalContainer">
+        <div class="modalHeader">Payment Completed Successfully</div>
+        <pre id="result" class="json-container"></pre>
+      </div>
     </div>
   </div>
-  <p id="result-message"></p>
-  <!-- JavaScript file that includes our buttons and cardField events -->
+  <!-- JavaScript files -->
   <script src="old.js"></script>
   <script src="applepay.js"></script>
   <script src="googlepay.js"></script>

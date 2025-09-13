@@ -4,33 +4,427 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PayPal Billing Agreement</title>
+  <title>Billing Agreements - PayPal Integration Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .logo {
+      color: white;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 1rem auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #666;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .step-container {
+      margin: 1.5rem 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      background: #fafafa;
+      overflow: hidden;
+    }
+
+    .step-header {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .step-number {
+      background: #0070ba;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      flex: 1;
+    }
+
+    .step-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .step-status.pending {
+      background: #ffeaa7;
+      color: #d68910;
+    }
+
+    .step-status.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .step-status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .step-content {
+      padding: 1rem;
+    }
+
+    .step-description {
+      color: #666;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .step-button {
+      background: #0070ba;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      margin-right: 1rem;
+    }
+
+    .step-button:hover {
+      background: #005fa3;
+      transform: translateY(-1px);
+    }
+
+    .step-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .step-button.completed {
+      background: #28a745;
+    }
+
+    .step-button.completed:hover {
+      background: #218838;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .result-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #0070ba;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-container.error {
+      border-left-color: #dc3545;
+      background: #fff5f5;
+    }
+
+    .result-container.success {
+      border-left-color: #28a745;
+      background: #f0fff4;
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-content {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .billing-agreement-info {
+      background: #e8f4fd;
+      border: 1px solid #b3d9ff;
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .info-title {
+      color: #0070ba;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .consent-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #0070ba;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border: 1px solid #0070ba;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .consent-link:hover {
+      background: #0070ba;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .step-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Billing Agreement Demo</h1>
-  <ol>
-    <li>
-      Fetch Access Token
-      <button id="fetchAccessTokenButton" type="button" class="btn btn-primary">Fetch Access Token</button>
-    </li>
-    <li>
-      Create Billing Agreement Token
-      <button id="createBaTokenButton" type="button" class="btn btn-primary">Create Billing Agreement Token</button>
-    </li>
-    <li>
-      Consent to Billing Agreement
-      <button id="buyerLinkBtn" type="button" class="btn btn-primary">Consent to Billing Agreement</button>
-    </li>
-    <li>
-      Create Billing Agreement
-      <button id="createBaButton" type="button" class="btn btn-primary">Create Billing Agreement</button>
-    </li>
-    <li>
-      Execute Reference Transaction
-      <button id="executeRefTransButton" type="button" class="btn btn-primary">Execute Reference Transaction</button>
-    </li>
-  </ol>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">Standard</a>
+      <a href="/advancedview">Advanced</a>
+      <a href="/cards">Cards</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">
+      <i class="fas fa-handshake"></i>
+      Billing Agreements
+    </h1>
+    <p class="page-subtitle">Set up reference transactions and billing agreements for subscription services and
+      recurring payments</p>
+
+    <div class="billing-agreement-info">
+      <div class="info-title">
+        <i class="fas fa-info-circle"></i>
+        How Billing Agreements Work
+      </div>
+      <p>
+        Billing agreements allow merchants to charge customers without requiring them to log in to PayPal for each
+        transaction.
+        This is perfect for subscription services, recurring billing, and marketplace scenarios where you need to
+        process
+        payments on behalf of your customers.
+      </p>
+    </div>
+
+    <!-- Step 1: Fetch Access Token -->
+    <div class="step-container">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">Fetch Access Token</div>
+        <div class="step-status pending" id="step1-status">Pending</div>
+      </div>
+      <div class="step-content">
+        <div class="step-description">
+          First, we need to authenticate with PayPal and get an access token for API calls.
+        </div>
+        <button id="fetchAccessTokenButton" class="step-button">
+          <i class="fas fa-key"></i>
+          Fetch Access Token
+        </button>
+        <div id="step1-result" class="result-container"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Create Billing Agreement Token -->
+    <div class="step-container">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">Create Billing Agreement Token</div>
+        <div class="step-status pending" id="step2-status">Pending</div>
+      </div>
+      <div class="step-content">
+        <div class="step-description">
+          Create a billing agreement token that defines the terms and conditions for future payments.
+        </div>
+        <button id="createBaTokenButton" class="step-button" disabled>
+          <i class="fas fa-file-contract"></i>
+          Create Billing Agreement Token
+        </button>
+        <div id="step2-result" class="result-container"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Customer Consent -->
+    <div class="step-container">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Customer Consent</div>
+        <div class="step-status pending" id="step3-status">Pending</div>
+      </div>
+      <div class="step-content">
+        <div class="step-description">
+          The customer needs to review and approve the billing agreement terms.
+        </div>
+        <a id="buyerLinkBtn" class="consent-link" style="display: none;" target="_blank">
+          <i class="fas fa-external-link-alt"></i>
+          Approve Billing Agreement
+        </a>
+        <div id="step3-result" class="result-container"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: Execute Billing Agreement -->
+    <div class="step-container">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <div class="step-title">Execute Billing Agreement</div>
+        <div class="step-status pending" id="step4-status">Pending</div>
+      </div>
+      <div class="step-content">
+        <div class="step-description">
+          After customer approval, execute the billing agreement to make it active.
+        </div>
+        <button id="createBaButton" class="step-button" disabled>
+          <i class="fas fa-handshake"></i>
+          Execute Billing Agreement
+        </button>
+        <div id="step4-result" class="result-container"></div>
+      </div>
+    </div>
+
+    <!-- Step 5: Reference Transaction -->
+    <div class="step-container">
+      <div class="step-header">
+        <div class="step-number">5</div>
+        <div class="step-title">Execute Reference Transaction</div>
+        <div class="step-status pending" id="step5-status">Pending</div>
+      </div>
+      <div class="step-content">
+        <div class="step-description">
+          Use the active billing agreement to process a payment without customer interaction.
+        </div>
+        <button id="executeRefTransButton" class="step-button" disabled>
+          <i class="fas fa-credit-card"></i>
+          Execute Reference Transaction
+        </button>
+        <div id="step5-result" class="result-container"></div>
+      </div>
+    </div>
+  </div>
 
   <script src="bart.js"></script>
 </body>

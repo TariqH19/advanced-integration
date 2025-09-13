@@ -121,10 +121,15 @@ async function onGooglePayLoaded() {
  */
 function addGooglePayButton() {
   const paymentsClient = getGooglePaymentsClient();
+  const container = document.getElementById("container");
+
+  // Clear any existing button to prevent duplicates
+  container.innerHTML = "";
+
   const button = paymentsClient.createButton({
     onClick: onGooglePaymentButtonClicked,
   });
-  document.getElementById("container").appendChild(button);
+  container.appendChild(button);
 }
 
 /**
@@ -194,6 +199,12 @@ async function processPayment(paymentData) {
       console.log(
         " ===== Confirm Payment Completed Payer Action Required ===== "
       );
+
+      // Improved 3DS modal handling - don't interfere with z-index
+      console.log(
+        "3DS authentication required - PayPal will handle modal display"
+      );
+
       paypal
         .Googlepay()
         .initiatePayerAction({ orderId: id })
@@ -229,6 +240,22 @@ async function processPayment(paymentData) {
           resultElement.innerHTML = prettyPrintJson.toHtml(captureResponse, {
             indent: 2,
           });
+
+          // Replace Google Pay button with success message after 3DS
+          const container = document.getElementById("container");
+          const transaction =
+            captureResponse?.purchase_units?.[0]?.payments?.captures?.[0];
+          const transactionId = transaction?.id || "N/A";
+
+          container.innerHTML = `
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 1rem; border-radius: 8px; text-align: center; font-weight: 500;">
+              <i class="fas fa-check-circle"></i> Payment Completed Successfully<br>
+              <small style="font-weight: normal;">Transaction ID: ${transactionId}</small><br>
+              <button onclick="resetGooglePayForm()" style="background: #4285F4; color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-redo"></i> Make Another Payment
+              </button>
+            </div>
+          `;
         });
     } else {
       /*
@@ -244,10 +271,42 @@ async function processPayment(paymentData) {
       resultElement.innerHTML = prettyPrintJson.toHtml(response, {
         indent: 2,
       });
+
+      // Replace Google Pay button with success message and make another payment option
+      const container = document.getElementById("container");
+      const transaction =
+        response?.purchase_units?.[0]?.payments?.captures?.[0];
+      const transactionId = transaction?.id || "N/A";
+
+      container.innerHTML = `
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 1rem; border-radius: 8px; text-align: center; font-weight: 500;">
+          <i class="fas fa-check-circle"></i> Payment Completed Successfully<br>
+          <small style="font-weight: normal;">Transaction ID: ${transactionId}</small><br>
+          <button onclick="resetGooglePayForm()" style="background: #4285F4; color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-redo"></i> Make Another Payment
+          </button>
+        </div>
+      `;
     }
 
     return { transactionState: "SUCCESS" };
   } catch (err) {
+    console.error("Payment error:", err);
+
+    // Show error message with make another payment option
+    const container = document.getElementById("container");
+    container.innerHTML = `
+      <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 8px; text-align: center; font-weight: 500;">
+        <i class="fas fa-exclamation-triangle"></i> Payment Failed<br>
+        <small style="font-weight: normal;">${
+          err.message || "An error occurred during payment processing"
+        }</small><br>
+        <button onclick="resetGooglePayForm()" style="background: #dc3545; color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-redo"></i> Try Again
+        </button>
+      </div>
+    `;
+
     return {
       transactionState: "ERROR",
       error: {
@@ -255,4 +314,20 @@ async function processPayment(paymentData) {
       },
     };
   }
+}
+
+// Function to reset Google Pay form for another payment
+function resetGooglePayForm() {
+  const container = document.getElementById("container");
+  const modal = document.getElementById("resultModal");
+  const resultElement = document.getElementById("result");
+
+  // Hide the result modal
+  modal.style.display = "none";
+
+  // Clear result content
+  resultElement.innerHTML = "";
+
+  // Re-add Google Pay button
+  addGooglePayButton();
 }

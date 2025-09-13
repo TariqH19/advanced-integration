@@ -1,9 +1,11 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Pay Checkout</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretty-print-json@1.4/dist/css/pretty-print-json.css">
   <style>
     * {
       margin: 0;
@@ -11,10 +13,16 @@
       box-sizing: border-box;
     }
 
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f7;
+      min-height: 100vh;
+      color: #333;
+    }
+
     .navbar {
-      background-color: #333;
-      overflow: hidden;
-      padding: 40px 20px;
+      background: #333;
+      padding: 1rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -22,49 +30,226 @@
 
     .navbar h1 {
       color: white;
-      margin: 0;
-      font-size: 24px;
+      font-size: 1.5rem;
       font-weight: normal;
     }
 
-    .navbar a {
+    .navbar h1 a {
       color: white;
-      text-align: center;
-      padding: 14px 16px;
       text-decoration: none;
-      font-size: 17px;
-      transition: background-color 0.3s, color 0.3s;
     }
 
-    .navbar a:hover {
-      background-color: #ddd;
-      color: black;
-      border-radius: 5px;
-    }
-
-    .navbar a:not(:last-child) {
-      margin-right: 10px;
-    }
-
-    main {
+    .navbar .nav-links {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
+      gap: 1rem;
+    }
+
+    .navbar .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #555;
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-      background-color: lightgray;
-      max-width: 500px;
-      min-height: 15em;
-      padding: 20px;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    #googlepay-container {
-      flex-grow: 1;
+    .page-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .product-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .product-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .product-details h4 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4285F4;
+    }
+
+    .payment-section {
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .payment-section h3 {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .integration-info {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    #container {
+      margin: 1.5rem 0;
+      min-height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .test-info {
+      background: #e8f4fd;
+      border: 1px solid #b3d9ff;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    #result-message {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #f0f0f0;
+      display: none;
+    }
+
+    /* Result Modal Styling */
+    #resultModal {
+      display: none;
+      position: fixed;
+      z-index: 1000000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+      background: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .close:hover {
+      color: #333;
+    }
+
+    .modalHeader {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #4285F4;
+    }
+
+    .json-container {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* PayPal 3DS Modal z-index overrides */
+    [id*="paypal"][style*="position"],
+    [class*="paypal"][style*="position"],
+    [data-paypal-checkout][style*="position"],
+    .paypal-checkout-overlay,
+    .paypal-checkout-modal,
+    .paypal-overlay,
+    .paypal-modal,
+    .paypal-spinner-container,
+    .paypal-checkout-sandbox-iframe,
+    .paypal-checkout-production-iframe,
+    iframe[src*="paypal"],
+    iframe[name*="paypal"],
+    iframe[id*="paypal"] {
+      z-index: 999999 !important;
+    }
+
+    div[style*="position: fixed"],
+    div[style*="position: absolute"] {
+      z-index: 999999 !important;
+    }
+
+    body>div[style*="position: fixed"],
+    body>div[style*="position: absolute"],
+    body>iframe {
+      z-index: 999999 !important;
+    }
+
+    [data-uid][style*="position"],
+    [data-frame-name*="paypal"] {
+      z-index: 999999 !important;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .product-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .modal-content {
+        margin: 10% auto;
+        width: 95%;
+      }
     }
   </style>
 
@@ -74,60 +259,57 @@
   <script
     src="https://www.paypal.com/sdk/js?components=googlepay&client-id=<%= clientId %>&merchant-id=<%= merchantId %>"
     data-client-token="<%= clientToken %>" data-partner-attribution-id="GOOGLEPAY"></script>
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
-
-  <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@1.4/dist/css/pretty-print-json.css>
-  <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@1.3/dist/pretty-print-json.min.js></script>
-
-
-
-
+  <script src="https://cdn.jsdelivr.net/npm/pretty-print-json@1.3/dist/pretty-print-json.min.js"></script>
 </head>
 
 <body>
-  <div class="navbar">
+  <nav class="navbar">
     <h1>
       <a href="/">Code Example Website</a>
     </h1>
-    <div>
+    <div class="nav-links">
       <a href="/standardview">Standard</a>
       <a href="/advancedview">Advanced</a>
-
-
       <a href="/cards">Cards</a>
     </div>
-  </div>
-  <main>
-    <div class="">
-      <h1>Checkout</h1>
+  </nav>
 
-      <div class="product">
-        <img src="https://picsum.photos/200" alt="Product Image" />
-        <div class="product-info">
-          <div class="product-title">Sample Product</div>
-          <div class="product-price">£10.00</div>
-        </div>
+  <div class="container">
+    <h1 class="page-title">Google Pay Checkout</h1>
+
+    <div class="product-card">
+      <img src="https://picsum.photos/200" alt="Sample Product" class="product-image" />
+      <div class="product-details">
+        <h4>Sample Product</h4>
+        <div class="product-price">$0.10</div>
+      </div>
+    </div>
+
+    <div class="payment-section">
+      <h3>Google Pay Integration</h3>
+      <div class="integration-info">
+        Advanced Integration with 3DS Authentication
       </div>
 
       <div id="container"></div>
-      <p id="result-message"></p>
+
+      <div class="test-info">
+        <strong>Test Environment:</strong> This is a test environment. No real charges will be made.
+        Experience the full Google Pay integration with 3D Secure authentication support.
+      </div>
     </div>
 
-    <!-- Result Modal -->
-    <div id="resultModal" class="modal">
-      <span onclick="document.getElementById('resultModal').style.display='none'" class="close"
-        title="Close Modal">&times;</span>
-      <form class="modal-content">
-        <div class="modalContainer">
-          <span class="modalHeader">Capture Order Result</span>
-          <pre id=result class=json-container></pre>
-        </div>
-      </form>
-    </div>
+    <p id="result-message"></p>
+  </div>
 
-  </main>
+  <!-- Result Modal -->
+  <div id="resultModal">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('resultModal').style.display='none'">&times;</span>
+      <div class="modalHeader">Payment Result</div>
+      <pre id="result" class="json-container"></pre>
+    </div>
+  </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", (event) => {
@@ -135,11 +317,62 @@
         onGooglePayLoaded().catch(console.log);
       }
     });
+
+    // PayPal Modal Z-Index Monitor for 3DS Authentication
+    function ensurePayPalModalZIndex() {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) {
+              if (
+                node.getAttribute && (
+                  (node.getAttribute('id') && node.getAttribute('id').includes('paypal')) ||
+                  (node.getAttribute('class') && node.getAttribute('class').includes('paypal')) ||
+                  (node.getAttribute('src') && node.getAttribute('src').includes('paypal')) ||
+                  (node.getAttribute('name') && node.getAttribute('name').includes('paypal')) ||
+                  node.getAttribute('data-paypal-checkout') ||
+                  node.tagName === 'IFRAME'
+                )
+              ) {
+                console.log('PayPal 3DS modal detected, setting z-index:', node);
+                node.style.zIndex = '999999';
+                node.style.position = node.style.position || 'fixed';
+              }
+
+              if (node.style && (node.style.position === 'fixed' || node.style.position === 'absolute')) {
+                node.style.zIndex = '999999';
+              }
+
+              if (node.querySelectorAll) {
+                const paypalElements = node.querySelectorAll('iframe, [id*="paypal"], [class*="paypal"], [data-paypal-checkout]');
+                paypalElements.forEach(el => {
+                  el.style.zIndex = '999999';
+                });
+              }
+            }
+          });
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      setInterval(() => {
+        const paypalElements = document.querySelectorAll('iframe, [id*="paypal"], [class*="paypal"], [data-paypal-checkout], div[style*="position: fixed"], div[style*="position: absolute"]');
+        paypalElements.forEach(el => {
+          if (el.style.zIndex < 999999) {
+            el.style.zIndex = '999999';
+          }
+        });
+      }, 500);
+    }
+
+    ensurePayPalModalZIndex();
   </script>
   <script src="modal.js"></script>
   <script src="googlepay.js"></script>
-  <!-- <link rel=stylesheet href=style.css> -->
-
 </body>
 
 </html>

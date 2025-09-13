@@ -2,30 +2,598 @@
 <html lang="en">
 
 <head>
-    <title>iDEAL Example</title>
+    <title>PayPal & iDEAL Payment Integration</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- <link rel="stylesheet" href="./styles.css" /> -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0070ba;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .navbar .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .navbar .nav-links a:hover {
+            background: #0070ba;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3);
+        }
+
+        .navbar .nav-links a.external {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            font-weight: 600;
+        }
+
+        .navbar .nav-links a.external:hover {
+            background: linear-gradient(45deg, #20c997, #28a745);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            background: #ff6b35;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
+        .payment-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .payment-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .payment-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .payment-content {
+            padding: 2rem;
+        }
+
+        .payment-methods {
+            margin-bottom: 2rem;
+        }
+
+        .method-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .payment-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .payment-option:hover {
+            border-color: #0070ba;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 112, 186, 0.15);
+        }
+
+        .payment-option.selected {
+            border-color: #0070ba;
+            background: rgba(0, 112, 186, 0.05);
+        }
+
+        .payment-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .option-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .option-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e9ecef;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option.selected .option-check {
+            border-color: #0070ba;
+            background: #0070ba;
+        }
+
+        .payment-option.selected .option-check::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .option-marks {
+            margin: 1rem 0;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .payment-fields {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .payment-fields.show {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .fields-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-buttons {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .buttons-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .button-container {
+            margin: 1rem 0;
+            min-height: 60px;
+            border: 2px dashed #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .button-container:not(:empty) {
+            border-style: solid;
+            border-color: #28a745;
+        }
+
+        .button-container.hidden {
+            display: none;
+        }
+
+        .loading-placeholder {
+            color: #6c757d;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e9ecef;
+            border-top: 2px solid #0070ba;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-section {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-title {
+            color: #1976d2;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+
+        .info-icon {
+            color: #2196f3;
+            font-size: 1.1rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .navbar .nav-links {
+                justify-content: center;
+            }
+
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                flex-direction: column;
+                gap: 0.5rem;
+                font-size: 1.5rem;
+            }
+
+            .payment-content {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <br />
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <i class="fab fa-paypal"></i>
+            PayPal Integration Hub
+        </a>
+        <div class="nav-links">
+            <a href="/standardview">
+                <i class="fas fa-layer-group"></i>
+                Standard
+            </a>
+            <a href="/advancedview">
+                <i class="fas fa-cogs"></i>
+                Advanced
+            </a>
+            <a href="/cards">
+                <i class="fas fa-credit-card"></i>
+                Cards
+            </a>
+            <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank" class="external">
+                <i class="fas fa-code-branch"></i>
+                File Compare
+            </a>
+            <a href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D"
+                class="external">
+                <i class="fas fa-envelope"></i>
+                Request Code
+            </a>
+        </div>
+    </nav>
 
-    <label>
-        <input type="radio" name="payment-option" value="paypal" id="paypal-radio" checked />
-        <span id="paypal-mark"></span>
-    </label>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fab fa-paypal"></i>
+                PayPal & iDEAL Integration
+                <span class="badge">Netherlands</span>
+            </h1>
+            <p>Secure payment processing for the Dutch market</p>
+        </div>
 
-    <label>
-        <input id="ideal-radio" value="ideal" name="payment-option" type="radio" />
-        <span id="ideal-mark"></span>
-    </label>
+        <div class="payment-container">
+            <div class="payment-header">
+                <div class="payment-title">
+                    <i class="fas fa-credit-card"></i>
+                    Choose Your Payment Method
+                </div>
+                <div class="payment-subtitle">
+                    Select between PayPal or iDEAL for secure payment processing
+                </div>
+            </div>
 
-    <div id="ideal-fields"></div>
+            <div class="payment-content">
+                <!-- Payment Method Information -->
+                <div class="info-section">
+                    <div class="info-title">
+                        <i class="fas fa-info-circle"></i>
+                        Available Payment Options
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <i class="fab fa-paypal info-icon"></i>
+                            <span>PayPal worldwide acceptance</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-university info-icon"></i>
+                            <span>iDEAL Dutch bank integration</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-euro-sign info-icon"></i>
+                            <span>EUR currency support</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-shield-alt info-icon"></i>
+                            <span>Secure SSL encryption</span>
+                        </div>
+                    </div>
+                </div>
 
-    <div id="paypal-btn"></div>
-    <div id="ideal-btn"></div>
+                <!-- Payment Method Selection -->
+                <div class="payment-methods">
+                    <div class="method-title">
+                        <i class="fas fa-hand-pointer"></i>
+                        Select Payment Method
+                    </div>
+
+                    <div class="payment-options">
+                        <div class="payment-option selected" data-method="paypal">
+                            <input type="radio" name="payment-option" value="paypal" id="paypal-radio" checked />
+                            <div class="option-header">
+                                <div class="option-title">PayPal</div>
+                                <div class="option-check"></div>
+                            </div>
+                            <div class="option-marks" id="paypal-mark"></div>
+                            <div class="option-description">
+                                Pay with your PayPal account or any major credit card. Trusted by millions worldwide.
+                            </div>
+                        </div>
+
+                        <div class="payment-option" data-method="ideal">
+                            <input type="radio" name="payment-option" value="ideal" id="ideal-radio" />
+                            <div class="option-header">
+                                <div class="option-title">iDEAL</div>
+                                <div class="option-check"></div>
+                            </div>
+                            <div class="option-marks" id="ideal-mark"></div>
+                            <div class="option-description">
+                                Pay directly from your Dutch bank account. Widely accepted and trusted in the
+                                Netherlands.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- iDEAL Customer Details -->
+                <div class="payment-fields" id="ideal-fields-container" style="display: none;">
+                    <div class="fields-title">
+                        <i class="fas fa-user"></i>
+                        Customer Information for iDEAL
+                    </div>
+                    <div id="ideal-fields"></div>
+                </div>
+
+                <!-- Payment Buttons -->
+                <div class="payment-buttons">
+                    <div class="buttons-title">
+                        <i class="fas fa-lock"></i>
+                        Complete Your Payment
+                    </div>
+
+                    <div class="button-container" id="paypal-btn-container">
+                        <div class="loading-placeholder">
+                            <div class="spinner"></div>
+                            <span>Loading PayPal payment...</span>
+                        </div>
+                    </div>
+
+                    <div class="button-container hidden" id="ideal-btn-container">
+                        <div class="loading-placeholder">
+                            <div class="spinner"></div>
+                            <span>Loading iDEAL payment...</span>
+                        </div>
+                    </div>
+
+                    <!-- Hidden containers for actual buttons -->
+                    <div id="paypal-btn" style="display: none;"></div>
+                    <div id="ideal-btn" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script
         src="https://www.paypal.com/sdk/js?client-id=AWwL_1VNxGwAdynAtud_k5-2DX5JAHN_Jgv-NDYIRGcSuCqjt8iqALdJE6Lsy4XwCBbOj1CKOicf9J6Z&components=buttons,payment-fields,marks,funding-eligibility&enable-funding=ideal&currency=EUR&buyer-country=NL"></script>

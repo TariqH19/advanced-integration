@@ -1,119 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- The following CSS file is a sample for demo purposes. Instead, you should use styles that align with your brand 
-    using the CSS properties supported by this integration: https://developer.paypal.com/docs/checkout/advanced/customize/card-field-style/ -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
-    <title>Advanced Checkout Integration with 3D Secure and SDK v2</title>
-    <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
-    <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
-    <!-- https://developer.paypal.com/sdk/js/configuration/ -->
-    <script src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
-  </head>
-  <body>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 0.9rem;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayPal Saved Payment Methods - Advanced Integration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- &buyer-country is available only in SandBox for testing, remove it before going Live -->
+  <!-- Check all the parameters and the JavaScript SDK script configuration at the following link: -->
+  <!-- https://developer.paypal.com/sdk/js/configuration/ -->
+  <script
+    src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      min-height: 100vh;
+      padding: 0;
+      color: #333;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3);
+    }
+
+    .navbar .nav-links a.external {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+      font-weight: 600;
+    }
+
+    .navbar .nav-links a.external:hover {
+      background: linear-gradient(45deg, #20c997, #28a745);
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+    }
+
+    .badge {
+      background: #28a745;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 1rem;
+    }
+
+    .main-content {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .content-header {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 2rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .content-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .content-subtitle {
+      color: #6c757d;
+      font-size: 1rem;
+    }
+
+    .content-body {
+      padding: 2rem;
+    }
+
+    .info-section {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-title {
+      color: #1976d2;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+    }
+
+    .info-icon {
+      color: #2196f3;
+      font-size: 1.1rem;
+    }
+
+    .payment-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 2px solid #e9ecef;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .paylater-messages {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .paypal-button-container {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .paypal-button-container:not(:empty) {
+      border-color: #28a745;
+    }
+
+    .transaction-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border: 2px solid #e9ecef;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 186, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+
+    .status-message.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
       }
 
-      .paypal-button-container {
-        padding: 0 !important;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .api-response {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      display: none;
+    }
+
+    .api-response.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .api-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .api-json {
+      background: #ffffff;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #495057;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      max-width: 350px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .notification.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .notification.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
       }
 
-      #mycart > h2 {
-        color: #015c86;
-        margin-bottom: 0.4rem;
-        margin-left: 0.2rem;
-      }
-
-      .nbtn {
-        margin: 0;
-        display: inline-flex;
+      .navbar .nav-links {
         justify-content: center;
-        align-items: center;
-        width: 33.3rem;
-        background-color: #015c86;
-        color: #fff;
-        border-radius: 0.2em;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1.2rem;
-        font-weight: bold;
-        transition: 0.3s;
       }
 
-      .nbtn:hover {
-        background-color: #026b9c;
-        border-color: #01345c;
+      .container {
+        padding: 1rem;
       }
 
-      .nbtn:active {
-        background-color: #014566;
-        border-color: #01345c;
+      .header h1 {
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 1.5rem;
       }
 
-      .card-field-name {
-        background-color: #ff0000 !important;
-        color: red;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+      .content-body {
+        padding: 1rem;
       }
 
-      #mycart {
-        width: 34rem;
-        margin: 2rem auto;
+      .info-grid {
+        grid-template-columns: 1fr;
       }
+    }
+  </style>
+</head>
 
-      #checkout-form {
-        text-align: center;
-      }
-
-      #api-response {
-        width: 50%;
-        margin-left: 10rem;
-        margin-top: 3rem;
-        display: none;
-      }
-    </style>
-    <div id="mycart">
-      <!-- Pay Later Messages:
-             https://developer.paypal.com/docs/checkout/pay-later/gb/integrate/#link-addpaylatermessages
-             Please replace the amount with your variable -->
-      <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
-
-      <!-- PayPal Buttons:
-             https://developer.paypal.com/docs/checkout/advanced/integrate/ -->
-      <div id="paypal-button-container" class="paypal-button-container"></div>
-
-      <br />
-
-      <h2>Show transaction context data</h2>
-      <button id="transactionContextData">Show Transaction Context</button>
-      <h4 style="color: #ff0000; padding: 1.2rem 0" id="title"></h4>
-      <h6
-        style="font-size: 0.9rem; color: #32424e; margin: 0; padding: 0"
-        id="api-title"></h6>
-      <pre
-        id="api-json"
-        style="
-          font-size: 0.9rem;
-          color: #32424e;
-          padding-bottom: 2rem;
-          white-space: pre-wrap;
-          word-wrap: break-word;
-        "></pre>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Integration Hub
+    </a>
+    <div class="nav-links">
+      <a href="/standardview">
+        <i class="fas fa-layer-group"></i>
+        Standard
+      </a>
+      <a href="/advancedview">
+        <i class="fas fa-cogs"></i>
+        Advanced
+      </a>
+      <a href="/cards">
+        <i class="fas fa-credit-card"></i>
+        Cards
+      </a>
+      <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank" class="external">
+        <i class="fas fa-code-branch"></i>
+        File Compare
+      </a>
+      <a href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D"
+        class="external">
+        <i class="fas fa-envelope"></i>
+        Request Code
+      </a>
     </div>
-    <p id="result-message"></p>
-    <!-- JavaScript file that includes our buttons and cardField events -->
-    <script src="stc.js"></script>
-  </body>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>
+        <i class="fas fa-save"></i>
+        Saved Payment Methods
+        <span class="badge">3D Secure</span>
+      </h1>
+      <p>Advanced checkout integration with saved payment context and transaction tracking</p>
+    </div>
+
+    <div class="main-content">
+      <div class="content-header">
+        <div class="content-title">
+          <i class="fas fa-credit-card"></i>
+          PayPal Checkout with Saved Context
+        </div>
+        <div class="content-subtitle">
+          Experience seamless payments with saved transaction context and Pay Later messaging
+        </div>
+      </div>
+
+      <div class="content-body">
+        <!-- Information Section -->
+        <div class="info-section">
+          <div class="info-title">
+            <i class="fas fa-info-circle"></i>
+            Integration Features
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <i class="fas fa-shield-alt info-icon"></i>
+              <span>3D Secure Authentication</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-database info-icon"></i>
+              <span>Transaction Context Storage</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-calendar-plus info-icon"></i>
+              <span>Pay Later Options</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-tracking info-icon"></i>
+              <span>Real-time Tracking</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="payment-section" id="mycart">
+          <div class="section-title">
+            <i class="fas fa-shopping-cart"></i>
+            Payment Checkout
+          </div>
+
+          <!-- Pay Later Messages -->
+          <div class="paylater-messages">
+            <div data-pp-message data-pp-amount="240.00" data-pp-layout="text"></div>
+          </div>
+
+          <!-- PayPal Buttons -->
+          <div id="paypal-button-container" class="paypal-button-container"></div>
+
+          <!-- Status Messages -->
+          <div class="status-message" id="title"></div>
+        </div>
+
+        <!-- Transaction Context Section -->
+        <div class="transaction-section">
+          <div class="section-title">
+            <i class="fas fa-code"></i>
+            Transaction Context Data
+          </div>
+          <p style="color: #6c757d; margin-bottom: 1rem;">
+            View the saved transaction context and tracking information for this payment session.
+          </p>
+
+          <button id="transactionContextData" class="btn">
+            <i class="fas fa-search"></i>
+            Show Transaction Context
+          </button>
+
+          <div class="api-response" id="api-response">
+            <div class="api-title" id="api-title">
+              <i class="fas fa-database"></i>
+              Transaction Context Data
+            </div>
+            <pre class="api-json" id="api-json"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p id="result-message" style="display: none;"></p>
+
+  <!-- JavaScript file that includes our buttons and cardField events -->
+  <script src="stc.js"></script>
+</body>
+
 </html>

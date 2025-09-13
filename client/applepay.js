@@ -85,18 +85,27 @@ async function setupApplepay() {
         /*
          * Capture order (must currently be made on server)
          */
-        await fetch(`/applepay/api/orders/${id}/capture`, {
-          method: "POST",
-        });
+        const captureResponse = await fetch(
+          `/applepay/api/orders/${id}/capture`,
+          {
+            method: "POST",
+          }
+        );
+
+        const captureData = await captureResponse.json();
 
         session.completePayment({
           status: window.ApplePaySession.STATUS_SUCCESS,
         });
+
+        // Show success message with make another payment option
+        showSuccessMessage(captureData);
       } catch (err) {
         console.error(err);
         session.completePayment({
           status: window.ApplePaySession.STATUS_FAILURE,
         });
+        showErrorMessage("Payment failed. Please try again.");
       }
     };
 
@@ -117,3 +126,60 @@ document.addEventListener("DOMContentLoaded", () => {
     setupApplepay().catch(console.error);
   }
 });
+
+// Function to show success message with make another payment option
+function showSuccessMessage(captureData) {
+  const container = document.getElementById("applepay-container");
+  const resultMessage = document.getElementById("result-message");
+
+  // Hide Apple Pay button
+  container.style.display = "none";
+
+  // Get transaction details
+  const transaction = captureData?.purchase_units?.[0]?.payments?.captures?.[0];
+  const transactionId = transaction?.id || "N/A";
+
+  // Show success message
+  resultMessage.innerHTML = `
+    <i class="fas fa-check-circle"></i> Payment Completed Successfully!<br>
+    <small>Transaction ID: ${transactionId}</small><br>
+    <button class="make-another-payment" onclick="resetApplePayForm()">
+      <i class="fas fa-redo"></i> Make Another Payment
+    </button>
+  `;
+  resultMessage.style.background = "#d4edda";
+  resultMessage.style.borderColor = "#c3e6cb";
+  resultMessage.style.color = "#155724";
+}
+
+// Function to show error message
+function showErrorMessage(message) {
+  const resultMessage = document.getElementById("result-message");
+
+  resultMessage.innerHTML = `
+    <i class="fas fa-exclamation-triangle"></i> ${message}
+  `;
+  resultMessage.style.background = "#f8d7da";
+  resultMessage.style.borderColor = "#f5c6cb";
+  resultMessage.style.color = "#721c24";
+}
+
+// Function to reset the form for another payment
+function resetApplePayForm() {
+  const container = document.getElementById("applepay-container");
+  const resultMessage = document.getElementById("result-message");
+
+  // Show Apple Pay button again
+  container.style.display = "flex";
+
+  // Clear result message
+  resultMessage.innerHTML = "";
+
+  // Re-setup Apple Pay (in case it needs re-initialization)
+  if (
+    window.ApplePaySession?.supportsVersion(4) &&
+    window.ApplePaySession?.canMakePayments()
+  ) {
+    setupApplepay().catch(console.error);
+  }
+}

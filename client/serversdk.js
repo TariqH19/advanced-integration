@@ -164,4 +164,19 @@ async function onApproveCallback(data, actions) {
 function resultMessage(message) {
   const container = document.querySelector("#result-message");
   container.innerHTML = message;
+
+  // Style based on message content
+  if (
+    message.toLowerCase().includes("sorry") ||
+    message.toLowerCase().includes("error") ||
+    message.toLowerCase().includes("could not")
+  ) {
+    container.style.background = "#f8d7da";
+    container.style.borderColor = "#f5c6cb";
+    container.style.color = "#721c24";
+  } else {
+    container.style.background = "#d4edda";
+    container.style.borderColor = "#c3e6cb";
+    container.style.color = "#155724";
+  }
 }

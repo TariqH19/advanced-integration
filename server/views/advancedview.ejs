@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced Integration</title>
+  <title>Advanced PayPal Integrations - Demo Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * {
       margin: 0;
@@ -12,311 +13,941 @@
       box-sizing: border-box;
     }
 
-    .navbar {
-      background-color: #333;
-      overflow: hidden;
-      padding: 40px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .navbar h1 {
-      color: white;
-      margin: 0;
-      font-size: 24px;
-      font-weight: normal;
-    }
-
-    .navbar a {
-      color: white;
-      text-align: center;
-      padding: 14px 16px;
-      text-decoration: none;
-      font-size: 17px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .navbar a:hover {
-      background-color: #ddd;
-      color: black;
-      border-radius: 5px;
-    }
-
-    .navbar a:not(:last-child) {
-      margin-right: 10px;
-    }
-
-    /* Global body styling */
     body {
-      font-family: "Arial", sans-serif;
-      background-color: #f4f4f4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       color: #333;
     }
 
-    /* Card container styling */
-    .card-container {
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
     }
 
-    /* Card styles */
-    .card {
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      width: 400px;
-      padding: 20px;
-      margin: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .card h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
-    }
-
-    .card p {
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    .card-buttons {
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0070ba;
+      text-decoration: none;
       display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .navbar .nav-links a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-links a:hover {
+      background: #0070ba;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .page-title {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
       justify-content: center;
+      gap: 1rem;
     }
 
-    .card-buttons a {
-      background-color: #007bff;
+    .page-subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .integration-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .integration-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .integration-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #333;
+      margin: 0;
+    }
+
+    .card-description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .card-features {
+      margin-bottom: 2rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .feature-item i {
+      color: #28a745;
+      font-size: 0.8rem;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .demo-button {
+      flex: 1;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       text-decoration: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
-    .card-buttons a:hover {
-      background-color: #0056b3;
+    .demo-button:hover {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .complexity-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .complexity-advanced {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+    }
+
+    .complexity-expert {
+      background: linear-gradient(135deg, #a55eea, #8b5cf6);
+      color: white;
+    }
+
+    .complexity-enterprise {
+      background: linear-gradient(135deg, #feca57, #ff9ff3);
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .navbar .nav-links {
+        justify-content: center;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .card-actions {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .integration-card {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="navbar">
-    <h1>
-      <a href="/">Code Example Website</a>
-    </h1>
-    <div>
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <i class="fab fa-paypal"></i>
+      PayPal Demo Store
+    </a>
+    <div class="nav-links">
       <a href="/standardview">Standard</a>
       <a href="/advancedview">Advanced</a>
-      <a href="https://pp-gold-six.vercel.app/file-compare" target="_blank">File compare tool</a>
-      <!-- add a mailto button to send emails -->
-      <a
-        href="mailto:thoran@paypal.com?subject=Code%20Sample&body=Hi%0A%0AHope%20you%20are%20well.%0A%0AI%20would%20like%20a%20code%20sample%20for%20%5Benter%20product%20name%5D.%0A%0AReason%3A%20%5Benter%20reason%5D%0A%0AKind%20regards%2C%0A%5BYour%20name%5D">Code
-        sample request</a>
-
       <a href="/cards">Cards</a>
     </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="page-header">
+      <h1 class="page-title">
+        <i class="fas fa-rocket"></i>
+        Advanced PayPal Integrations
+      </h1>
+      <p class="page-subtitle">
+        Explore sophisticated payment solutions with advanced features, enterprise-grade security,
+        and cutting-edge payment technologies. Perfect for complex business requirements and specialized use cases.
+      </p>
+    </div>
+
+    <div class="card-grid">
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-vault"></i>
+          </div>
+          <h3 class="card-title">Payment Vaulting</h3>
+        </div>
+        <p class="card-description">
+          Securely store customer payment methods for future transactions. Implement one-click payments
+          with tokenization and advanced security measures for returning customers.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Secure payment tokenization
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              PCI-compliant storage
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              One-click checkout experience
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/acdc" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fab fa-google-pay"></i>
+          </div>
+          <h3 class="card-title">Google Pay Integration</h3>
+        </div>
+        <p class="card-description">
+          Integrate Google Pay for seamless mobile and web payments. Enable customers to pay quickly
+          using their saved Google payment methods with advanced security features.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Mobile-optimized experience
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Biometric authentication
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Cross-platform compatibility
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/googlepay" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fab fa-apple-pay"></i>
+          </div>
+          <h3 class="card-title">Apple Pay Integration</h3>
+        </div>
+        <p class="card-description">
+          Enable Apple Pay for iOS and macOS users. Provide secure, convenient payments using
+          Touch ID, Face ID, or Apple Watch with industry-leading security.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Touch ID & Face ID support
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Apple ecosystem integration
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Hardware-level security
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/applepay" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-expert">Expert</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-server"></i>
+          </div>
+          <h3 class="card-title">Server-Side SDK</h3>
+        </div>
+        <p class="card-description">
+          Implement server-side payment processing with PayPal's comprehensive SDK.
+          Build robust, scalable payment solutions with advanced error handling and webhooks.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Complete server-side control
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Webhook integration
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Advanced error handling
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/serversdk" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-expert">Expert</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-code"></i>
+          </div>
+          <h3 class="card-title">REST API Integration</h3>
+        </div>
+        <p class="card-description">
+          Direct REST API integration for maximum flexibility and control. Build custom payment flows
+          with full access to PayPal's payment processing capabilities.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Custom payment flows
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Maximum flexibility
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Direct API control
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/old" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-expert">Expert</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-undo"></i>
+          </div>
+          <h3 class="card-title">Advanced Refunds</h3>
+        </div>
+        <p class="card-description">
+          Comprehensive refund management system with partial refunds, bulk processing,
+          and automated refund workflows for enterprise-level operations.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Partial & full refunds
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Bulk refund processing
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Automated workflows
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/oldrefund" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-enterprise">Enterprise</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-handshake"></i>
+          </div>
+          <h3 class="card-title">Billing Agreements</h3>
+        </div>
+        <p class="card-description">
+          Set up reference transactions and billing agreements for subscription services,
+          recurring payments, and marketplace scenarios with advanced merchant controls.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Reference transactions
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Subscription management
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Marketplace support
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/bart" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-enterprise">Enterprise</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3 class="card-title">Multiparty Payments</h3>
+        </div>
+        <p class="card-description">
+          Advanced multiparty payment processing for marketplaces, platforms, and complex
+          business models with split payments and commission handling.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Split payment processing
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Commission management
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Marketplace optimization
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/multiacdc" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3 class="card-title">Payment Tracking</h3>
+        </div>
+        <p class="card-description">
+          Comprehensive payment tracking and analytics system with real-time monitoring,
+          detailed reporting, and advanced fraud detection capabilities.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Real-time monitoring
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Advanced analytics
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Fraud detection
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/tracking" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-credit-card"></i>
+          </div>
+          <h3 class="card-title">Hosted Fields</h3>
+        </div>
+        <p class="card-description">
+          Secure card input fields hosted by Braintree, reducing PCI compliance scope
+          while maintaining full control over the payment experience and styling.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Reduced PCI scope
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Custom styling control
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Enhanced security
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/hostedfields" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h3 class="card-title">Mobile Wallet Suite</h3>
+        </div>
+        <p class="card-description">
+          Comprehensive mobile payment solution with Apple Pay, Google Pay, and other
+          digital wallets integrated through Braintree's advanced platform.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Multiple wallet support
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Unified integration
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Mobile optimization
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/brain" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-university"></i>
+          </div>
+          <h3 class="card-title">Pay Upon Invoice (PUI)</h3>
+        </div>
+        <p class="card-description">
+          German market-specific payment method allowing customers to pay after receiving goods.
+          Ideal for B2B transactions and building customer trust in DACH regions.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              DACH market optimization
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Post-delivery payment
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Risk management included
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/pui" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-building-columns"></i>
+          </div>
+          <h3 class="card-title">iDEAL Integration</h3>
+        </div>
+        <p class="card-description">
+          Netherlands' most popular online payment method. Direct bank transfers with
+          instant confirmation, perfect for Dutch market penetration.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Dutch market leader
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Instant bank transfer
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              High conversion rates
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/ideal" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-expert">Expert</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <h3 class="card-title">STC Pay Integration</h3>
+        </div>
+        <p class="card-description">
+          Saudi Arabia's leading digital wallet solution. Essential for businesses
+          targeting the Middle East market with localized payment preferences.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Saudi market leader
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Digital wallet integration
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Local payment preferences
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/stc" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-enterprise">Enterprise</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <h3 class="card-title">PPCP Advanced</h3>
+        </div>
+        <p class="card-description">
+          PayPal Commerce Platform with advanced features for enterprise merchants.
+          Unified payment processing with enhanced customization and control.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Enterprise-grade platform
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Advanced customization
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Unified processing
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/ppcp" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <h3 class="card-title">Vault Subscriptions</h3>
+        </div>
+        <p class="card-description">
+          Advanced subscription management with vaulted payment methods.
+          Perfect for SaaS, membership sites, and recurring billing scenarios.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Recurring billing automation
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Payment method vaulting
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Subscription lifecycle management
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/vaultsub" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-expert">Expert</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3 class="card-title">Fastlane Checkout</h3>
+        </div>
+        <p class="card-description">
+          Ultra-fast checkout experience with one-click payments and guest checkout optimization.
+          Maximize conversion rates with cutting-edge checkout technology.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              One-click payments
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Guest checkout optimization
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Maximum conversion rates
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="https://fastlane-sand.vercel.app/" target="_blank" class="demo-button">
+            <i class="fas fa-external-link-alt"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="complexity-badge complexity-advanced">Advanced</div>
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <h3 class="card-title">Latest Features</h3>
+        </div>
+        <p class="card-description">
+          Explore the newest PayPal features and experimental capabilities.
+          Stay ahead with cutting-edge payment innovations and beta features.
+        </p>
+        <div class="card-features">
+          <ul class="feature-list">
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Latest innovations
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Beta feature access
+            </li>
+            <li class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              Cutting-edge technology
+            </li>
+          </ul>
+        </div>
+        <div class="card-actions">
+          <a href="/newstuff" target="_blank" class="demo-button">
+            <i class="fas fa-play"></i>
+            Launch Demo
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="card-container">
-    <div class="card">
-      <h3>Vaulting</h3>
-      <p>
-        This is a description for the first card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/acdc" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Google pay</h3>
-      <p>
-        This is a description for the second card. It might offer different
-        content or actions compared to the first card.
-      </p>
-      <div class="card-buttons">
-        <a href="/googlepay" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Apple pay</h3>
-      <p>
-        This is a description for the third card. You can customize the
-        content to fit the needs of your website.
-      </p>
-      <div class="card-buttons">
-        <a href="/applepay" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Server side SDK</h3>
-      <p>
-        This is a description for the fourth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/serversdk" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Api integration</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/old" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Api integration refunds</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/oldrefund" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Billing Agreements/Reference Transactions</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/bart" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Multiparty ACDC</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/multiacdc" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Tracking</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/tracking" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Fastlane</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="https://fastlane-sand.vercel.app/" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Braintree hostedfields</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/hostedfields" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Braintree apple google</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/brain" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>PUI</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/pui" target="_blank">Demo</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>PPCP</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/ppcp" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Ideal</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/ideal" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>STC</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/stc" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Vault sub</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/vaultsub" target="_blank">Demo</a>
-      </div>
-    </div>
-    <div class="card">
-      <h3>QL features</h3>
-      <p>
-        This is a description for the fifth card. It contains some brief
-        information about the content or purpose of the card.
-      </p>
-      <div class="card-buttons">
-        <a href="/newstuff" target="_blank">Demo</a>
-      </div>
-    </div>
   </div>
 </body>
 

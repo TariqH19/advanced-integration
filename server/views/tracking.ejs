@@ -1,196 +1,441 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PayPal Tracking API</title>
-  </head>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayPal Tracking API - Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 1rem 2rem;
+      margin-bottom: 2rem;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      height: 100vh;
-      background-color: #169bd7;
-      display: flex !important;
-      width: 100%;
-      justify-content: center;
-    }
-    @media only screen and (min-width: 800px) {
-      #content-container {
-        text-align: center;
-        padding: 20px;
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        width: 30%;
-      }
-    }
-    @media only screen and (max-width: 800px) {
-      #content-container {
-        width: 80%;
-        text-align: center;
-        padding: 20px;
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-    }
-    #paypal-button-container {
-      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    #checkout-form {
-      display: inline-block;
-      text-align: center;
-      width: 100%;
-    }
-
-    #result-message {
-      margin-top: 20px;
-    }
-
-    #content-container p {
-      font-family: "roboto", sans-serif;
-      color: #222d65;
-      font-size: 16px;
-      margin-bottom: 20px;
+    .navbar h1 {
+      color: white;
+      font-size: 1.5rem;
       font-weight: 600;
     }
 
-    .button-card-fields {
-      font-size: 17px;
-      background-color: transparent;
-      border: solid 2px #222d65;
-      color: #222d65;
-      padding: 10px;
+    .navbar .badge {
+      background: #ffc439;
+      color: #0070ba;
+      padding: 0.3rem 0.8rem;
       border-radius: 20px;
-      margin-bottom: 20px;
-      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
-    /* Input Fields */
-    input[type="text"],
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .workflow-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .workflow-header {
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .workflow-header h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .workflow-header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .steps-container {
+      padding: 2rem;
+    }
+
+    .step {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      border-color: #0070ba;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 186, 0.15);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .step-number {
+      background: #0070ba;
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      font-weight: 600;
+    }
+
+    .step-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .step-status.pending {
+      background: #ffeaa7;
+      color: #d63031;
+    }
+
+    .step-status.processing {
+      background: #74b9ff;
+      color: white;
+    }
+
+    .step-status.completed {
+      background: #00b894;
+      color: white;
+    }
+
+    .step-status.error {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .step-content {
+      margin-left: 3rem;
+    }
+
+    .step-description {
+      color: #666;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    input,
     select {
-      width: 80%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 2px solid #ccc;
+      width: 100%;
+      padding: 0.8rem;
+      border: 2px solid #e9ecef;
       border-radius: 8px;
-      font-size: 1em;
-      background-color: #f9f9f9;
+      font-size: 1rem;
       transition: border-color 0.3s ease;
     }
 
-    input[type="text"]:focus,
+    input:focus,
     select:focus {
+      outline: none;
       border-color: #0070ba;
-      outline: none;
     }
 
-    /* Labels */
-    label {
-      display: block;
-      margin-bottom: 5px;
-      text-align: center;
-      font-weight: bold;
-      color: #333;
-    }
-
-    /* Buttons */
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #0070ba;
+    .btn {
+      background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%);
+      color: white;
       border: none;
+      padding: 0.8rem 1.5rem;
       border-radius: 8px;
-      color: #fff;
-      font-size: 1.1em;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    button:hover {
-      background-color: #005ea6;
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 186, 0.3);
     }
 
-    button:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(0, 112, 186, 0.3);
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
-    /* Result Messages */
-    #result-message,
-    #tracking-result-message,
-    #admin-result-message {
-      font-size: 1.1em;
-      color: #333;
-      margin-top: 20px;
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
     }
 
-    /* Success Message */
-    .success {
-      color: #28a745;
-      font-weight: bold;
+    .btn-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     }
 
-    /* Error Message */
-    .error {
-      color: #dc3545;
-      font-weight: bold;
+    .result-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-container.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .result-container.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-content {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .paypal-button-container {
+      margin: 1rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .step-content {
+        margin-left: 0;
+      }
+
+      .step-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
   </style>
-  <body>
-    <div id="content-container">
-      <p>Tracking API</p>
-      <!-- PayPal Button Container -->
-      <div id="paypal-button-container" class="paypal-button-container"></div>
-      <!-- Result Message Container -->
-      <p id="result-message"></p>
-      <!-- Customer Tracking Info Form -->
-      <label for="transactionId">Transaction ID:</label>
-      <input
-        type="text"
-        id="transactionId"
-        placeholder="Input transaction ID" />
-      <label for="trackingNumber">Tracking Number:</label>
-      <input
-        type="text"
-        id="trackingNumber"
-        placeholder="Input tracking number" />
-      <!-- Button to fetch tracking info -->
-      <button id="get-tracking-info-button">Retrieve tracking info</button>
-      <!-- Container to display the result -->
-      <p id="tracking-result-message"></p>
-      <h3>Update tracking info</h3>
-      <label for="adminTransactionId">Transaction ID:</label>
-      <input
-        type="text"
-        id="adminTransactionId"
-        placeholder="Input transaction ID" />
-      <label for="adminTrackingNumber">Tracking Number:</label>
-      <input
-        type="text"
-        id="adminTrackingNumber"
-        placeholder="Input tracking number" />
-      <label for="adminCarrier">Carrier:</label>
-      <input type="text" id="adminCarrier" placeholder="Input carrier name" />
-      <label for="adminStatus">Status:</label>
-      <select id="adminStatus">
-        <option value="ON_HOLD">On hold</option>
-        <option value="SHIPPED">Shipped</option>
-        <option value="DELIVERED">Delivered</option>
-        <option value="CANCELLED">Cancelled</option>
-      </select>
-      <!-- Button to update tracking information -->
-      <button id="update-tracking-button">Update tracking</button>
-      <!-- Result message -->
-      <p id="admin-result-message"></p>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="navbar">
+      <h1><i class="fas fa-shipping-fast"></i> PayPal Tracking API</h1>
+      <span class="badge">Advanced Integration</span>
+    </nav>
+
+    <div class="workflow-container">
+      <div class="workflow-header">
+        <h2><i class="fas fa-box"></i> Package Tracking Workflow</h2>
+        <p>Create orders, process payments, and manage tracking information</p>
+      </div>
+
+      <div class="steps-container">
+        <!-- Step 1: Create Order -->
+        <div class="step active" id="step1">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">1</span>
+              Create Order & Process Payment
+            </div>
+            <span class="step-status pending" id="step1-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Create a PayPal order and process the payment. Tracking information will be automatically added after
+              successful payment.
+            </p>
+            <div id="paypal-button-container" class="paypal-button-container"></div>
+            <div class="result-container" id="step1-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Retrieve Tracking Info -->
+        <div class="step" id="step2">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">2</span>
+              Retrieve Tracking Information
+            </div>
+            <span class="step-status pending" id="step2-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Enter transaction and tracking details to retrieve current shipping status.
+            </p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="transactionId">Transaction ID</label>
+                <input type="text" id="transactionId" placeholder="Enter transaction ID">
+              </div>
+              <div class="form-group">
+                <label for="trackingNumber">Tracking Number</label>
+                <input type="text" id="trackingNumber" placeholder="Enter tracking number">
+              </div>
+            </div>
+            <button class="btn" id="getTrackingButton" disabled>
+              <i class="fas fa-search"></i>
+              Get Tracking Info
+            </button>
+            <div class="result-container" id="step2-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 3: Update Tracking Info -->
+        <div class="step" id="step3">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">3</span>
+              Update Tracking Information
+            </div>
+            <span class="step-status pending" id="step3-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Update the tracking status and carrier information for a shipment.
+            </p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="updateTransactionId">Transaction ID</label>
+                <input type="text" id="updateTransactionId" placeholder="Enter transaction ID">
+              </div>
+              <div class="form-group">
+                <label for="updateTrackingNumber">Tracking Number</label>
+                <input type="text" id="updateTrackingNumber" placeholder="Enter tracking number">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="updateCarrier">Carrier</label>
+                <input type="text" id="updateCarrier" placeholder="Enter carrier name (e.g., FEDEX, UPS)">
+              </div>
+              <div class="form-group">
+                <label for="updateStatus">Status</label>
+                <select id="updateStatus">
+                  <option value="">Select status</option>
+                  <option value="ON_HOLD">On Hold</option>
+                  <option value="SHIPPED">Shipped</option>
+                  <option value="DELIVERED">Delivered</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-success" id="updateTrackingButton" disabled>
+              <i class="fas fa-edit"></i>
+              Update Tracking
+            </button>
+            <div class="result-container" id="step3-result"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- PayPal SDK -->
-    <script src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP&components=messages,card-fields,buttons&enable-funding=paylater&buyer-country=GB"></script>
-    <script src="tracking.js"></script>
-  </body>
+  </div>
+
+  <!-- PayPal SDK -->
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=AXakS410la2fYSpiyC7A1nNsv_45cgH-_Cih7Gn1ggy_NUvIBZ_MSdWReMU9AqeupbTuo3lUkw5G-HsH&currency=GBP&components=messages,card-fields,buttons&enable-funding=paylater&buyer-country=GB"></script>
+  <script src="tracking.js"></script>
+</body>
+
 </html>

@@ -175,9 +175,16 @@ if (cardField.isEligible()) {
 // Refund Button Click Handler
 document.getElementById("refund-button").addEventListener("click", async () => {
   if (!window.captureId) {
-    alert("No payment captured yet. Please capture a payment first.");
+    resultMessage("No payment captured yet. Please capture a payment first.");
     return;
   }
+
+  const refundButton = document.getElementById("refund-button");
+  const originalHTML = refundButton.innerHTML;
+
+  // Show spinner and disable button
+  refundButton.innerHTML = '<span class="spinner"></span> Processing Refund...';
+  refundButton.disabled = true;
 
   try {
     const response = await fetch(
@@ -193,22 +200,38 @@ document.getElementById("refund-button").addEventListener("click", async () => {
     const result = await response.json();
 
     if (response.ok) {
-      document.getElementById(
-        "refund-message"
-      ).textContent = `Refund successful: ${result.status}`;
+      resultMessage(
+        `Refund successful: ${result.status} - Refund ID: ${result.id || "N/A"}`
+      );
     } else {
-      document.getElementById(
-        "refund-message"
-      ).textContent = `Refund failed: ${result.error}`;
+      resultMessage(`Refund failed: ${result.error || "Unknown error"}`);
     }
   } catch (error) {
     console.error("Error processing refund:", error);
-    document.getElementById("refund-message").textContent =
-      "An error occurred while processing the refund.";
+    resultMessage("An error occurred while processing the refund.");
+  } finally {
+    // Restore button state
+    refundButton.innerHTML = originalHTML;
+    refundButton.disabled = false;
   }
 });
 
 function resultMessage(message) {
   const container = document.querySelector("#result-message");
   container.innerHTML = message;
+
+  // Style based on message content
+  if (
+    message.toLowerCase().includes("error") ||
+    message.toLowerCase().includes("failed") ||
+    message.toLowerCase().includes("could not")
+  ) {
+    container.style.background = "#f8d7da";
+    container.style.borderColor = "#f5c6cb";
+    container.style.color = "#721c24";
+  } else {
+    container.style.background = "#d4edda";
+    container.style.borderColor = "#c3e6cb";
+    container.style.color = "#155724";
+  }
 }

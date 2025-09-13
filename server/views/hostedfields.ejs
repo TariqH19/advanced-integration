@@ -1,212 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome To Braintree</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load the client component. -->
-    <script src="https://js.braintreegateway.com/web/3.91.0/js/client.min.js"></script>
-    <script src="https://js.braintreegateway.com/web/3.91.0/js/hosted-fields.min.js"></script>
-    <script src="https://js.braintreegateway.com/web/3.91.0/js/three-d-secure.min.js"></script>
 
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.7.4/jsoneditor.min.js"
-      integrity="sha512-KQaWlVsZF0iPXCR8p176hVrg/rlw+smy8dpJ+vwiuvoHyGr8PTVvaAV4ZmsAYdCvMRP8e3sB9pl1mRuaunaXrg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.7.4/jsoneditor.css"
-      integrity="sha512-XmjnlPNi5tkrcqMGEG7ZOpGhny9t8fdCk0oxZxjFaqF3cl3UKv+51GgeUoY3Rf/ZaGtBvMZ9dDhceGZ1hcOyMw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer" />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Braintree Hosted Fields - Advanced Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="stylesheet" href="./hostedfields.css" />
+  <!-- Braintree SDK -->
+  <script src="https://js.braintreegateway.com/web/3.91.0/js/client.min.js"></script>
+  <script src="https://js.braintreegateway.com/web/3.91.0/js/hosted-fields.min.js"></script>
+  <script src="https://js.braintreegateway.com/web/3.91.0/js/three-d-secure.min.js"></script>
 
-    <script src="commonFront.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+  <!-- JSON Editor -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.7.4/jsoneditor.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.7.4/jsoneditor.css">
+
+  <script src="commonFront.js"></script>
+  <link rel="stylesheet" href="./hostedfields.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 1rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .navbar h1 {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .navbar h1 a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .navbar .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .navbar .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .workflow-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .workflow-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .workflow-header h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .workflow-header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .steps-container {
+      padding: 2rem;
+    }
+
+    .step {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      font-weight: 600;
+    }
+
+    .step-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .step-status.pending {
+      background: #ffeaa7;
+      color: #d63031;
+    }
+
+    .step-status.processing {
+      background: #74b9ff;
+      color: white;
+    }
+
+    .step-status.completed {
+      background: #00b894;
+      color: white;
+    }
+
+    .step-status.error {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .step-content {
+      margin-left: 3rem;
+    }
+
+    .step-description {
+      color: #666;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .form-container {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .cardinfo-card-number,
+    .cardinfo-exp-date,
+    .cardinfo-cvv {
+      margin-bottom: 1rem;
+    }
+
+    .cardinfo-wrapper {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .cardinfo-exp-date,
+    .cardinfo-cvv {
+      flex: 1;
+    }
+
+    .input-wrapper {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.8rem;
+      background: white;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #667eea;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.show-button {
+      background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    }
+
+    .result-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-container.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .result-container.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-content {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .test-cards {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .test-cards h3 {
+      color: #1976d2;
+      margin-bottom: 0.5rem;
+    }
+
+    .test-cards .card-info {
+      font-family: 'Courier New', monospace;
+      margin: 0.25rem 0;
+    }
+
+    .json-editor-container {
+      margin-top: 1rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .json-editor-container.show {
+      display: block;
+    }
+
+    #jsoneditor {
+      height: 300px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #card-image {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 20px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .cardinfo-card-number {
+      position: relative;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
       .navbar {
-        background-color: #333;
-        overflow: hidden;
-        padding: 40px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .navbar h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-        font-weight: normal;
-      }
-
-      .navbar a {
-        color: white;
+        flex-direction: column;
+        gap: 1rem;
         text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-        transition: background-color 0.3s, color 0.3s;
       }
 
-      .navbar a:hover {
-        background-color: #ddd;
-        color: black;
-        border-radius: 5px;
+      .navbar .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
       }
 
-      .navbar a:not(:last-child) {
-        margin-right: 10px;
+      .form-row,
+      .cardinfo-wrapper {
+        flex-direction: column;
       }
-    </style>
-  </head>
 
-  <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
+      .step-content {
+        margin-left: 0;
+      }
 
-        <a href="/cards">Cards</a>
+      .step-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="navbar">
+      <h1><a href="/"><i class="fas fa-credit-card"></i> Braintree Hosted Fields</a></h1>
+      <div class="nav-links">
+        <a href="/standardview"><i class="fas fa-coins"></i> Standard</a>
+        <a href="/advancedview"><i class="fas fa-rocket"></i> Advanced</a>
+        <a href="/cards"><i class="fas fa-credit-card"></i> Cards</a>
+      </div>
+    </nav>
+
+    <div class="workflow-container">
+      <div class="workflow-header">
+        <h2><i class="fas fa-shield-alt"></i> Secure Card Processing</h2>
+        <p>Advanced Braintree Hosted Fields with 3D Secure authentication</p>
+      </div>
+
+      <div class="steps-container">
+        <!-- Step 1: Configure Payment -->
+        <div class="step active" id="step1">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">1</span>
+              Configure Payment Options
+            </div>
+            <span class="step-status pending" id="step1-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Configure payment settings including 3D Secure authentication and other advanced options.
+            </p>
+
+            <div class="form-container">
+              <div class="checkbox-group">
+                <input type="checkbox" id="enable3DS" name="enable3DS">
+                <label for="enable3DS">Enable 3D Secure Authentication</label>
+              </div>
+
+              <div class="json-editor-container" id="jsonEditorContainer">
+                <div id="jsoneditor"></div>
+              </div>
+
+              <button class="btn" id="configureButton">
+                <i class="fas fa-cog"></i>
+                Configure & Continue
+              </button>
+            </div>
+
+            <div class="result-container" id="step1-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter Card Details -->
+        <div class="step" id="step2">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">2</span>
+              Enter Card Information
+            </div>
+            <span class="step-status pending" id="step2-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Enter your payment card details using our secure hosted fields.
+            </p>
+
+            <div class="form-row">
+              <div class="test-cards">
+                <h3><i class="fas fa-credit-card"></i> Test Card Numbers</h3>
+                <div class="card-info"><strong>Visa:</strong> 4111 1111 1111 1111</div>
+                <div class="card-info"><strong>MasterCard:</strong> 5555 5555 5555 4444</div>
+                <div class="card-info"><strong>American Express:</strong> 3714 496353 98431</div>
+                <p style="margin-top: 0.5rem;">
+                  <a href="https://developer.paypal.com/braintree/docs/guides/3d-secure/testing-go-live" target="_blank"
+                    style="color: #1976d2;">
+                    <i class="fas fa-external-link-alt"></i> More test cards
+                  </a>
+                </p>
+              </div>
+            </div>
+
+            <div class="form-container">
+              <form id="my-sample-form">
+                <div class="cardinfo-card-number">
+                  <label class="cardinfo-label" for="card-number">Card Number</label>
+                  <div class="input-wrapper" id="card-number"></div>
+                  <div id="card-image"></div>
+                </div>
+                <div class="cardinfo-wrapper">
+                  <div class="cardinfo-exp-date">
+                    <label class="cardinfo-label" for="expiration-date">Expiry Date</label>
+                    <div class="input-wrapper" id="expiration-date"></div>
+                  </div>
+                  <div class="cardinfo-cvv">
+                    <label class="cardinfo-label" for="cvv">CVV</label>
+                    <div class="input-wrapper" id="cvv"></div>
+                  </div>
+                </div>
+              </form>
+              <button class="btn" id="button-pay" disabled>
+                <i class="fas fa-lock"></i>
+                Process Payment
+              </button>
+            </div>
+
+            <div class="result-container" id="step2-result"></div>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment Processing -->
+        <div class="step" id="step3">
+          <div class="step-header">
+            <div class="step-title">
+              <span class="step-number">3</span>
+              Payment Processing & Results
+            </div>
+            <span class="step-status pending" id="step3-status">Pending</span>
+          </div>
+          <div class="step-content">
+            <p class="step-description">
+              Review the payment processing results and 3D Secure authentication details.
+            </p>
+
+            <div class="result-container" id="step3-result"></div>
+
+            <button class="btn" id="makeAnotherPaymentButton" style="display: none;">
+              <i class="fas fa-redo"></i>
+              Make Another Payment
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="container mx-auto">
-      <div class="flex flex-col gap-4">
-        <div class="header w-full flex flex-col gap-2">
-          <h1 class="font-bold text-2xl">Braintree Card Hosted Fields</h1>
-          <p>
-            This is an example of how to use Braintree Hosted Fields to process
-            credit card transaction
-          </p>
-          <p>
-            Documentation :
-            <a
-              href="https://developer.paypal.com/braintree/docs/guides/hosted-fields/overview/javascript/v3/"
-              target="_blank"
-              class="underline text-blue-600 hover:text-blue-800"
-              >Braintree Hosted Fields</a
-            >
-          </p>
-        </div>
-
-        <div
-          class="itemOptions flex flex-col m-5 p-4 sm:p-8 bg-white dark:bg-gray-500 shadow sm:rounded-lg">
-          <h1
-            class="font-semibold text-xl text-gray-800 dark:text-white leading-tight pb-4">
-            Options
-          </h1>
-          <div
-            class="py-3 px-6 mb-0 bg-gray-200 border-b-1 border-gray-300 text-gray-900"
-            id="headingThree">
-            <div
-              class="py-3 px-6 mb-0 bg-gray-200 border-b-1 border-gray-300 text-gray-900"
-              id="headingThree">
-              <div class="">
-                <label for="enable3DS">Enable 3DS</label>
-                <input type="checkbox" id="enable3DS" name="enable3DS" />
-                <div id="jsoneditor" class="hidden"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-4 w-full">
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="form-container p-4">
-                <h3>Some test Card numbers :</h3>
-                <br />
-                Visa : 4111 1111 1111 1111 <br />
-                MasterCard : 5555 5555 5555 4444 <br />
-                American Express : 3714 496353 98431 <br />
-                <a
-                  class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                  href="https://developer.paypal.com/braintree/docs/guides/3d-secure/testing-go-live"
-                  >Test Cards for negative testing</a
-                >
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="form-container p-4">
-                <header>
-                  <h3>Pay with Credit Card</h3>
-                </header>
-                <form id="my-sample-form" class="scale-down">
-                  <div class="cardinfo-card-number">
-                    <label class="cardinfo-label" for="card-number"
-                      >Card Number</label
-                    >
-                    <div class="input-wrapper" id="card-number"></div>
-                    <div id="card-image"></div>
-                  </div>
-                  <div class="cardinfo-wrapper">
-                    <div class="cardinfo-exp-date">
-                      <label class="cardinfo-label" for="expiration-date"
-                        >Valid Thru</label
-                      >
-                      <div class="input-wrapper" id="expiration-date"></div>
-                    </div>
-                    <div class="cardinfo-cvv">
-                      <label class="cardinfo-label" for="cvv">CVV</label>
-                      <div class="input-wrapper" id="cvv"></div>
-                    </div>
-                  </div>
-                </form>
-                <button id="button-pay">Continue</button>
-              </div>
-            </div>
-          </div>
-          <br />
-          <div class="row">
-            <div class="divTransactionSale hidden col-lg-12">
-              <h3>Create the transaction</h3>
-
-              <br />
-              <br />
-            </div>
-            <div id="divResults" class="col-lg-12">
-              <div class="step3 hidden">
-                <h3>
-                  <span class="bold">Step 3</span> - Reponse Hosted Fields AFTER
-                  3DS
-                </h3>
-                <pre id="responseHostedFieldsFinal">
-... submit to see the response ...</pre
-                >
-              </div>
-
-              <div class="step2 hidden">
-                <h3>
-                  <span class="bold">Step 2</span> - Reponse 3DS lookup-complete
-                </h3>
-                <pre id="response3DS">... submit to see the response ...</pre>
-              </div>
-
-              <div class="step1 hidden">
-                <h3>
-                  <span class="bold">Step 1</span> - Reponse Hosted Fields
-                  before 3DS
-                </h3>
-                <pre id="responseHostedFields">
-... submit to see the response ...</pre
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
+  </div>
 
   <script>
     const mid = "<%= MID %>";
@@ -215,4 +568,6 @@
 
   <script src="hostedfields.js"></script>
   <script src="jsonEditor.js"></script>
+</body>
+
 </html>

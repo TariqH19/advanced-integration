@@ -100,34 +100,26 @@ export async function newCreateOrder(cart) {
         {
           amount: {
             currencyCode: "USD",
-            value: "100",
+            value: "100.00",
             breakdown: {
               itemTotal: {
                 currencyCode: "USD",
-                value: "100",
+                value: "100.00",
               },
             },
           },
-          // lookup item details in `cart` from database
           items: [
             {
               name: "T-Shirt",
               unitAmount: {
                 currencyCode: "USD",
-                value: "100",
+                value: "100.00",
               },
               quantity: "1",
               description: "Super Fresh Shirt",
               sku: "sku01",
             },
           ],
-          shipping: {
-            email_address: "buyer_shipping_email@example.com",
-            phone_number: {
-              country_code: "1",
-              national_number: "4081111111",
-            },
-          },
         },
       ],
       paymentSource: {
@@ -135,9 +127,8 @@ export async function newCreateOrder(cart) {
           experienceContext: {
             userAction: PaypalExperienceUserAction.PayNow,
             returnUrl:
-              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
-            cancelUrl:
-              "https://developer.paypal.com/studio/checkout/standard/integrate?appswitch=true",
+              "https://advanced-integration.vercel.app/newstuff/return",
+            cancelUrl: "https://advanced-integration.vercel.app/newstuff",
             appSwitchPreference: {
               launchPaypalApp: true,
             },
@@ -157,20 +148,17 @@ export async function newCreateOrder(cart) {
   };
 
   try {
-    const { body, ...httpResponse } = await newOrdersController.createOrder(
-      collect
-    );
-    // Get more response info...
-    // const { statusCode, headers } = httpResponse;
+    const response = await newOrdersController.createOrder(collect);
+
+    // Make sure `body` is not empty
+
     return {
-      jsonResponse: JSON.parse(body),
-      httpStatusCode: httpResponse.statusCode,
+      jsonResponse: response.result,
+      httpStatusCode: response.statusCode || 200,
     };
   } catch (error) {
-    if (error instanceof ApiError) {
-      // const { statusCode, headers } = error;
-      throw new Error(error.message);
-    }
+    console.error("Error in newCreateOrder:", error);
+    throw error; // ensure the function never returns undefined
   }
 }
 
@@ -189,6 +177,32 @@ export async function captureOrder(orderID) {
     return {
       jsonResponse: JSON.parse(body),
       httpStatusCode: httpResponse.statusCode,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      // const { statusCode, headers } = error;
+      throw new Error(error.message);
+    }
+  }
+}
+
+export async function newCaptureOrder(orderID) {
+  const collect = {
+    id: orderID,
+    prefer: "return=minimal",
+  };
+
+  try {
+    const response = await newOrdersController.captureOrder({
+      id: orderID,
+      prefer: "return=minimal",
+    });
+
+    // Get more response info...
+    // const { statusCode, headers } = httpResponse;
+    return {
+      jsonResponse: response.result,
+      httpStatusCode: response.statusCode || 200,
     };
   } catch (error) {
     if (error instanceof ApiError) {
