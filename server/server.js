@@ -28,6 +28,7 @@ import * as multi from "./multi-api.js";
 import * as multiacdc from "./multiacdc-api.js";
 import * as ideal from "./oauth.js";
 import * as pui from "./pui-api.js";
+import vaultDuringAPI from "./vault-during-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -57,6 +58,9 @@ app.use(express.static(clientPath));
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+// Vault API routes
+app.use("/vault-during/api", vaultDuringAPI);
 
 // Render checkout page with client ID
 app.get("/acdc", async (req, res) => {
@@ -593,6 +597,11 @@ app.get("/newstuff", async (req, res) => {
 
 app.get("/newstuff/return", async (req, res) => {
   res.render("newstuff-return");
+});
+
+// Vault During Purchase routes
+app.get("/vault-during-purchase", async (req, res) => {
+  res.render("vault-during-purchase");
 });
 
 app.post("/serversdk/api/orders", async (req, res) => {

@@ -1,0 +1,54 @@
+{
+  "customers": {
+    "customer_001": {
+      "id": "customer_001",
+      "name": "Tariq Horan",
+      "email": "ukth@personal.com",
+      "created": "2025-09-15T10:03:56.279Z",
+      "paypal_customer_id": "VCzNdfEKyh",
+      "payment_tokens": [
+        {
+          "id": "66519069hd7645745",
+          "type": "PAYPAL",
+          "status": "VAULTED",
+          "created": "2025-09-15T10:05:07.915Z",
+          "last_used": "2025-09-15T11:17:44.770Z"
+        }
+      ]
+    },
+    "customer_002": {
+      "id": "customer_002",
+      "name": "Tariq Horan",
+      "email": "usth@personal.com",
+      "created": "2025-09-15T10:06:20.726Z",
+      "paypal_customer_id": null,
+      "payment_tokens": []
+    },
+    "customer_003": {
+      "id": "customer_003",
+      "name": "test test",
+      "email": "t@gmail.com",
+      "created": "2025-09-15T11:34:45.898Z",
+      "paypal_customer_id": "GPleNABETG",
+      "payment_tokens": [
+        {
+          "id": "79854907yn601162g",
+          "type": "CARD",
+          "status": "VAULTED",
+          "created": "2025-09-15T11:46:30.574Z",
+          "last_used": "2025-09-15T11:46:30.574Z",
+          "card_details": {
+            "last_digits": "1000",
+            "brand": "VISA",
+            "type": "CREDIT"
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "lastCustomerId": 3,
+    "created": "2025-09-15",
+    "description": "PayPal Vault Demo Data Storage"
+  }
+}
