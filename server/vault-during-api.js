@@ -451,9 +451,9 @@ router.post("/capture-vault-order/:orderID", async (req, res) => {
               console.log("Added new payment token:", tokenData);
             } else {
               // Update last used time for existing token
-              const existingToken = vaultData.customers[customerId].payment_tokens.find(
-                (token) => token.id === vaultInfo.id
-              );
+              const existingToken = vaultData.customers[
+                customerId
+              ].payment_tokens.find((token) => token.id === vaultInfo.id);
               if (existingToken) {
                 existingToken.last_used = new Date().toISOString();
                 console.log("Updated existing token last used time");
@@ -791,95 +791,108 @@ router.post("/demo-card-vault", async (req, res) => {
 });
 
 // Route: Delete payment token
-router.delete("/customer/:customerId/payment-token/:tokenId", async (req, res) => {
-  try {
-    const { customerId, tokenId } = req.params;
-    const { deleteFromPayPal = false } = req.body;
+router.delete(
+  "/customer/:customerId/payment-token/:tokenId",
+  async (req, res) => {
+    try {
+      const { customerId, tokenId } = req.params;
+      const { deleteFromPayPal = false } = req.body;
 
-    console.log(`Deleting payment token ${tokenId} for customer ${customerId}`);
+      console.log(
+        `Deleting payment token ${tokenId} for customer ${customerId}`
+      );
 
-    if (!customerId || !tokenId) {
-      return res.status(400).json({
-        success: false,
-        error: "Customer ID and Token ID are required",
-      });
-    }
-
-    // Load vault data
-    const vaultData = await readVaultData();
-    const customer = vaultData.customers[customerId];
-
-    if (!customer) {
-      return res.status(404).json({
-        success: false,
-        error: "Customer not found",
-      });
-    }
-
-    // Find the token to delete
-    const tokenIndex = customer.payment_tokens.findIndex(
-      (token) => token.id === tokenId
-    );
-
-    if (tokenIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        error: "Payment token not found",
-      });
-    }
-
-    const token = customer.payment_tokens[tokenIndex];
-
-    // If requested, delete from PayPal vault as well
-    let paypalDeletionResult = null;
-    if (deleteFromPayPal && !token.demo) {
-      try {
-        const accessToken = await generateAccessToken();
-        
-        const response = await fetch(
-          `${PAYPAL_API}/v3/vault/payment-tokens/${tokenId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          paypalDeletionResult = "success";
-          console.log(`Successfully deleted token ${tokenId} from PayPal vault`);
-        } else {
-          const errorData = await response.json();
-          console.warn(`Failed to delete token from PayPal: ${errorData.message || 'Unknown error'}`);
-          paypalDeletionResult = "failed";
-        }
-      } catch (error) {
-        console.error("Error deleting token from PayPal:", error);
-        paypalDeletionResult = "error";
+      if (!customerId || !tokenId) {
+        return res.status(400).json({
+          success: false,
+          error: "Customer ID and Token ID are required",
+        });
       }
+
+      // Load vault data
+      const vaultData = await readVaultData();
+      const customer = vaultData.customers[customerId];
+
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          error: "Customer not found",
+        });
+      }
+
+      // Find the token to delete
+      const tokenIndex = customer.payment_tokens.findIndex(
+        (token) => token.id === tokenId
+      );
+
+      if (tokenIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          error: "Payment token not found",
+        });
+      }
+
+      const token = customer.payment_tokens[tokenIndex];
+
+      // If requested, delete from PayPal vault as well
+      let paypalDeletionResult = null;
+      if (deleteFromPayPal && !token.demo) {
+        try {
+          const accessToken = await generateAccessToken();
+
+          const response = await fetch(
+            `${PAYPAL_API}/v3/vault/payment-tokens/${tokenId}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            paypalDeletionResult = "success";
+            console.log(
+              `Successfully deleted token ${tokenId} from PayPal vault`
+            );
+          } else {
+            const errorData = await response.json();
+            console.warn(
+              `Failed to delete token from PayPal: ${
+                errorData.message || "Unknown error"
+              }`
+            );
+            paypalDeletionResult = "failed";
+          }
+        } catch (error) {
+          console.error("Error deleting token from PayPal:", error);
+          paypalDeletionResult = "error";
+        }
+      }
+
+      // Remove from local storage
+      customer.payment_tokens.splice(tokenIndex, 1);
+      await writeVaultData(vaultData);
+
+      console.log(
+        `Successfully deleted payment token ${tokenId} from local storage`
+      );
+
+      res.json({
+        success: true,
+        message: "Payment token deleted successfully",
+        deletedToken: token,
+        paypalDeletion: paypalDeletionResult,
+      });
+    } catch (error) {
+      console.error("Error deleting payment token:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to delete payment token",
+      });
     }
-
-    // Remove from local storage
-    customer.payment_tokens.splice(tokenIndex, 1);
-    await writeVaultData(vaultData);
-
-    console.log(`Successfully deleted payment token ${tokenId} from local storage`);
-
-    res.json({
-      success: true,
-      message: "Payment token deleted successfully",
-      deletedToken: token,
-      paypalDeletion: paypalDeletionResult,
-    });
-  } catch (error) {
-    console.error("Error deleting payment token:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to delete payment token",
-    });
   }
-});
+);
 
 export default router;

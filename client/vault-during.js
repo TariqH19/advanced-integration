@@ -212,7 +212,8 @@ function showCustomerInfo(customer) {
   let tokensInfo = "";
   if (customer.payment_tokens && customer.payment_tokens.length > 0) {
     const tokenCount = customer.payment_tokens.length;
-    const tokenText = tokenCount === 1 ? "saved payment method" : "saved payment methods";
+    const tokenText =
+      tokenCount === 1 ? "saved payment method" : "saved payment methods";
     tokensInfo = `
       <div class="mt-2">
         <span class="badge bg-success-subtle text-success border border-success-subtle">
@@ -646,8 +647,12 @@ function initializeCardFields() {
                 },
                 experience_context: {
                   shipping_preference: "NO_SHIPPING",
-                  return_url: window.location.origin + "/vault-during-purchase?success=true",
-                  cancel_url: window.location.origin + "/vault-during-purchase?cancelled=true",
+                  return_url:
+                    window.location.origin +
+                    "/vault-during-purchase?success=true",
+                  cancel_url:
+                    window.location.origin +
+                    "/vault-during-purchase?cancelled=true",
                 },
               },
             }),
@@ -718,7 +723,10 @@ function initializeCardFields() {
 
       onError: function (error) {
         console.error("Card field error:", error);
-        showResultMessage("Card payment error occurred. Please try again.", "error");
+        showResultMessage(
+          "Card payment error occurred. Please try again.",
+          "error"
+        );
         showCardPaymentLoading(false);
       },
 
@@ -790,7 +798,7 @@ function initializeCardFields() {
         .getElementById("card-field-submit-button")
         .addEventListener("click", function () {
           console.log("Card field submit button clicked");
-          
+
           // Use the centralized loading function
           showCardPaymentLoading(true);
 
@@ -802,8 +810,11 @@ function initializeCardFields() {
             })
             .catch(function (err) {
               console.error("Error submitting card form:", err);
-              showResultMessage("Error submitting card details. Please try again.", "error");
-              
+              showResultMessage(
+                "Error submitting card details. Please try again.",
+                "error"
+              );
+
               // Reset loading state on error
               showCardPaymentLoading(false);
             });
@@ -822,8 +833,11 @@ function initializeCardFields() {
     }
   } catch (error) {
     console.error("Error initializing card fields:", error);
-    showResultMessage("Error initializing card fields: " + error.message, "error");
-    
+    showResultMessage(
+      "Error initializing card fields: " + error.message,
+      "error"
+    );
+
     // Fallback to demo mode
     container.innerHTML = `
             <div class="alert alert-danger">
@@ -839,7 +853,7 @@ function initializeCardFields() {
 // Show card payment loading
 function showCardPaymentLoading(show) {
   // Look for the actual card field submit button
-  const button = 
+  const button =
     document.getElementById("card-field-submit-button") ||
     document.getElementById("demo-card-pay-button") ||
     document.getElementById("card-pay-button");
@@ -856,11 +870,14 @@ function showCardPaymentLoading(show) {
     button.disabled = false;
     // Reset to the original card field button text
     if (button.id === "card-field-submit-button") {
-      button.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Pay $100.00 & Save Card';
+      button.innerHTML =
+        '<i class="fas fa-shield-alt me-2"></i>Pay $100.00 & Save Card';
     } else if (button.id === "demo-card-pay-button") {
-      button.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Demo: Pay $100.00 & Save Card';
+      button.innerHTML =
+        '<i class="fas fa-shield-alt me-2"></i>Demo: Pay $100.00 & Save Card';
     } else {
-      button.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Pay $100.00 & Save Card';
+      button.innerHTML =
+        '<i class="fas fa-shield-alt me-2"></i>Pay $100.00 & Save Card';
     }
   }
 
@@ -1071,19 +1088,20 @@ function populatePaymentTokens(paymentTokens) {
     const typeIcon =
       token.type === "PAYPAL" ? "fab fa-paypal" : "fas fa-credit-card";
     const typeColor = token.type === "PAYPAL" ? "text-primary" : "text-info";
-    
+
     // Enhanced type label with card details
-    let typeLabel = token.type === "PAYPAL" ? "PayPal Account" : "Credit/Debit Card";
+    let typeLabel =
+      token.type === "PAYPAL" ? "PayPal Account" : "Credit/Debit Card";
     let cardDetailsHTML = "";
-    
+
     if (token.type === "CARD" && token.card_details) {
       const { last_digits, brand, type } = token.card_details;
       if (last_digits) {
-        typeLabel = `${brand || 'Card'} •••• ${last_digits}`;
+        typeLabel = `${brand || "Card"} •••• ${last_digits}`;
         cardDetailsHTML = `
           <small class="text-info">
             <i class="fas fa-credit-card me-1"></i>
-            ${type || 'Credit'} ${brand || 'Card'} ending in ${last_digits}
+            ${type || "Credit"} ${brand || "Card"} ending in ${last_digits}
           </small>
           <br>
         `;
@@ -1122,14 +1140,14 @@ function populatePaymentTokens(paymentTokens) {
 
     tokenElement.addEventListener("click", (event) => {
       // Don't select if clicking delete button
-      if (event.target.closest('.delete-token-btn')) {
+      if (event.target.closest(".delete-token-btn")) {
         return;
       }
       selectPaymentToken(tokenElement, token);
     });
 
     // Add delete button event listener
-    const deleteBtn = tokenElement.querySelector('.delete-token-btn');
+    const deleteBtn = tokenElement.querySelector(".delete-token-btn");
     deleteBtn.addEventListener("click", (event) => {
       event.stopPropagation(); // Prevent token selection
       deletePaymentToken(token);
@@ -1278,10 +1296,12 @@ function showTokenPaymentResults(data) {
 
 // Delete payment token
 async function deletePaymentToken(token) {
-  const tokenType = token.type === "PAYPAL" ? "PayPal Account" : "Credit/Debit Card";
-  const tokenLabel = token.card_details && token.card_details.last_digits 
-    ? `${token.card_details.brand} •••• ${token.card_details.last_digits}`
-    : tokenType;
+  const tokenType =
+    token.type === "PAYPAL" ? "PayPal Account" : "Credit/Debit Card";
+  const tokenLabel =
+    token.card_details && token.card_details.last_digits
+      ? `${token.card_details.brand} •••• ${token.card_details.last_digits}`
+      : tokenType;
 
   // Show confirmation dialog
   const confirmed = confirm(
@@ -1304,8 +1324,8 @@ async function deletePaymentToken(token) {
     if (!token.demo) {
       deleteFromPayPal = confirm(
         "Do you also want to remove this payment method from your PayPal vault?\n\n" +
-        "• Yes: Remove from both local storage and PayPal\n" +
-        "• No: Remove only from local storage (PayPal vault will keep it)"
+          "• Yes: Remove from both local storage and PayPal\n" +
+          "• No: Remove only from local storage (PayPal vault will keep it)"
       );
     }
 
@@ -1326,7 +1346,9 @@ async function deletePaymentToken(token) {
 
     if (data.success) {
       // Remove the token element from UI
-      const tokenElement = document.querySelector(`[data-token-id="${token.id}"]`).closest('.payment-token-card');
+      const tokenElement = document
+        .querySelector(`[data-token-id="${token.id}"]`)
+        .closest(".payment-token-card");
       tokenElement.remove();
 
       // Update the currentCustomer object
@@ -1351,7 +1373,7 @@ async function deletePaymentToken(token) {
       showResultMessage(message, "success");
 
       // Check if no payment tokens left
-      const remainingTokens = document.querySelectorAll('.payment-token-card');
+      const remainingTokens = document.querySelectorAll(".payment-token-card");
       if (remainingTokens.length === 0) {
         document.getElementById("payment-tokens-container").innerHTML = `
           <div class="text-center py-3">
@@ -1359,10 +1381,10 @@ async function deletePaymentToken(token) {
             <span class="text-muted">No saved payment methods</span>
           </div>
         `;
-        
+
         // Hide the existing methods list
         document.getElementById("existing-methods-list").style.display = "none";
-        
+
         // Show vault options for new payment method
         setTimeout(() => {
           showVaultOptionsSection();
@@ -1370,17 +1392,22 @@ async function deletePaymentToken(token) {
       }
 
       // Clear any selected payment token
-      if (window.selectedPaymentToken && window.selectedPaymentToken.id === token.id) {
+      if (
+        window.selectedPaymentToken &&
+        window.selectedPaymentToken.id === token.id
+      ) {
         window.selectedPaymentToken = null;
         document.getElementById("pay-with-saved-btn").disabled = true;
       }
-
     } else {
       throw new Error(data.error || "Failed to delete payment method");
     }
   } catch (error) {
     console.error("Error deleting payment token:", error);
-    showResultMessage("Error deleting payment method: " + error.message, "error");
+    showResultMessage(
+      "Error deleting payment method: " + error.message,
+      "error"
+    );
 
     // Reset delete button
     const deleteBtn = document.querySelector(`[data-token-id="${token.id}"]`);
