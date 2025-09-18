@@ -29,6 +29,7 @@ import * as multiacdc from "./multiacdc-api.js";
 import * as ideal from "./oauth.js";
 import * as pui from "./pui-api.js";
 import vaultDuringAPI from "./vault-during-api.js";
+import * as vaultSaveForLaterAPI from "./vault-save-for-later-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -61,6 +62,37 @@ app.use(express.json());
 
 // Vault API routes
 app.use("/vault-during/api", vaultDuringAPI);
+
+// Vault Save-for-Later API routes
+app.post(
+  "/api/vault-save-for-later/setup-token/card",
+  vaultSaveForLaterAPI.createCardSetupToken
+);
+app.post(
+  "/api/vault-save-for-later/setup-token/paypal",
+  vaultSaveForLaterAPI.createPayPalSetupToken
+);
+app.post(
+  "/api/vault-save-for-later/payment-token",
+  vaultSaveForLaterAPI.createPaymentToken
+);
+app.get(
+  "/api/vault-save-for-later/payment-tokens/:customer_id",
+  vaultSaveForLaterAPI.getCustomerPaymentTokens
+);
+app.delete(
+  "/api/vault-save-for-later/payment-tokens/:token_id",
+  vaultSaveForLaterAPI.deletePaymentToken
+);
+app.post(
+  "/api/vault-save-for-later/create-payment-order",
+  vaultSaveForLaterAPI.createPaymentOrder
+);
+app.post(
+  "/api/vault-save-for-later/capture-payment",
+  vaultSaveForLaterAPI.capturePayment
+);
+app.get("/api/vault-save-for-later/health", vaultSaveForLaterAPI.healthCheck);
 
 // Render checkout page with client ID
 app.get("/acdc", async (req, res) => {
@@ -601,7 +633,16 @@ app.get("/newstuff/return", async (req, res) => {
 
 // Vault During Purchase routes
 app.get("/vault-during-purchase", async (req, res) => {
-  res.render("vault-during-purchase");
+  res.render("vault-during-purchase", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
+// Vault Save-for-Later routes
+app.get("/vault-save-for-later", async (req, res) => {
+  res.render("vault-save-for-later", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
 });
 
 app.post("/serversdk/api/orders", async (req, res) => {

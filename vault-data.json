@@ -1,0 +1,48 @@
+{
+  "customers": {
+    "customer_001": {
+      "name": "John Smith",
+      "email": "john.smith@example.com",
+      "payment_tokens": [
+        {
+          "id": "24211688tt830573d",
+          "customer_id": "customer_001",
+          "created_at": "2025-09-18T15:19:25.138Z",
+          "payment_source": {
+            "paypal": {
+              "shipping": {
+                "name": {
+                  "full_name": "John Doe"
+                },
+                "address": {
+                  "address_line_1": "1 Main St",
+                  "admin_area_2": "San Jose",
+                  "admin_area_1": "CA",
+                  "postal_code": "95131",
+                  "country_code": "US"
+                }
+              },
+              "usage_type": "MERCHANT",
+              "email_address": "usth@personal.com",
+              "payer_id": "JR6UKFZYTUSWC",
+              "name": {
+                "given_name": "John",
+                "surname": "Doe"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "customer_002": {
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@example.com",
+      "payment_tokens": []
+    },
+    "customer_003": {
+      "name": "Michael Chen",
+      "email": "michael.chen@example.com",
+      "payment_tokens": []
+    }
+  }
+}

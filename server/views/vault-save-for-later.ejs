@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Vault - Save for Later</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .vault-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .step-indicator {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .step-indicator h2 {
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .customer-card {
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .customer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .customer-card:hover::before {
+            left: 100%;
+        }
+
+        .customer-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+        }
+
+        .customer-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(145deg, #f8f9ff, #e8ebff);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.25);
+        }
+
+        .customer-info h5 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .customer-email {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .customer-id {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+
+        .token-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .payment-type-selection {
+            margin: 25px 0;
+        }
+
+        .payment-type-selection .btn-group {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .payment-type-selection .btn {
+            padding: 15px 25px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .payment-type-selection .btn-outline-primary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+
+        .payment-type-selection .btn-check:checked+.btn-outline-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .paypal-card-fields {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-field {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: white;
+            transition: border-color 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-field:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .saved-method {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .saved-method:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .card-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card-brand {
+            width: 50px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .card-brand.visa {
+            background: linear-gradient(135deg, #1a1f71, #0f4c75);
+        }
+
+        .card-brand.mastercard {
+            background: linear-gradient(135deg, #eb001b, #f79e1b);
+        }
+
+        .card-brand.amex {
+            background: linear-gradient(135deg, #006fcf, #0085ce);
+        }
+
+        .card-brand.discover {
+            background: linear-gradient(135deg, #ff6000, #ff8500);
+        }
+
+        .paypal-icon {
+            font-size: 28px;
+            color: #0070ba;
+        }
+
+        .btn-save-payment {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-save-payment::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-save-payment:hover::before {
+            left: 100%;
+        }
+
+        .btn-save-payment:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+
+        .btn-save-payment:disabled {
+            opacity: 0.7;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 1px solid #2196f3;
+            color: #1565c0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.1);
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .section {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 700;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container vault-container">
+        <!-- Header -->
+        <div class="step-indicator text-center">
+            <h2><i class="bi bi-credit-card"></i> PayPal Vault - Save Payment Methods for Later</h2>
+            <p class="mb-0">Save payment methods without making a purchase for future use</p>
+        </div>
+
+        <!-- Customer Selection -->
+        <div class="section fade-in">
+            <h4 class="section-title">
+                <span class="step-number">1</span>
+                Select Customer
+            </h4>
+            <div id="customerSelection">
+                <div class="customer-card" data-customer-id="customer_001">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">John Smith</h5>
+                            <p class="mb-0 text-muted">john.smith@example.com</p>
+                            <small class="text-muted">Customer ID: customer_001</small>
+                        </div>
+                        <div class="text-end">
+                            <span id="tokenCount_customer_001" class="badge bg-primary">0 saved methods</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-card" data-customer-id="customer_002">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Sarah Johnson</h5>
+                            <p class="mb-0 text-muted">sarah.johnson@example.com</p>
+                            <small class="text-muted">Customer ID: customer_002</small>
+                        </div>
+                        <div class="text-end">
+                            <span id="tokenCount_customer_002" class="badge bg-primary">0 saved methods</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-card" data-customer-id="customer_003">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Michael Chen</h5>
+                            <p class="mb-0 text-muted">michael.chen@example.com</p>
+                            <small class="text-muted">Customer ID: customer_003</small>
+                        </div>
+                        <div class="text-end">
+                            <span id="tokenCount_customer_003" class="badge bg-primary">0 saved methods</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Payment Method -->
+        <div class="section fade-in" id="savePaymentSection" style="display: none;">
+            <h4 class="section-title">
+                <span class="step-number">2</span>
+                Save Payment Method
+            </h4>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Save for Later:</strong> Add a payment method without making a purchase. Your payment
+                information will be securely stored for future use.
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="mb-4">
+                <h5>Choose Payment Method Type:</h5>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="paymentType" id="cardPayment" value="card" checked>
+                    <label class="btn btn-outline-primary" for="cardPayment">
+                        <i class="bi bi-credit-card"></i> Credit/Debit Card
+                    </label>
+
+                    <input type="radio" class="btn-check" name="paymentType" id="paypalPayment" value="paypal">
+                    <label class="btn btn-outline-primary" for="paypalPayment">
+                        <i class="bi bi-paypal"></i> PayPal Wallet
+                    </label>
+                </div>
+            </div>
+
+            <!-- Card Fields Container -->
+            <div id="cardFieldsContainer" class="paypal-card-fields">
+                <h5 class="mb-3">Enter Card Details</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Card Number</label>
+                        <div id="card-number" class="card-field"></div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Expiry Date</label>
+                        <div id="expiration-date" class="card-field"></div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">CVV</label>
+                        <div id="cvv" class="card-field"></div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cardholder Name</label>
+                        <div id="card-holder-name" class="card-field"></div>
+                    </div>
+                </div>
+
+                <button id="saveCardButton" class="btn btn-save-payment">
+                    <span class="loading-spinner" id="cardLoadingSpinner"></span>
+                    <span id="cardButtonText">Save Card for Later</span>
+                </button>
+            </div>
+
+            <!-- PayPal Button Container -->
+            <div id="paypalButtonContainer" class="paypal-card-fields" style="display: none;">
+                <h5 class="mb-3">Save PayPal Wallet</h5>
+                <div id="paypal-button-container"></div>
+            </div>
+        </div>
+
+        <!-- Saved Payment Methods -->
+        <div class="section fade-in" id="savedMethodsSection" style="display: none;">
+            <h4 class="section-title">
+                <span class="step-number">3</span>
+                Saved Payment Methods
+            </h4>
+            <div id="savedMethodsList">
+                <!-- Saved methods will be populated here -->
+            </div>
+        </div>
+
+        <!-- Payment Processing Section -->
+        <div class="section fade-in" id="paymentProcessingSection" style="display: none;">
+            <h4 class="section-title">
+                <span class="step-number">4</span>
+                Make Payment with Saved Method
+            </h4>
+
+            <div class="form-card">
+                <!-- Selected Payment Method Info -->
+                <div class="selected-method-info mb-4 p-4 rounded-3"
+                    style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #e3f2fd;">
+                    <h6 class="text-muted mb-3 fw-bold">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Selected Payment Method:
+                    </h6>
+                    <div id="selectedMethodDisplay"></div>
+                </div>
+
+                <!-- Payment Amount -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="paymentAmount" class="form-label fw-bold">Payment Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="paymentAmount" placeholder="0.00" step="0.01"
+                                min="0.01" value="10.00">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="paymentCurrency" class="form-label fw-bold">Currency</label>
+                        <select class="form-select" id="paymentCurrency">
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Payment Description -->
+                <div class="mb-4">
+                    <label for="paymentDescription" class="form-label fw-bold">Payment Description</label>
+                    <input type="text" class="form-control" id="paymentDescription"
+                        placeholder="Payment for goods/services" value="Test payment with saved payment method">
+                </div>
+
+                <!-- Payment Actions -->
+                <div class="d-flex gap-3 mb-4">
+                    <button type="button" class="btn btn-success btn-lg flex-fill" id="processPaymentBtn"
+                        style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Process Payment
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg" id="cancelPaymentBtn">
+                        <i class="fas fa-times me-2"></i>
+                        Cancel
+                    </button>
+                </div>
+
+                <!-- Payment Loading -->
+                <div id="paymentLoading" class="text-center mt-4" style="display: none;">
+                    <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Processing payment...</span>
+                    </div>
+                    <p class="mt-3 text-muted fs-5">Processing your payment...</p>
+                </div>
+
+                <!-- Payment Result -->
+                <div id="paymentResult" class="mt-4" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+    </div>
+
+    <!-- PayPal SDK -->
+    <script
+        src="https://www.paypal.com/sdk/js?components=card-fields,buttons&client-id=<%= clientId %>&currency=USD"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Main Application Script -->
+    <script src="/vault-save-for-later.js"></script>
+</body>
+
+</html>
