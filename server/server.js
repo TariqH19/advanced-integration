@@ -30,6 +30,7 @@ import * as ideal from "./oauth.js";
 import * as pui from "./pui-api.js";
 import vaultDuringAPI from "./vault-during-api.js";
 import * as vaultSaveForLaterAPI from "./vault-save-for-later-api.js";
+import * as vaultRecurringPaymentsAPI from "./vault-recurring-payments-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -93,6 +94,52 @@ app.post(
   vaultSaveForLaterAPI.capturePayment
 );
 app.get("/api/vault-save-for-later/health", vaultSaveForLaterAPI.healthCheck);
+
+// Vault Recurring Payments API routes
+app.post(
+  "/api/vault-recurring-payments/create-setup-token",
+  vaultRecurringPaymentsAPI.createSetupToken
+);
+app.post(
+  "/api/vault-recurring-payments/confirm-setup-token",
+  vaultRecurringPaymentsAPI.confirmSetupToken
+);
+app.post(
+  "/api/vault-recurring-payments/create-paypal-vault-order",
+  vaultRecurringPaymentsAPI.createPayPalVaultOrder
+);
+app.post(
+  "/api/vault-recurring-payments/process-paypal-vault-order",
+  vaultRecurringPaymentsAPI.processPayPalVaultOrder
+);
+app.post(
+  "/api/vault-recurring-payments/create-subscription",
+  vaultRecurringPaymentsAPI.createSubscription
+);
+app.get(
+  "/api/vault-recurring-payments/subscriptions/:customer_id",
+  vaultRecurringPaymentsAPI.getCustomerSubscriptions
+);
+app.post(
+  "/api/vault-recurring-payments/pause-subscription",
+  vaultRecurringPaymentsAPI.pauseSubscription
+);
+app.post(
+  "/api/vault-recurring-payments/resume-subscription",
+  vaultRecurringPaymentsAPI.resumeSubscription
+);
+app.post(
+  "/api/vault-recurring-payments/cancel-subscription",
+  vaultRecurringPaymentsAPI.cancelSubscription
+);
+app.get(
+  "/api/vault-recurring-payments/vault-tokens/:customer_id",
+  vaultRecurringPaymentsAPI.getCustomerVaultTokens
+);
+app.get(
+  "/api/vault-recurring-payments/health",
+  vaultRecurringPaymentsAPI.healthCheck
+);
 
 // Render checkout page with client ID
 app.get("/acdc", async (req, res) => {
@@ -641,6 +688,13 @@ app.get("/vault-during-purchase", async (req, res) => {
 // Vault Save-for-Later routes
 app.get("/vault-save-for-later", async (req, res) => {
   res.render("vault-save-for-later", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
+// Vault Recurring Payments routes
+app.get("/vault-recurring-payments", async (req, res) => {
+  res.render("vault-recurring-payments", {
     clientId: PAYPAL_CLIENT_ID,
   });
 });

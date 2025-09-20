@@ -1,0 +1,69 @@
+{
+  "customer_001": [
+    {
+      "subscription_id": "sub_1758366952612_ynhcyvz30",
+      "customer_id": "customer_001",
+      "payment_method_token": "demo_token_1758366952592_customer_001",
+      "plan_id": "enterprise",
+      "plan_name": "Enterprise Plan",
+      "amount": 49.99,
+      "currency": "USD",
+      "interval": "month",
+      "status": "ACTIVE",
+      "created_date": "2025-09-20T11:15:52.613Z",
+      "next_payment_date": "2025-10-20T11:23:46.852Z",
+      "payment_count": 0,
+      "total_paid": 0,
+      "paused_date": "2025-09-20T11:16:06.287Z",
+      "resumed_date": "2025-09-20T11:23:46.852Z"
+    },
+    {
+      "subscription_id": "sub_1758367393052_g1m5bw8as",
+      "customer_id": "customer_001",
+      "payment_method_token": "demo_token_1758367393031_customer_001",
+      "plan_id": "enterprise",
+      "plan_name": "Enterprise Plan",
+      "amount": 49.99,
+      "currency": "USD",
+      "interval": "month",
+      "status": "CANCELLED",
+      "created_date": "2025-09-20T11:23:13.052Z",
+      "next_payment_date": "2025-10-20T11:23:23.803Z",
+      "payment_count": 0,
+      "total_paid": 0,
+      "paused_date": "2025-09-20T11:23:21.008Z",
+      "resumed_date": "2025-09-20T11:23:23.803Z",
+      "cancelled_date": "2025-09-20T11:23:52.178Z"
+    },
+    {
+      "subscription_id": "sub_1758367675228_q6gu3j4n8",
+      "customer_id": "customer_001",
+      "payment_method_token": "demo_token_1758367675192_customer_001",
+      "plan_id": "enterprise",
+      "plan_name": "Enterprise Plan",
+      "amount": 49.99,
+      "currency": "USD",
+      "interval": "month",
+      "status": "ACTIVE",
+      "created_date": "2025-09-20T11:27:55.229Z",
+      "next_payment_date": "2025-10-20T11:27:55.228Z",
+      "payment_count": 0,
+      "total_paid": 0
+    },
+    {
+      "subscription_id": "sub_1758367922747_mnfa3ihyb",
+      "customer_id": "customer_001",
+      "payment_method_token": "69m78483tm6110949",
+      "plan_id": "basic",
+      "plan_name": "Basic Plan",
+      "amount": 9.99,
+      "currency": "USD",
+      "interval": "month",
+      "status": "ACTIVE",
+      "created_date": "2025-09-20T11:32:02.748Z",
+      "next_payment_date": "2025-10-20T11:32:02.747Z",
+      "payment_count": 0,
+      "total_paid": 0
+    }
+  ]
+}
