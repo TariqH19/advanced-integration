@@ -32,6 +32,7 @@ import vaultDuringAPI from "./vault-during-api.js";
 import * as vaultSaveForLaterAPI from "./vault-save-for-later-api.js";
 import * as vaultRecurringPaymentsAPI from "./vault-recurring-payments-api.js";
 import * as vaultReferenceTransactionsAPI from "./vault-reference-transactions-api.js";
+import * as contact from "./contact-api.js";
 const {
   PAYPAL_CLIENT_ID,
   PAYPAL_MERCHANT_ID,
@@ -713,6 +714,10 @@ app.get("/serversdk", async (req, res) => {
   res.render("serversdk");
 });
 
+app.get("/contact", async (req, res) => {
+  res.render("contact");
+});
+
 app.get("/newstuff", async (req, res) => {
   res.render("newstuff");
 });
@@ -754,6 +759,18 @@ app.post("/serversdk/api/orders", async (req, res) => {
     // use the cart information passed from the front-end to calculate the order amount detals
     const { cart } = req.body;
     const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/serversdk/api/contact", async (req, res) => {
+  try {
+    // use the cart information passed from the front-end to calculate the order amount detals
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await contact.createOrder(cart);
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);

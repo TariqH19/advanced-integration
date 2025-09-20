@@ -25,6 +25,10 @@ import * as multi from "../server/multi-api.js";
 import * as multiacdc from "../server/multiacdc-api.js";
 import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
+import * as vaultDuringAPI from "../server/vault-during-purchase-api.js";
+import * as vaultSaveForLaterAPI from "../server/vault-save-for-later-api.js";
+import * as vaultRecurringPaymentsAPI from "../server/vault-recurring-payments-api.js";
+import * as vaultReferenceTransactionsAPI from "../server/vault-reference-transactions-api.js";
 import braintree from "braintree";
 import * as ideal from "../server/oauth.js";
 import * as pui from "../server/pui-api.js";
@@ -59,6 +63,128 @@ app.set("views", viewsPath);
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+// Vault API routes
+app.use("/vault-during/api", vaultDuringAPI);
+
+// Vault Save-for-Later API routes
+app.post(
+  "/api/vault-save-for-later/setup-token/card",
+  vaultSaveForLaterAPI.createCardSetupToken
+);
+app.post(
+  "/api/vault-save-for-later/setup-token/paypal",
+  vaultSaveForLaterAPI.createPayPalSetupToken
+);
+app.post(
+  "/api/vault-save-for-later/payment-token",
+  vaultSaveForLaterAPI.createPaymentToken
+);
+app.get(
+  "/api/vault-save-for-later/payment-tokens/:customer_id",
+  vaultSaveForLaterAPI.getCustomerPaymentTokens
+);
+app.delete(
+  "/api/vault-save-for-later/payment-tokens/:token_id",
+  vaultSaveForLaterAPI.deletePaymentToken
+);
+app.post(
+  "/api/vault-save-for-later/create-payment-order",
+  vaultSaveForLaterAPI.createPaymentOrder
+);
+app.post(
+  "/api/vault-save-for-later/capture-payment",
+  vaultSaveForLaterAPI.capturePayment
+);
+app.get("/api/vault-save-for-later/health", vaultSaveForLaterAPI.healthCheck);
+
+// Vault Reference Transactions API Routes
+app.post(
+  "/api/vault-reference-transactions/create-billing-agreement",
+  vaultReferenceTransactionsAPI.createBillingAgreement
+);
+app.post(
+  "/api/vault-reference-transactions/create-setup-token",
+  vaultReferenceTransactionsAPI.createReferenceSetupToken
+);
+app.post(
+  "/api/vault-reference-transactions/confirm-setup-token",
+  vaultReferenceTransactionsAPI.confirmReferenceSetupToken
+);
+app.post(
+  "/api/vault-reference-transactions/process-transaction",
+  vaultReferenceTransactionsAPI.processReferenceTransaction
+);
+app.get(
+  "/api/vault-reference-transactions/agreements/:customer_id",
+  vaultReferenceTransactionsAPI.getCustomerBillingAgreements
+);
+app.get(
+  "/api/vault-reference-transactions/transactions/:customer_id",
+  vaultReferenceTransactionsAPI.getCustomerReferenceTransactions
+);
+app.get(
+  "/api/vault-reference-transactions/customers",
+  vaultReferenceTransactionsAPI.getAllCustomersWithAgreements
+);
+app.post(
+  "/api/vault-reference-transactions/create-automation-rule",
+  vaultReferenceTransactionsAPI.createAutomationRule
+);
+app.get(
+  "/api/vault-reference-transactions/automation-rules/:customer_id",
+  vaultReferenceTransactionsAPI.getCustomerAutomationRules
+);
+app.get(
+  "/api/vault-reference-transactions/health",
+  vaultReferenceTransactionsAPI.healthCheckReference
+);
+
+// Vault Recurring Payments API routes
+app.post(
+  "/api/vault-recurring-payments/create-setup-token",
+  vaultRecurringPaymentsAPI.createSetupToken
+);
+app.post(
+  "/api/vault-recurring-payments/confirm-setup-token",
+  vaultRecurringPaymentsAPI.confirmSetupToken
+);
+app.post(
+  "/api/vault-recurring-payments/create-paypal-vault-order",
+  vaultRecurringPaymentsAPI.createPayPalVaultOrder
+);
+app.post(
+  "/api/vault-recurring-payments/process-paypal-vault-order",
+  vaultRecurringPaymentsAPI.processPayPalVaultOrder
+);
+app.post(
+  "/api/vault-recurring-payments/create-subscription",
+  vaultRecurringPaymentsAPI.createSubscription
+);
+app.get(
+  "/api/vault-recurring-payments/subscriptions/:customer_id",
+  vaultRecurringPaymentsAPI.getCustomerSubscriptions
+);
+app.post(
+  "/api/vault-recurring-payments/pause-subscription",
+  vaultRecurringPaymentsAPI.pauseSubscription
+);
+app.post(
+  "/api/vault-recurring-payments/resume-subscription",
+  vaultRecurringPaymentsAPI.resumeSubscription
+);
+app.post(
+  "/api/vault-recurring-payments/cancel-subscription",
+  vaultRecurringPaymentsAPI.cancelSubscription
+);
+app.get(
+  "/api/vault-recurring-payments/vault-tokens/:customer_id",
+  vaultRecurringPaymentsAPI.getCustomerVaultTokens
+);
+app.get(
+  "/api/vault-recurring-payments/health",
+  vaultRecurringPaymentsAPI.healthCheck
+);
 
 app.post("/paypal/shipping-options", async (req, res) => {
   try {
@@ -402,6 +528,10 @@ app.get("/serversdk", async (req, res) => {
   res.render("serversdk");
 });
 
+app.get("/contact", async (req, res) => {
+  res.render("contact");
+});
+
 app.get("/newstuff", async (req, res) => {
   res.render("newstuff");
 });
@@ -410,9 +540,48 @@ app.get("/newstuff/return", async (req, res) => {
   res.render("newstuff-return");
 });
 
+// Vault During Purchase routes
+app.get("/vault-during-purchase", async (req, res) => {
+  res.render("vault-during-purchase", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
+// Vault Save-for-Later routes
+app.get("/vault-save-for-later", async (req, res) => {
+  res.render("vault-save-for-later", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
+// Vault Recurring Payments routes
+app.get("/vault-recurring-payments", async (req, res) => {
+  res.render("vault-recurring-payments", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
+// Vault Reference Transactions routes
+app.get("/vault-reference-transactions", async (req, res) => {
+  res.render("vault-reference-transactions", {
+    clientId: PAYPAL_CLIENT_ID,
+  });
+});
+
 app.post("/serversdk/api/orders", async (req, res) => {
   try {
     // use the cart information passed from the front-end to calculate the order amount detals
+    const { cart } = req.body;
+    const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/serversdk/api/contact", async (req, res) => {
+  try {
     const { cart } = req.body;
     const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
     res.status(httpStatusCode).json(jsonResponse);
@@ -1320,6 +1489,28 @@ app.get("/pui", async (req, res) => {
   res.render("pui");
 });
 
+app.get("/nocode", async (req, res) => {
+  res.render("nocode");
+});
+
+const PAYPAL_API = "https://api-m.sandbox.paypal.com"; // Use live PayPal API for production
+
+// Generate Access Token
+const getAccessToken = async () => {
+  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(
+        `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+      ).toString("base64")}`,
+    },
+    body: "grant_type=client_credentials",
+  });
+  const data = await response.json();
+  return data.access_token;
+};
+
 app.get("/stc/getTrackingID", (req, res) => {
   const trackingID = `tracking_${Date.now()}`;
   res.send(trackingID);
@@ -1468,20 +1659,6 @@ app.post("/stc/captureOrder", async (req, res) => {
 
   const captureDetails = await response.json();
   res.json(captureDetails);
-});
-
-app.post("/clientToken", async (req, res) => {
-  try {
-    const customerID = req.body.customerID;
-    console.log("req.body customerID", req.body.customerID);
-    const clientToken = await braintreeAPI.generateAccessToken(customerID);
-
-    return res.json({
-      clientToken,
-    });
-  } catch (error) {
-    res.status(500).send("Fail to generate Access Token");
-  }
 });
 
 app.get("/stc", async (req, res) => {
