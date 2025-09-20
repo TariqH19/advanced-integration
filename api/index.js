@@ -25,7 +25,7 @@ import * as multi from "../server/multi-api.js";
 import * as multiacdc from "../server/multiacdc-api.js";
 import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
-import * as vaultDuringAPI from "../server/vault-during-purchase-api.js";
+import * as vaultDuringAPI from "../server/vault-during-api.js";
 import * as vaultSaveForLaterAPI from "../server/vault-save-for-later-api.js";
 import * as vaultRecurringPaymentsAPI from "../server/vault-recurring-payments-api.js";
 import * as vaultReferenceTransactionsAPI from "../server/vault-reference-transactions-api.js";
