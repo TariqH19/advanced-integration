@@ -1,0 +1,54 @@
+{
+  "customer_001": [
+    {
+      "id": "BA_1758368833493_4cuowze9s",
+      "customer_id": "customer_001",
+      "customer_name": "John Smith",
+      "customer_email": "john.smith@example.com",
+      "status": "ACTIVE",
+      "description": "I authorize merchant-initiated transactions for services and fees as needed.",
+      "created_time": "2025-09-20T11:47:13.494Z",
+      "agreement_details": {
+        "name": "I authorize merchant-initiated transactions for services and fees as needed.",
+        "description": "Reference transaction billing agreement for customer customer_001",
+        "plan": {
+          "id": "P-5ML4271244454362WXNWU5NQ",
+          "state": "ACTIVE",
+          "name": "Reference Transactions Plan",
+          "description": "Plan for merchant-initiated reference transactions",
+          "type": "INFINITE",
+          "payment_definitions": [
+            {
+              "id": "PD-94043706JD323592B",
+              "name": "Reference Transaction Payment",
+              "type": "REGULAR",
+              "frequency": "Month",
+              "frequency_interval": "1",
+              "amount": {
+                "value": "0.00",
+                "currency": "USD"
+              },
+              "cycles": "0",
+              "charge_models": [
+                {
+                  "id": "CHM-92S85978TN737984Y",
+                  "type": "SHIPPING"
+                }
+              ]
+            }
+          ],
+          "merchant_preferences": {
+            "return_url": "https://example.com/return",
+            "cancel_url": "https://example.com/cancel",
+            "auto_bill_amount": "NO",
+            "initial_fail_amount_action": "CONTINUE",
+            "max_fail_attempts": "0"
+          }
+        },
+        "payer": {
+          "payment_method": "paypal"
+        }
+      }
+    }
+  ]
+}

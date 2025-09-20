@@ -1,0 +1,58 @@
+{
+  "customer_001": [
+    {
+      "id": "33h75709ak265791h",
+      "customer_id": "customer_001",
+      "billing_agreement_id": "BA_1758368833493_4cuowze9s",
+      "payment_source": {
+        "card": {
+          "last_digits": "1091",
+          "brand": "VISA",
+          "expiry": "2032-11",
+          "verification_status": "VERIFIED",
+          "verification": {
+            "network_transaction_id": "459422237763514",
+            "time": "2025-09-20T11:48:02.000Z",
+            "amount": {
+              "currency_code": "EUR",
+              "value": "0.00"
+            },
+            "processor_response": {
+              "cvv_code": "C",
+              "response_code": "00"
+            },
+            "three_d_secure": {
+              "type": "THREE_DS_AUTHENTICATION",
+              "eci_flag": "FULLY_AUTHENTICATED_TRANSACTION",
+              "ucaf_indicator": "NOT_SUPPORTED",
+              "card_brand": "VISA",
+              "cavv": "kBMAAAAAVNVnyxguAkHEipeBU4cl",
+              "enrolled": "Y",
+              "pares_status": "Y",
+              "three_ds_version": "2.2.0",
+              "authentication_type": "UNKNOWN",
+              "signature_verification_status": "YES",
+              "three_ds_server_transaction_id": "22376336350344426"
+            }
+          },
+          "network_transaction_reference": {
+            "id": "459422237763514",
+            "network": "VISA",
+            "time": "2025-09-20T11:48:02.000Z"
+          },
+          "authentication_result": {
+            "three_d_secure": {
+              "authentication_status": "Y",
+              "enrollment_status": "Y",
+              "authentication_id": "22376336350344426"
+            }
+          }
+        }
+      },
+      "created_time": "2025-09-20T11:48:01.740Z",
+      "status": "APPROVED",
+      "setup_token_used": "51826400HG8142005",
+      "token_type": "REFERENCE_TRANSACTION"
+    }
+  ]
+}
