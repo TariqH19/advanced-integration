@@ -25,6 +25,7 @@ import * as multi from "../server/multi-api.js";
 import * as multiacdc from "../server/multiacdc-api.js";
 import * as serversdk from "../server/serversdk-api.js";
 import * as payout from "../server/payout-api.js";
+import * as contact from "../server/contact-api.js";
 import vaultDuringRouter from "../server/vault-during-api.js";
 import * as vaultSaveForLaterAPI from "../server/vault-save-for-later-api.js";
 import * as vaultRecurringPaymentsAPI from "../server/vault-recurring-payments-api.js";
@@ -583,7 +584,7 @@ app.post("/serversdk/api/orders", async (req, res) => {
 app.post("/serversdk/api/contact", async (req, res) => {
   try {
     const { cart } = req.body;
-    const { jsonResponse, httpStatusCode } = await serversdk.createOrder(cart);
+    const { jsonResponse, httpStatusCode } = await contact.createOrder(cart);
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
