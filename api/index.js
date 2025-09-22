@@ -1718,6 +1718,10 @@ app.get("/viewauthcap", async (req, res) => {
   res.render("viewauthcap");
 });
 
+app.use((req, res) => {
+  res.status(404).render("404");
+});
+
 app.get(
   "/.well-known/apple-developer-merchantid-domain-association",
   (req, res) => {

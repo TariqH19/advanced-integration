@@ -31,7 +31,6 @@ import * as pui from "./pui-api.js";
 import vaultDuringAPI from "./vault-during-api.js";
 import * as vaultSaveForLaterAPI from "./vault-save-for-later-api.js";
 import * as vaultRecurringPaymentsAPI from "./vault-recurring-payments-api.js";
-import * as vaultReferenceTransactionsAPI from "./vault-reference-transactions-api.js";
 import * as contact from "./contact-api.js";
 const {
   PAYPAL_CLIENT_ID,
@@ -96,48 +95,6 @@ app.post(
   vaultSaveForLaterAPI.capturePayment
 );
 app.get("/api/vault-save-for-later/health", vaultSaveForLaterAPI.healthCheck);
-
-// Vault Reference Transactions API Routes
-app.post(
-  "/api/vault-reference-transactions/create-billing-agreement",
-  vaultReferenceTransactionsAPI.createBillingAgreement
-);
-app.post(
-  "/api/vault-reference-transactions/create-setup-token",
-  vaultReferenceTransactionsAPI.createReferenceSetupToken
-);
-app.post(
-  "/api/vault-reference-transactions/confirm-setup-token",
-  vaultReferenceTransactionsAPI.confirmReferenceSetupToken
-);
-app.post(
-  "/api/vault-reference-transactions/process-transaction",
-  vaultReferenceTransactionsAPI.processReferenceTransaction
-);
-app.get(
-  "/api/vault-reference-transactions/agreements/:customer_id",
-  vaultReferenceTransactionsAPI.getCustomerBillingAgreements
-);
-app.get(
-  "/api/vault-reference-transactions/transactions/:customer_id",
-  vaultReferenceTransactionsAPI.getCustomerReferenceTransactions
-);
-app.get(
-  "/api/vault-reference-transactions/customers",
-  vaultReferenceTransactionsAPI.getAllCustomersWithAgreements
-);
-app.post(
-  "/api/vault-reference-transactions/create-automation-rule",
-  vaultReferenceTransactionsAPI.createAutomationRule
-);
-app.get(
-  "/api/vault-reference-transactions/automation-rules/:customer_id",
-  vaultReferenceTransactionsAPI.getCustomerAutomationRules
-);
-app.get(
-  "/api/vault-reference-transactions/health",
-  vaultReferenceTransactionsAPI.healthCheckReference
-);
 
 // Vault Recurring Payments API routes
 app.post(
@@ -743,13 +700,6 @@ app.get("/vault-save-for-later", async (req, res) => {
 // Vault Recurring Payments routes
 app.get("/vault-recurring-payments", async (req, res) => {
   res.render("vault-recurring-payments", {
-    clientId: PAYPAL_CLIENT_ID,
-  });
-});
-
-// Vault Reference Transactions routes
-app.get("/vault-reference-transactions", async (req, res) => {
-  res.render("vault-reference-transactions", {
     clientId: PAYPAL_CLIENT_ID,
   });
 });
@@ -1773,6 +1723,11 @@ app.get(
     );
   }
 );
+
+// 404 handler - must be last route
+app.use((req, res) => {
+  res.status(404).render("404");
+});
 
 app.listen(8888, () => {
   console.log("Listening on http://localhost:8888/");
