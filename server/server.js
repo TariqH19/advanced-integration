@@ -53,7 +53,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.set("view engine", "ejs");
-app.set("views", "./views");
+app.set("views", path.join(__dirname, "./views"));
 
 // Host static files
 const clientPath = path.join(__dirname, "../client");
@@ -1729,6 +1729,8 @@ app.use((req, res) => {
   res.status(404).render("404");
 });
 
-app.listen(8888, () => {
-  console.log("Listening on http://localhost:8888/");
+const PORT = process.env.PORT || 8888;
+
+app.listen(PORT, () => {
+  console.log(`Listening on http://localhost:${PORT}/`);
 });
