@@ -7,59 +7,389 @@
   <title>Advanced PayPal Integrations - Demo Hub</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    :root{color-scheme:light;--ink:#142b45;--muted:#607286;--line:#dfe7ef;--surface:#fff;--page:#f4f7fa;--blue:#0070ba;--blue-dark:#003087;--soft:#eaf3f9;--radius:14px;--shadow:0 8px 24px rgba(20,43,69,.07)}
-    *{box-sizing:border-box}
-    html{min-width:320px;scroll-behavior:smooth}
-    body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.55}
-    a{color:inherit}
-    .navbar{position:sticky;top:0;z-index:1000;min-height:68px;padding:0 clamp(20px,5vw,72px);display:flex;align-items:center;justify-content:space-between;gap:24px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
-    .navbar .logo{display:inline-flex;align-items:center;gap:11px;color:var(--ink);font-size:1.05rem;font-weight:700;text-decoration:none;letter-spacing:-.02em}
-    .navbar .logo i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--soft);color:var(--blue);font-size:18px}
-    .navbar .nav-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-    .navbar .nav-links a{padding:9px 13px;border-radius:8px;color:var(--muted);font-size:.9rem;font-weight:600;text-decoration:none;transition:background .16s ease,color .16s ease}
-    .navbar .nav-links a:hover,.navbar .nav-links a:focus-visible{background:var(--soft);color:var(--blue-dark);outline:none}
-    .navbar .nav-links a.nav-link-home{background:var(--soft);color:var(--blue-dark)}
-    .main-container{width:min(1280px,100%);margin:0 auto;padding:48px clamp(20px,4vw,48px) 72px}
-    .page-header,.header-section{max-width:780px;margin:0 auto 36px;text-align:left}
-    .page-title,.header-title{margin:0 0 12px;color:var(--ink);font-size:clamp(2rem,4vw,2.8rem);font-weight:700;letter-spacing:-.045em;line-height:1.12;text-shadow:none}
-    .page-subtitle,.header-subtitle{max-width:690px;margin:0;color:var(--muted);font-size:1.05rem;line-height:1.7}
-    .card-grid,.card-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:20px;margin-top:28px}
-    .integration-card,.card{position:relative;display:flex;flex-direction:column;min-width:0;padding:26px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
-    .integration-card:hover,.card:hover{transform:translateY(-3px);border-color:#c5d8e8;box-shadow:0 14px 30px rgba(20,43,69,.1)}
-    .integration-card:before,.card:before{content:none}
-    .card-header{display:flex;align-items:center;gap:14px;margin:0 0 16px}
-    .card-icon{flex:0 0 46px;width:46px;height:46px;display:grid;place-items:center;border-radius:11px;background:var(--soft);color:var(--blue);font-size:1.2rem;box-shadow:none}
-    .card-title,.card h3{margin:0;color:var(--ink);font-size:1.16rem;font-weight:700;line-height:1.3}
-    .card-description,.card p{margin:0 0 20px;color:var(--muted);font-size:.94rem;line-height:1.65}
-    .card-features{margin:0 0 22px}
-    .feature-list{margin:0;padding:0;list-style:none}
-    .feature-item{display:flex;align-items:flex-start;gap:9px;margin:0 0 9px;color:#43576c;font-size:.88rem}
-    .feature-item i{margin-top:4px;color:#27815c;font-size:.78rem}
-    .card-actions,.card-buttons{display:flex;gap:10px;align-items:center;margin-top:auto}
-    .demo-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:10px 15px;border:1px solid var(--blue);border-radius:8px;background:var(--blue);color:#fff;text-align:center;text-decoration:none;font-size:.9rem;font-weight:650;transition:background .16s ease,border-color .16s ease}
-    .demo-button:hover,.demo-button:focus-visible{background:var(--blue-dark);border-color:var(--blue-dark);outline:none;transform:none;box-shadow:none}
-    .complexity-badge,.difficulty-badge{position:absolute;top:18px;right:18px;padding:4px 9px;border-radius:999px;background:#edf2f6;color:#526579;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-    .complexity-advanced,.complexity-expert,.complexity-enterprise,.difficulty-beginner,.difficulty-intermediate,.difficulty-advanced{background:#edf2f6;color:#526579}
-    .complexity-enterprise{background:#fff4dd;color:#805500}
-    .integration-stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start;margin-top:25px}
-    .stat-item{min-width:120px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);text-align:left;backdrop-filter:none}
-    .stat-number{display:block;font-size:1.4rem;font-weight:750;letter-spacing:-.03em}
-    .stat-label{color:var(--muted);font-size:.8rem}
-    @media(max-width:720px){.navbar{padding:12px 18px;min-height:auto;align-items:flex-start;flex-direction:column;gap:8px}.navbar .nav-links{width:100%;gap:4px}.navbar .nav-links a{padding:8px 10px}.main-container{padding-top:32px}.integration-card,.card{padding:21px}.card-grid,.card-container{grid-template-columns:1fr}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    :root {
+      color-scheme: light;
+      --ink: #142b45;
+      --muted: #607286;
+      --line: #dfe7ef;
+      --surface: #fff;
+      --page: #f4f7fa;
+      --blue: #0070ba;
+      --blue-dark: #003087;
+      --soft: #eaf3f9;
+      --radius: 14px;
+      --shadow: 0 8px 24px rgba(20, 43, 69, .07)
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      min-width: 320px;
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.55
+    }
+
+    a {
+      color: inherit
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      min-height: 68px;
+      padding: 0 clamp(20px, 5vw, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: rgba(255, 255, 255, .96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px)
+    }
+
+    .navbar .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--ink);
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-decoration: none;
+      letter-spacing: -.02em
+    }
+
+    .navbar .logo i {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--soft);
+      color: var(--blue);
+      font-size: 18px
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .navbar .nav-links a {
+      padding: 9px 13px;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .16s ease, color .16s ease
+    }
+
+    .navbar .nav-links a:hover,
+    .navbar .nav-links a:focus-visible {
+      background: var(--soft);
+      color: var(--blue-dark);
+      outline: none
+    }
+
+    .navbar .nav-links a.nav-link-home {
+      background: var(--soft);
+      color: var(--blue-dark)
+    }
+
+    .main-container {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 48px clamp(20px, 4vw, 48px) 72px
+    }
+
+    .page-header,
+    .header-section {
+      max-width: 780px;
+      margin: 0 auto 36px;
+      text-align: left
+    }
+
+    .page-title,
+    .header-title {
+      margin: 0 0 12px;
+      color: var(--ink);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -.045em;
+      line-height: 1.12;
+      text-shadow: none
+    }
+
+    .page-subtitle,
+    .header-subtitle {
+      max-width: 690px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7
+    }
+
+    .card-grid,
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+      gap: 20px;
+      margin-top: 28px
+    }
+
+    .integration-card,
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      overflow: hidden
+    }
+
+    .integration-card:hover,
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #c5d8e8;
+      box-shadow: 0 14px 30px rgba(20, 43, 69, .1)
+    }
+
+    .integration-card:before,
+    .card:before {
+      content: none
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 16px
+    }
+
+    .card-icon {
+      flex: 0 0 46px;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--soft);
+      color: var(--blue);
+      font-size: 1.2rem;
+      box-shadow: none
+    }
+
+    .card-title,
+    .card h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.16rem;
+      font-weight: 700;
+      line-height: 1.3
+    }
+
+    .card-description,
+    .card p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: .94rem;
+      line-height: 1.65
+    }
+
+    .card-features {
+      margin: 0 0 22px
+    }
+
+    .feature-list {
+      margin: 0;
+      padding: 0;
+      list-style: none
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 0 0 9px;
+      color: #43576c;
+      font-size: .88rem
+    }
+
+    .feature-item i {
+      margin-top: 4px;
+      color: #27815c;
+      font-size: .78rem
+    }
+
+    .card-actions,
+    .card-buttons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: auto
+    }
+
+    .demo-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 1px solid var(--blue);
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 650;
+      transition: background .16s ease, border-color .16s ease
+    }
+
+    .demo-button:hover,
+    .demo-button:focus-visible {
+      background: var(--blue-dark);
+      border-color: var(--blue-dark);
+      outline: none;
+      transform: none;
+      box-shadow: none
+    }
+
+    .complexity-badge,
+    .difficulty-badge {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #edf2f6;
+      color: #526579;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase
+    }
+
+    .complexity-advanced,
+    .complexity-expert,
+    .complexity-enterprise,
+    .difficulty-beginner,
+    .difficulty-intermediate,
+    .difficulty-advanced {
+      background: #edf2f6;
+      color: #526579
+    }
+
+    .complexity-enterprise {
+      background: #fff4dd;
+      color: #805500
+    }
+
+    .integration-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-top: 25px
+    }
+
+    .stat-item {
+      min-width: 120px;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      text-align: left;
+      backdrop-filter: none
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 750;
+      letter-spacing: -.03em
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .8rem
+    }
+
+    @media(max-width:720px) {
+      .navbar {
+        padding: 12px 18px;
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px
+      }
+
+      .navbar .nav-links {
+        width: 100%;
+        gap: 4px
+      }
+
+      .navbar .nav-links a {
+        padding: 8px 10px
+      }
+
+      .main-container {
+        padding-top: 32px
+      }
+
+      .integration-card,
+      .card {
+        padding: 21px
+      }
+
+      .card-grid,
+      .card-container {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important
+      }
+    }
   </style>
   <link rel="stylesheet" href="/site.css">
 </head>
 
 <body>
   <nav class="navbar">
-  <a href="/" class="logo"><i class="fab fa-paypal" aria-hidden="true"></i><span>PayPal Integration Hub</span></a>
-  <div class="nav-links" aria-label="Main navigation">
-    <a href="/" class="nav-link nav-link-home">Advanced</a>
-    <a href="/standardview" class="nav-link">Standard</a>
-    <a href="/cards" class="nav-link">Cards</a>
-  </div>
-</nav>
+    <a href="/" class="logo"><i class="fab fa-paypal" aria-hidden="true"></i><span>PayPal Integration Hub</span></a>
+    <div class="nav-links" aria-label="Main navigation">
+      <a href="/" class="nav-link nav-link-home">Advanced</a>
+      <a href="/standardview" class="nav-link">Standard</a>
+      <a href="/cards" class="nav-link">Cards</a>
+    </div>
+  </nav>
 
   <div class="main-container">
     <div class="page-header">
@@ -402,42 +732,6 @@
         <div class="complexity-badge complexity-advanced">Advanced</div>
         <div class="card-header">
           <div class="card-icon">
-            <i class="fas fa-credit-card"></i>
-          </div>
-          <h3 class="card-title">Hosted Fields</h3>
-        </div>
-        <p class="card-description">
-          Secure card input fields hosted by Braintree, reducing PCI compliance scope
-          while maintaining full control over the payment experience and styling.
-        </p>
-        <div class="card-features">
-          <ul class="feature-list">
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Reduced PCI scope
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Custom styling control
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Enhanced security
-            </li>
-          </ul>
-        </div>
-        <div class="card-actions">
-          <a href="/hostedfields" target="_blank" class="demo-button">
-            <i class="fas fa-play"></i>
-            Launch Demo
-          </a>
-        </div>
-      </div>
-
-      <div class="integration-card">
-        <div class="complexity-badge complexity-advanced">Advanced</div>
-        <div class="card-header">
-          <div class="card-icon">
             <i class="fas fa-mobile-alt"></i>
           </div>
           <h3 class="card-title">Mobile Wallet Suite</h3>
@@ -551,9 +845,7 @@
           <h3 class="card-title">STC Pay Integration</h3>
         </div>
         <p class="card-description">
-          Saudi Arabia's leading digital wallet solution. Essential for businesses
-          targeting the Middle East market with localized payment preferences.
-        </p>
+          Additional information passed through the API for high risk transactions </p>
         <div class="card-features">
           <ul class="feature-list">
             <li class="feature-item">
@@ -609,78 +901,6 @@
         <div class="card-actions">
           <a href="/ppcp" target="_blank" class="demo-button">
             <i class="fas fa-play"></i>
-            Launch Demo
-          </a>
-        </div>
-      </div>
-
-      <div class="integration-card">
-        <div class="complexity-badge complexity-advanced">Advanced</div>
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-sync-alt"></i>
-          </div>
-          <h3 class="card-title">Vault Subscriptions</h3>
-        </div>
-        <p class="card-description">
-          Advanced subscription management with vaulted payment methods.
-          Perfect for SaaS, membership sites, and recurring billing scenarios.
-        </p>
-        <div class="card-features">
-          <ul class="feature-list">
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Recurring billing automation
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Payment method vaulting
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Subscription lifecycle management
-            </li>
-          </ul>
-        </div>
-        <div class="card-actions">
-          <a href="/vaultsub" target="_blank" class="demo-button">
-            <i class="fas fa-play"></i>
-            Launch Demo
-          </a>
-        </div>
-      </div>
-
-      <div class="integration-card">
-        <div class="complexity-badge complexity-expert">Expert</div>
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-bolt"></i>
-          </div>
-          <h3 class="card-title">Fastlane Checkout</h3>
-        </div>
-        <p class="card-description">
-          Ultra-fast checkout experience with one-click payments and guest checkout optimization.
-          Maximize conversion rates with cutting-edge checkout technology.
-        </p>
-        <div class="card-features">
-          <ul class="feature-list">
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              One-click payments
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Guest checkout optimization
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Maximum conversion rates
-            </li>
-          </ul>
-        </div>
-        <div class="card-actions">
-          <a href="https://fastlane-sand.vercel.app/" target="_blank" class="demo-button">
-            <i class="fas fa-external-link-alt"></i>
             Launch Demo
           </a>
         </div>
@@ -807,46 +1027,6 @@
       </div>
 
       <div class="integration-card">
-        <div class="complexity-badge complexity-enterprise">Under construction</div>
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-money-bill-transfer"></i>
-          </div>
-          <h3 class="card-title">Vault Reference Transactions</h3>
-        </div>
-        <p class="card-description">
-          Advanced merchant-initiated billing with vault integration. Create billing agreements, process
-          reference transactions, and automate merchant-controlled payments with comprehensive admin controls.
-        </p>
-        <div class="card-features">
-          <ul class="feature-list">
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Billing agreement consent
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Merchant-initiated transactions
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Automation rules engine
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Dual admin dashboard
-            </li>
-          </ul>
-        </div>
-        <div class="card-actions">
-          <a href="/vault-reference-transactions" target="_blank" class="demo-button">
-            <i class="fas fa-play"></i>
-            Launch Demo
-          </a>
-        </div>
-      </div>
-
-      <div class="integration-card">
         <div class="complexity-badge complexity-advanced">Advanced</div>
         <div class="card-header">
           <div class="card-icon">
@@ -881,40 +1061,7 @@
           </a>
         </div>
       </div>
-      <div class="integration-card">
-        <div class="complexity-badge complexity-advanced">Advanced</div>
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <h3 class="card-title">Contact Module</h3>
-        </div>
-        <p class="card-description">
-          Contact module integration update your contact info in this integration
-        </p>
-        <div class="card-features">
-          <ul class="feature-list">
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Latest innovations
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Beta feature access
-            </li>
-            <li class="feature-item">
-              <i class="fas fa-check-circle"></i>
-              Cutting-edge technology
-            </li>
-          </ul>
-        </div>
-        <div class="card-actions">
-          <a href="/contact" target="_blank" class="demo-button">
-            <i class="fas fa-play"></i>
-            Launch Demo
-          </a>
-        </div>
-      </div>
+
     </div>
   </div>
   </div>
