@@ -1661,7 +1661,7 @@ app.get("/standard", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  res.render("index");
+  res.render("advancedview");
 });
 
 app.get("/applereact", async (req, res) => {
@@ -1673,7 +1673,7 @@ app.get("/standardview", async (req, res) => {
 });
 
 app.get("/advancedview", async (req, res) => {
-  res.render("advancedview");
+  res.redirect(301, "/");
 });
 
 app.get("/cards", async (req, res) => {
