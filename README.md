@@ -14,7 +14,7 @@ Install my-project with npm
 
 ## Screenshots
 
-![App Screenshot]([https://image-upload-example2.s3.eu-west-1.amazonaws.com/Screenshot+2024-05-03+201900.png](https://image-upload-example2.s3.eu-west-1.amazonaws.com/ppint.jpg))
+![App Screenshot](https://image-upload-example2.s3.eu-west-1.amazonaws.com/ppint.jpg)
 
 ## 🔗 Links
 [![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://tariq-horan.vercel.app/)
