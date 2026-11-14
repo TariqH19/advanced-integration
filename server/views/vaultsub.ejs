@@ -15,9 +15,18 @@
   <!-- https://developer.paypal.com/sdk/js/configuration/ -->
   <script
     src="https://www.paypal.com/sdk/js?components=messages,buttons,card-fields&enable-funding=paylater&buyer-country=GB&currency=GBP&client-id=<%= clientId %>"></script>
+  <link rel="stylesheet" href="/site.css">
 </head>
 
 <body>
+<nav class="navbar site-navigation" aria-label="Main navigation">
+  <a href="/" class="logo"><i class="fab fa-paypal" aria-hidden="true"></i><span>PayPal Integration Hub</span></a>
+  <div class="nav-links">
+    <a href="/">Advanced</a>
+    <a href="/standardview">Standard</a>
+    <a href="/cards">Cards</a>
+  </div>
+</nav>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;

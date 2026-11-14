@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Debit Cards Page</title>
+    <title>Card testing reference | PayPal Integration Hub</title>
     <style>
       /* CSS Reset */
       * {
@@ -105,20 +105,30 @@
         margin-top: 20px;
       }
     </style>
-  </head>
+  <link rel="stylesheet" href="/style.css">
+    <style>
+      body{background:#f4f7fa;color:#142b45;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+      .main-container{max-width:1200px;margin:0 auto;padding:36px 28px}
+      .spacing{padding:0}
+      table{background:#fff;border:1px solid #dfe7ef;border-radius:12px;overflow:hidden}
+      th{background:#003087;color:#fff}
+      td,th{border-color:#e2e9f0;padding:13px 16px}
+      tr:nth-child(even){background:#f7f9fb}
+      .description{border-color:#dfe7ef;border-radius:12px;box-shadow:0 8px 24px rgba(20,43,69,.07)}
+      @media(max-width:720px){.main-container{padding:24px 16px}table{display:block;overflow-x:auto;white-space:nowrap}}
+    </style>
+  <link rel="stylesheet" href="/site.css">
+</head>
   <body>
-    <div class="navbar">
-      <h1>
-        <a href="/">Code Example Website</a>
-      </h1>
-      <div>
-        <a href="/standardview">Standard</a>
-        <a href="/advancedview">Advanced</a>
-
-        <a href="/cards">Cards</a>
-      </div>
-    </div>
-    <div class="spacing">
+    <nav class="navbar">
+  <a href="/" class="logo"><i class="fab fa-paypal" aria-hidden="true"></i><span>PayPal Integration Hub</span></a>
+  <div class="nav-links" aria-label="Main navigation">
+    <a href="/" class="nav-link nav-link-home">Advanced</a>
+    <a href="/standardview" class="nav-link">Standard</a>
+    <a href="/cards" class="nav-link">Cards</a>
+  </div>
+</nav>
+    <main class="main-container"><div class="spacing">
       <a
         href="https://developer.paypal.com/api/rest/sandbox/card-testing/"
         target="_blank"
@@ -209,5 +219,6 @@
         </tbody>
       </table>
     </div>
+  </main>
   </body>
 </html>
